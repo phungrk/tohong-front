@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
 import { ThreadMark } from '../../ui/atoms.jsx';
 import { ChatTabWrapper } from './index.jsx';
+import { ChatActionsCtx, VPickerChatCard, VMatchChatCard } from './VendorChatCards.jsx';
 
 const CTX_INFO = {
   home:   { icon: 'house',          label: 'Toàn bộ đám cưới' },
@@ -10,6 +12,78 @@ const CTX_INFO = {
   vendor: { icon: 'store',          label: 'Vendors' },
 };
 
+/* ── Vendor thread message rendering ─────────────────────────── */
+function UserBubble({ text }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+      <div style={{ maxWidth: '78%', background: 'var(--son-500)', color: '#fff',
+        borderRadius: '18px 18px 4px 18px', padding: '9px 13px',
+        fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.45 }}>
+        {text}
+      </div>
+    </div>
+  );
+}
+
+function BotBubble({ children }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-start' }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--son-500)',
+        flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+        <ThreadMark size={17} color="#fff7f0" dot="#fff" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Vendor thread container ─────────────────────────────────── */
+function VendorThread({ vendorSeed }) {
+  const [messages, setMessages] = useState([]);
+  const scrollRef = useRef(null);
+
+  const pushUser = (text) => {
+    setMessages((prev) => [...prev, { id: prev.length, type: 'user', text }]);
+  };
+
+  const pushAI = (Card, props = {}) => {
+    setMessages((prev) => [...prev, { id: prev.length, type: 'card', Card, props }]);
+  };
+
+  useEffect(() => {
+    const InitCard = vendorSeed?.catId ? VMatchChatCard : VPickerChatCard;
+    const initProps = vendorSeed?.catId ? { catId: vendorSeed.catId } : {};
+    setMessages([{ id: 0, type: 'card', Card: InitCard, props: initProps }]);
+  }, [vendorSeed?.catId]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  return (
+    <ChatActionsCtx.Provider value={{ pushUser, pushAI }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 12px 20px' }}>
+        {messages.map((msg) => {
+          if (msg.type === 'user') {
+            return <UserBubble key={msg.id} text={msg.text} />;
+          }
+          const { Card, props } = msg;
+          return (
+            <BotBubble key={msg.id}>
+              <Card {...props} />
+            </BotBubble>
+          );
+        })}
+      </div>
+    </ChatActionsCtx.Provider>
+  );
+}
+
+/* ── AIChatModal ─────────────────────────────────────────────── */
 export function AIChatModal({
   open,
   onClose,
@@ -19,8 +93,10 @@ export function AIChatModal({
   onAction,
   onConversationChange,
   onConversationUpdated,
+  vendorSeed,
 }) {
   const ctx = CTX_INFO[ctxId] || CTX_INFO.home;
+  const isVendorMode = !!vendorSeed;
 
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 500, pointerEvents: open ? 'all' : 'none' }}>
@@ -56,24 +132,28 @@ export function AIChatModal({
               color: 'var(--kim-700)', background: 'var(--kim-50)',
               border: '1px solid var(--kim-200)', borderRadius: 'var(--r-pill)', padding: '5px 11px' }}>
               <Icon name={ctx.icon} size={13} color="var(--kim-600)" />
-              Đang xem: {ctx.label}
+              {isVendorMode ? 'Tìm vendor · Tơ Hồng gợi ý' : `Đang xem: ${ctx.label}`}
             </span>
           </div>
         </div>
         <div style={{ height: 1, background: 'var(--line-100)', flexShrink: 0 }} />
 
-        {/* chat content */}
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-          <ChatTabWrapper
-            coupleId={coupleId}
-            ctxId={ctxId}
-            chatSession={chatSession}
-            onMenuOpen={onClose}
-            onAction={onAction}
-            onConversationChange={onConversationChange}
-            onConversationUpdated={onConversationUpdated}
-            hideHeader
-          />
+        {/* content */}
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+          {isVendorMode ? (
+            <VendorThread vendorSeed={vendorSeed} />
+          ) : (
+            <ChatTabWrapper
+              coupleId={coupleId}
+              ctxId={ctxId}
+              chatSession={chatSession}
+              onMenuOpen={onClose}
+              onAction={onAction}
+              onConversationChange={onConversationChange}
+              onConversationUpdated={onConversationUpdated}
+              hideHeader
+            />
+          )}
         </div>
       </div>
     </div>
