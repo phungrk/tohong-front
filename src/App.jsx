@@ -283,7 +283,7 @@ export default function App() {
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
     <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
-pew    <ScreenVendorTracker key={`vendor-${vendorKey}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
+    <ScreenVendorTracker key={`vendor-${vendorKey}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
   ];
 
   return (
