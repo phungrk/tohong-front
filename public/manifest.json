@@ -1,0 +1,18 @@
+{
+  "name": "Tơ Hồng",
+  "short_name": "Tơ Hồng",
+  "description": "Trợ lý cưới AI của bạn",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FCF8F3",
+  "theme_color": "#FCF8F3",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

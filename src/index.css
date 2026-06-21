@@ -1,0 +1,657 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Son — lacquer rose (PRIMARY) */
+  --son-50: #FBEDEF;
+  --son-100: #F6D9DE;
+  --son-200: #EBB0BA;
+  --son-300: #DC8593;
+  --son-400: #C75767;
+  --son-500: #A83246;
+  --son-600: #8E2639;
+  --son-700: #721C2C;
+  --son-800: #561420;
+  --son-900: #3A0D16;
+
+  /* Kim — antique gold (ACCENT) */
+  --kim-50: #FAF4E6;
+  --kim-100: #F3E7C7;
+  --kim-200: #E6CF93;
+  --kim-300: #D6B45F;
+  --kim-400: #C2A15B;
+  --kim-500: #A8853F;
+  --kim-600: #8A6B2F;
+  --kim-700: #6B5223;
+
+  /* Đào — peony / lotus blush */
+  --dao-50: #FCF1F0;
+  --dao-100: #F8E1DF;
+  --dao-200: #F0C7C7;
+  --dao-300: #E5A9AC;
+  --dao-400: #DD8B95;
+  --dao-500: #CE6E7C;
+
+  /* Warm neutrals */
+  --paper: #FCF8F3;
+  --sand: #F6EEE4;
+  --linen: #F0E6D8;
+  --card: #FFFDFB;
+  --white: #FFFFFF;
+
+  --line-100: #EFE6D8;
+  --line-200: #E4D6C3;
+  --line-300: #D6C4AC;
+
+  --ink-900: #2B2420;
+  --ink-700: #4A4039;
+  --ink-600: #574C43; /* between 500 & 700 — referenced by screens */
+  --ink-500: #6B5D52;
+  --ink-400: #8C7E70;
+  --ink-300: #A99C8D;
+
+  /* Semantic status (warm-leaning) */
+  --sage-500: #5E8C6A;
+  --sage-200: #C3DFC7; /* soft success line */
+  --sage-50: #E9F1EA;
+  --amber-600: #B45309; /* deep amber — pending text */
+  --amber-500: #C98A3C;
+  --amber-400: #D9A441; /* amber fill */
+  --amber-50: #FAF0DF;
+  --danger-500: #B23B3B;
+  --danger-50: #F8E6E4;
+  --info-500: #4A6B8A;
+  --info-50: #E7EEF3;
+
+  /* Semantic roles */
+  --bg-1: var(--paper);
+  --bg-2: var(--sand);
+  --bg-3: var(--linen);
+  --surface: var(--card);
+  --fg-1: var(--ink-900);
+  --fg-2: var(--ink-500);
+  --fg-3: var(--ink-400);
+  --fg-on-primary: #FFF7F0;
+  --primary: var(--son-500);
+  --thread: var(--son-500);
+  --focus-ring: color-mix(in oklab, var(--son-500) 45%, transparent);
+
+  /* Typography */
+  --font-display: 'Playfair Display', 'Times New Roman', serif;
+  --font-body: 'Lora', Georgia, serif;
+  --font-ui: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  /* Shadows — soft, warm-tinted */
+  --shadow-xs: 0 1px 2px rgba(80, 50, 40, 0.06);
+  --shadow-sm: 0 2px 8px rgba(80, 50, 40, 0.07);
+  --shadow-md: 0 8px 24px rgba(80, 50, 40, 0.10);
+  --shadow-lg: 0 18px 48px rgba(80, 50, 40, 0.14);
+  --shadow-gold: 0 6px 20px rgba(168, 133, 63, 0.22);
+  --shadow-rose: 0 8px 24px rgba(168, 50, 70, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+:root {
+  --sat: env(safe-area-inset-top, 20px);
+  --header-pt: calc(var(--sat) + 10px);
+}
+
+/* Prevent iOS Safari from zooming in when focusing inputs with font-size < 16px.
+   Use !important to override inline styles set by individual components. */
+input, textarea, select {
+  font-size: max(16px, 1em) !important;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--linen);
+  color: var(--ink-900);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ===== App shell ===== */
+.app-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% -8rem, rgba(248, 225, 223, 0.9), transparent 28rem),
+    var(--linen);
+}
+
+.app-frame {
+  width: 100%;
+  max-width: 440px;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+@media (min-width: 461px) {
+  .app-frame {
+    border-left: 1px solid var(--line-200);
+    border-right: 1px solid var(--line-200);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.ds-label {
+  margin: 0 0 11px;
+  color: var(--ink-400);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--son-500);
+}
+
+.brand > span {
+  color: var(--ink-900);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.brand > span span {
+  color: var(--son-500);
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-700);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--sand);
+  color: var(--son-600);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dao-300), var(--son-500));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* ===== Allocation slider (Budget screen) ===== */
+/* Background gradient lives on ::webkit-slider-runnable-track, NOT on the input element.
+   Putting it on the input made iOS Safari render the full ~44px input height as the colored fill. */
+.bx-range {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  align-self: center;
+}
+
+.bx-range:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.bx-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--bx-fill) var(--bx-pct), var(--line-100) var(--bx-pct));
+}
+
+.bx-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--bx-fill);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  cursor: grab;
+  margin-top: -6px;
+}
+
+.bx-range:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+.bx-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--bx-fill) var(--bx-pct), var(--line-100) var(--bx-pct));
+}
+
+.bx-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--bx-fill);
+  cursor: grab;
+}
+
+/* ===== Drawer ===== */
+.drawer-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: rgba(43, 36, 32, 0);
+  transition: background 260ms ease;
+}
+
+.drawer-scrim.is-open {
+  pointer-events: auto;
+  background: rgba(43, 36, 32, 0.34);
+}
+
+.drawer {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 60;
+  width: min(290px, 82vw);
+  display: flex;
+  flex-direction: column;
+  padding-top: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  transition: transform 280ms cubic-bezier(.4, 0, .2, 1);
+}
+
+.drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+}
+
+.drawer-new {
+  padding: 4px 14px 10px;
+}
+
+.drawer-new button {
+  width: 100%;
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--son-200);
+  border-radius: var(--r-pill);
+  background: var(--son-50);
+  color: var(--son-600);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drawer-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 12px;
+}
+
+.drawer-scroll .ds-label {
+  padding: 10px 8px 7px;
+  margin: 0;
+}
+
+.recent-label {
+  margin-top: 10px !important;
+}
+
+.drawer-link,
+.drawer-recent {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-900);
+  text-align: left;
+  cursor: pointer;
+}
+
+.drawer-link {
+  gap: 13px;
+  padding: 11px 12px;
+}
+
+.drawer-link svg:first-child {
+  color: var(--son-500);
+}
+
+.drawer-link span,
+.drawer-recent span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--ink-900);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-link:hover,
+.drawer-recent:hover {
+  background: var(--sand);
+}
+
+.drawer-recent {
+  gap: 11px;
+  padding: 10px 12px;
+  color: var(--ink-400);
+}
+
+.drawer-recent span {
+  color: var(--ink-700);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.drawer-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line-100);
+}
+
+.drawer-profile strong,
+.drawer-profile span {
+  display: block;
+  font-family: var(--font-ui);
+}
+
+.drawer-profile strong {
+  color: var(--ink-900);
+  font-size: 13.5px;
+}
+
+.drawer-profile span {
+  margin-top: 2px;
+  color: var(--ink-400);
+  font-size: 11.5px;
+}
+
+/* ===== Buttons / modal / form (ProfileModal) ===== */
+.btn {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.btn.primary {
+  background: var(--son-500);
+  color: var(--fg-on-primary);
+}
+
+.btn.secondary {
+  border: 1px solid var(--son-200);
+  background: var(--card);
+  color: var(--son-700);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(43, 36, 32, 0.45);
+}
+
+.modal-card {
+  width: min(100%, 560px);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid var(--line-200);
+  border-radius: var(--r-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-head {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid var(--line-200);
+}
+
+.modal-head h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+
+.modal-body {
+  padding: 18px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+  color: var(--ink-500);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line-200);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink-900);
+  padding: 0 13px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+  padding-top: 11px;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--line-200);
+}
+
+.error-box {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in oklab, var(--danger-500) 30%, var(--danger-50));
+  border-radius: var(--r-md);
+  background: var(--danger-50);
+  color: var(--danger-500);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+/* ===== Markdown render trong bong bóng AI (.md) ===== */
+/* IMPORTANT: Đừng xoá block này — dùng bởi BotMarkdown trong AppChat.jsx
+   để render phản hồi streaming từ LLM (react-markdown + remark-gfm). */
+.md > :first-child { margin-top: 0; }
+.md > :last-child  { margin-bottom: 0; }
+.md p { margin: 0 0 10px; }
+.md ul,
+.md ol { margin: 0 0 10px; padding-left: 20px; }
+.md li { margin: 3px 0; }
+.md li > p { margin: 0; }
+.md h1,
+.md h2,
+.md h3,
+.md h4 { margin: 14px 0 8px; font-family: var(--font-display, inherit); font-weight: 700; line-height: 1.3; color: var(--ink-900); }
+.md h1 { font-size: 18px; }
+.md h2 { font-size: 16.5px; }
+.md h3 { font-size: 15px; }
+.md h4 { font-size: 14.5px; }
+.md strong { font-weight: 700; }
+.md em     { font-style: italic; }
+.md a      { color: var(--son-600); text-decoration: underline; }
+.md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  background: var(--son-50);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+.md pre {
+  background: var(--son-50);
+  padding: 10px 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 0 0 10px;
+}
+.md pre code { background: none; padding: 0; font-size: 12.5px; }
+.md blockquote {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--son-200);
+  color: var(--ink-700);
+}
+.md hr { border: none; border-top: 1px solid var(--line-200); margin: 14px 0; }
+.md table { width: 100%; border-collapse: collapse; margin: 0 0 10px; font-size: 13px; }
+.md th, .md td { border: 1px solid var(--line-200); padding: 6px 10px; text-align: left; }
+.md th { background: var(--sand); font-weight: 600; }
+
+/* ===== AI FAB animations ===== */
+@keyframes fabBreath {
+  0%, 100% { box-shadow: 0 8px 24px rgba(168,50,70,.28); }
+  50%       { box-shadow: 0 10px 32px rgba(168,50,70,.46); }
+}
+@keyframes fabRing {
+  0%        { transform: scale(1); opacity: .45; }
+  70%, 100% { transform: scale(1.55); opacity: 0; }
+}
+@keyframes fabHeart {
+  0%, 34%, 100% { transform: scale(1); }
+  10%            { transform: scale(1.07); }
+  18%            { transform: scale(1); }
+  26%            { transform: scale(1.05); }
+}
+@keyframes fabTwinkle {
+  0%, 35%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); }
+  14%            { opacity: 1; transform: scale(1) rotate(24deg); }
+}
+@keyframes nudgePop {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-fab * { animation: none !important; }
+}
+
+@keyframes thbounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  40% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
