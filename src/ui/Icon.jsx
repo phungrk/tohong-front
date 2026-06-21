@@ -61,6 +61,14 @@ import {
   CornerDownRight,
   Heart,
   Building2,
+  SearchX,
+  SlidersHorizontal,
+  ClipboardList,
+  CircleDashed,
+  Music2,
+  MapPin,
+  Palette,
+  Bookmark,
 } from 'lucide-react';
 
 const MAP = {
@@ -123,6 +131,14 @@ const MAP = {
   'corner-down-right': CornerDownRight,
   heart: Heart,
   'building-2': Building2,
+  'search-x': SearchX,
+  'sliders-horizontal': SlidersHorizontal,
+  'clipboard-list': ClipboardList,
+  'circle-dashed': CircleDashed,
+  'music-2': Music2,
+  'map-pin': MapPin,
+  palette: Palette,
+  bookmark: Bookmark,
 };
 
 export function Icon({ name, size = 20, color = 'currentColor', sw = 1.85, ...rest }) {

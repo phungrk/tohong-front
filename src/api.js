@@ -109,6 +109,34 @@ export const api = {
   getBudgetProposal: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/budget/proposal`),
   getTimelineSuggestions: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/timeline/suggestions`),
 
+  // ── Vendor matching ────────────────────────────────────────────────────────
+  matchVendors: (coupleId, { category, limit, offset, minScore } = {}) => {
+    const params = new URLSearchParams({ coupleId: coupleId || '' });
+    if (category) params.set('category', category);
+    if (limit != null) params.set('limit', limit);
+    if (offset != null) params.set('offset', offset);
+    if (minScore != null) params.set('minScore', minScore);
+    return req('GET', `/api/vendors/match?${params}`);
+  },
+
+  getVendorCategories: (coupleId) =>
+    req('GET', `/api/vendors/categories?coupleId=${coupleId || ''}`),
+
+  getVendorDetail: (vendorId, coupleId) =>
+    req('GET', `/api/vendors/${vendorId}?coupleId=${coupleId || ''}`),
+
+  addToShortlist: (coupleId, vendorId) =>
+    req('POST', `/api/couples/${coupleId}/shortlist`, { vendorId }),
+
+  removeFromShortlist: (coupleId, vendorId) =>
+    req('DELETE', `/api/couples/${coupleId}/shortlist/${vendorId}`),
+
+  dismissVendor: (coupleId, vendorId) =>
+    req('POST', `/api/couples/${coupleId}/dismiss`, { vendorId }),
+
+  getVendorPrefs: (coupleId) =>
+    reqOrNull('GET', `/api/couples/${coupleId}/shortlist`),
+
   /**
    * Stream chat (SSE). handlers: { onConversation, onChunk, onMeta, onDone, onError }
    * Trả về Promise resolve khi stream kết thúc.
