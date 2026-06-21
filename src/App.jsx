@@ -15,7 +15,7 @@ import { AIChatModal } from './screens/chat/AIChatModal.jsx';
 import { ScreenTimeline } from './screens/Timeline.jsx';
 import { ScreenBudget } from './screens/Budget.jsx';
 import { ScreenGuests } from './screens/Guests.jsx';
-import { ScreenOnboarding } from './screens/ScreenOnboarding.jsx';
+import { Onboarding } from './screens/Onboarding.jsx';
 import { ScreenVendorTracker } from './screens/Vendors.jsx';
 
 /* ── shared micro-components ─────────────────────────────── */
@@ -283,7 +283,7 @@ export default function App() {
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
     <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
-    <ScreenVendorTracker key={`vendor-${vendorKey}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
+pew    <ScreenVendorTracker key={`vendor-${vendorKey}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
   ];
 
   return (
@@ -322,7 +322,7 @@ export default function App() {
           onOpenConversation={openConversation}
         />
 
-        <ScreenOnboarding open={obOpen} onDone={handleObDone} />
+        <Onboarding open={obOpen} onDone={handleObDone} />
       </div>
     </div>
   );
