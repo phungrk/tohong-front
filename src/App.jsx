@@ -16,7 +16,8 @@ import { ScreenTimeline } from './screens/Timeline.jsx';
 import { ScreenBudget } from './screens/Budget.jsx';
 import { ScreenGuests } from './screens/Guests.jsx';
 import { Onboarding } from './screens/Onboarding.jsx';
-import { ScreenVendorTracker } from './screens/Vendors.jsx';
+import { ScreenVendorShortlist } from './screens/Vendors.jsx';
+import { VendorProvider } from './screens/VendorCtx.jsx';
 
 /* ── shared micro-components ─────────────────────────────── */
 function IconButton({ label, children, onClick }) {
@@ -134,6 +135,7 @@ export default function App() {
   const [conversations, setConversations] = useState([]);
   const [refreshKeys, setRefreshKeys] = useState({ budget: 0, guests: 0, timeline: 0 });
   const [vendorKey, setVendorKey] = useState(0);
+  const [vendorSeed, setVendorSeed] = useState(null);
   const [chatSession, setChatSession] = useState({
     conversationId: null,
     messages: null,
@@ -144,8 +146,15 @@ export default function App() {
 
   const openAI = useCallback((ctx) => {
     setAiCtx(ctx || CTX_BY_TAB[tab] || 'home');
+    setVendorSeed(null);
     setAiOpen(true);
   }, [tab]);
+
+  const openAIVendor = (catId) => {
+    setAiCtx('vendor');
+    setVendorSeed(catId ? { catId } : { catId: null });
+    setAiOpen(true);
+  };
 
   const loadConversations = (cid) =>
     api.listConversations(cid).then((r) => setConversations(r.conversations || [])).catch(() => {});
@@ -283,10 +292,11 @@ export default function App() {
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
     <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
-    <ScreenVendorTracker key={`vendor-${vendorKey}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
+    <ScreenVendorShortlist key={`vendor-${vendorKey}`} onMenuOpen={() => setDrawer(true)} onOpenVendorChat={openAIVendor} />,
   ];
 
   return (
+    <VendorProvider>
     <div className="app-page">
       <div className="app-frame">
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -310,6 +320,7 @@ export default function App() {
             onAction={handleAction}
             onConversationChange={() => loadConversations(coupleId)}
             onConversationUpdated={() => loadConversations(coupleId)}
+            vendorSeed={vendorSeed}
           />
         </div>
 
@@ -325,5 +336,6 @@ export default function App() {
         <Onboarding open={obOpen} onDone={handleObDone} />
       </div>
     </div>
+    </VendorProvider>
   );
 }

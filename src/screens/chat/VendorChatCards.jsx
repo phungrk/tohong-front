@@ -1,0 +1,372 @@
+import { createContext, useContext, useState } from 'react';
+import { Icon } from '../../ui/Icon.jsx';
+import { VENDOR_CATEGORIES, VENDOR_POOL, useVendorCtx } from '../VendorCtx.jsx';
+import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
+
+export const ChatActionsCtx = createContext({ pushUser: () => {}, pushAI: () => {} });
+export const useChatActions = () => useContext(ChatActionsCtx);
+
+/* ── SaveFlash ─────────────────────────────────────────────── */
+function SaveFlash({ visible, name }) {
+  if (!visible) return null;
+  return (
+    <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9999, pointerEvents: 'none',
+      background: 'var(--sage-500)', color: '#fff', borderRadius: 'var(--r-pill)',
+      padding: '9px 18px', display: 'flex', alignItems: 'center', gap: 8,
+      fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
+      <Icon name="heart" size={15} color="#fff" sw={2.5} />
+      Đã lưu {name}
+    </div>
+  );
+}
+
+/* ── Match badge ─────────────────────────────────────────────── */
+function MatchBadge({ pct }) {
+  const color = pct >= 90 ? 'var(--son-500)' : pct >= 80 ? 'var(--kim-500,#c69b2a)' : 'var(--ink-400)';
+  return (
+    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+      color, background: 'var(--card)', border: `1.5px solid ${color}`,
+      borderRadius: 999, padding: '2px 8px', flexShrink: 0 }}>
+      {pct}%
+    </span>
+  );
+}
+
+/* ── VPickerChatCard ─────────────────────────────────────────── */
+export function VPickerChatCard() {
+  const { getCatStatus } = useVendorCtx();
+  const { pushUser, pushAI } = useChatActions();
+
+  const pick = (cat) => {
+    pushUser(`Tôi muốn xem ${cat.name}`);
+    pushAI(VMatchChatCard, { catId: cat.id });
+  };
+
+  return (
+    <CardShell gold>
+      <CardHead icon="store" kicker="Tơ Hồng gợi ý" title="Chọn danh mục vendor" />
+      <div style={{ padding: '6px 0 2px' }}>
+        {VENDOR_CATEGORIES.map((cat) => {
+          const status = getCatStatus(cat.id);
+          return (
+            <button key={cat.id} type="button" onClick={() => pick(cat)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                padding: '11px 14px', background: 'transparent', border: 'none', cursor: 'pointer',
+                borderBottom: '1px solid var(--line-100)', textAlign: 'left' }}>
+              <span style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                background: 'var(--son-50)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name={cat.icon} size={18} color={cat.color} sw={1.8} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{cat.budget}tr</div>
+              </span>
+              {status === 'confirmed' && (
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', flexShrink: 0 }} />
+              )}
+              {status === 'shortlisted' && (
+                <Icon name="bookmark" size={14} color="var(--kim-500,#c69b2a)" sw={2} />
+              )}
+              <Icon name="chevron-right" size={16} color="var(--ink-300)" sw={1.8} />
+            </button>
+          );
+        })}
+      </div>
+    </CardShell>
+  );
+}
+
+/* ── VMatchChatCard ─────────────────────────────────────────── */
+export function VMatchChatCard({ catId }) {
+  const { saved, saveVendor } = useVendorCtx();
+  const { pushUser, pushAI } = useChatActions();
+  const [flash, setFlash] = useState(null);
+
+  const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
+  const vendors = VENDOR_POOL[catId] || [];
+  const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
+
+  if (!cat) return null;
+
+  const onSave = (v) => {
+    saveVendor(catId, v);
+    setFlash(v.name);
+    setTimeout(() => setFlash(null), 1900);
+  };
+
+  const onDetail = (v) => {
+    pushUser(`Xem chi tiết ${v.name}`);
+    pushAI(VDetailChatCard, { catId, vendorId: v.id });
+  };
+
+  const onCompare = () => {
+    const top2 = vendors.slice(0, 2);
+    if (top2.length < 2) return;
+    pushUser(`So sánh ${top2[0].name} và ${top2[1].name}`);
+    pushAI(VCompareChatCard, { catId, ids: top2.map((v) => v.id) });
+  };
+
+  return (
+    <>
+      <SaveFlash visible={!!flash} name={flash} />
+      <CardShell gold>
+        <CardHead icon={cat.icon} kicker={`${vendors.length} gợi ý phù hợp`} title={cat.name} />
+        <div style={{ padding: '4px 0 2px' }}>
+          {vendors.map((v, i) => {
+            const isBest = i === 0;
+            const isSaved = savedIds.includes(v.id);
+            return (
+              <div key={v.id} style={{ padding: '10px 14px',
+                borderBottom: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  {/* swatch */}
+                  <div style={{ width: 54, height: 54, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                    background: v.grad, position: 'relative' }}>
+                    {isBest && (
+                      <span style={{ position: 'absolute', top: -5, left: -5,
+                        background: 'var(--son-500)', color: '#fff',
+                        fontSize: 9, fontWeight: 700, letterSpacing: '0.05em',
+                        borderRadius: 999, padding: '2px 6px', fontFamily: 'var(--font-ui)' }}>
+                        BEST
+                      </span>
+                    )}
+                  </div>
+                  {/* info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600,
+                        color: 'var(--ink-900)', flex: 1, minWidth: 0,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+                      <MatchBadge pct={v.match} />
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginBottom: 5 }}>
+                      {v.priceTotal}tr · {v.spec}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {v.reasons.slice(0, 2).map((r) => (
+                        <span key={r} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
+                          background: 'var(--sage-50,#edf7ee)', border: '1px solid var(--sage-200,#b8d9be)',
+                          borderRadius: 999, padding: '2px 7px' }}>{r}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {/* save button */}
+                  <button type="button" onClick={() => onSave(v)} style={{ flexShrink: 0, padding: 6,
+                    background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '50%',
+                    color: isSaved ? 'var(--son-500)' : 'var(--ink-300)' }}>
+                    <Icon name="heart" size={18} color={isSaved ? 'var(--son-500)' : 'var(--ink-300)'}
+                      sw={isSaved ? 2.5 : 1.8} />
+                  </button>
+                </div>
+                {/* view detail */}
+                <button type="button" onClick={() => onDetail(v)}
+                  style={{ marginTop: 8, fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)',
+                    background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+                    display: 'flex', alignItems: 'center', gap: 3 }}>
+                  Xem chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {vendors.length >= 2 && (
+          <CardAction>
+            <GhostBtn icon="sliders-horizontal" small onClick={onCompare}>So sánh top 2</GhostBtn>
+          </CardAction>
+        )}
+      </CardShell>
+    </>
+  );
+}
+
+/* ── VDetailChatCard ─────────────────────────────────────────── */
+export function VDetailChatCard({ catId, vendorId }) {
+  const { saved, saveVendor } = useVendorCtx();
+  const [flash, setFlash] = useState(false);
+
+  const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
+  const vendor = (VENDOR_POOL[catId] || []).find((v) => v.id === vendorId);
+  const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendorId);
+
+  if (!cat || !vendor) return null;
+
+  const onSave = () => {
+    saveVendor(catId, vendor);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 1900);
+  };
+
+  return (
+    <>
+      <SaveFlash visible={flash} name={vendor.name} />
+      <CardShell gold>
+        <CardHead icon={cat.icon} kicker="Chi tiết vendor" title={vendor.name} />
+
+        {/* hero gradient */}
+        <div style={{ height: 140, background: vendor.grad, position: 'relative', flexShrink: 0 }}>
+          <div style={{ position: 'absolute', bottom: 10, right: 10,
+            background: 'rgba(0,0,0,0.52)', color: '#fff', borderRadius: 999,
+            padding: '4px 10px', fontSize: 12, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-ui)' }}>
+            <Icon name="star" size={12} color="#f4c542" sw={2} /> {vendor.rating} · {vendor.rv} đánh giá
+          </div>
+          <div style={{ position: 'absolute', top: 10, left: 10,
+            background: 'rgba(0,0,0,0.52)', color: '#fff', borderRadius: 999,
+            padding: '4px 10px', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-ui)' }}>
+            {vendor.match}% phù hợp
+          </div>
+        </div>
+
+        {/* AI breakdown */}
+        <div style={{ padding: '12px 14px 4px' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+            letterSpacing: '0.07em', marginBottom: 8, fontFamily: 'var(--font-ui)' }}>Đánh giá AI</div>
+          {[['Ngân sách', vendor.breakdown.budget, 'var(--sage-500)'],
+            ['Phong cách', vendor.breakdown.style, 'var(--kim-400)'],
+            ['Lịch trống', vendor.breakdown.avail, 'var(--son-500)']].map(([label, pct, color]) => (
+            <div key={label} style={{ marginBottom: 7 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3,
+                fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-600)' }}>
+                <span>{label}</span>
+                <span style={{ color }}>{pct}%</span>
+              </div>
+              <div style={{ height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
+                <div style={{ width: pct + '%', height: '100%', background: color, borderRadius: 999 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* services */}
+        <div style={{ padding: '8px 14px 12px' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+            letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Bao gồm</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 10px' }}>
+            {vendor.includes.map((item) => (
+              <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5,
+                fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-700)' }}>
+                <Icon name="check" size={12} color="var(--sage-500)" sw={2.5} /> {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* review */}
+        <div style={{ padding: '0 14px 14px' }}>
+          <div style={{ background: 'var(--son-50)', border: '1px solid var(--son-100)',
+            borderRadius: 'var(--r-md)', padding: '10px 12px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)',
+              lineHeight: 1.55, fontStyle: 'italic' }}>
+              &ldquo;{vendor.reviews[0].text}&rdquo;
+            </div>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 4 }}>
+              — {vendor.reviews[0].name}
+            </div>
+          </div>
+        </div>
+
+        <CardAction>
+          {isSaved ? (
+            <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6,
+              fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--sage-600)', fontWeight: 600 }}>
+              <Icon name="check" size={15} color="var(--sage-500)" sw={2.5} /> Đã lưu vào shortlist
+            </span>
+          ) : (
+            <GhostBtn icon="heart" onClick={onSave}>Lưu vào shortlist</GhostBtn>
+          )}
+        </CardAction>
+      </CardShell>
+    </>
+  );
+}
+
+/* ── VCompareChatCard ─────────────────────────────────────────── */
+export function VCompareChatCard({ catId, ids }) {
+  const { saved, saveVendor, confirmVendor } = useVendorCtx();
+  const [flash, setFlash] = useState(null);
+
+  const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
+  const vendors = ids
+    .map((id) => (VENDOR_POOL[catId] || []).find((v) => v.id === id))
+    .filter(Boolean);
+  const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
+  const confirmedId = saved[catId]?.confirmed?.id;
+  const winner = vendors.length > 0 ? vendors.reduce((a, b) => (a.match >= b.match ? a : b)) : null;
+
+  if (!cat || vendors.length === 0) return null;
+
+  const onChoose = (v) => {
+    saveVendor(catId, v);
+    confirmVendor(catId, v.id);
+    setFlash(v.name);
+    setTimeout(() => setFlash(null), 1900);
+  };
+
+  return (
+    <>
+      <SaveFlash visible={!!flash} name={flash} />
+      <CardShell gold>
+        <CardHead icon="sliders-horizontal" kicker="So sánh trực tiếp" title={cat.name} />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '12px 13px' }}>
+          {vendors.map((v) => {
+            const isWinner = v.id === winner?.id;
+            const isConfirmed = v.id === confirmedId;
+            return (
+              <div key={v.id} style={{
+                background: isWinner ? 'var(--sage-50,#f0f7f0)' : 'var(--bg-1,var(--son-50))',
+                border: `1px solid ${isWinner ? 'var(--sage-300,#a3c9a8)' : 'var(--line-100)'}`,
+                borderRadius: 'var(--r-md)', padding: '10px 10px 12px' }}>
+                <div style={{ height: 60, borderRadius: 'var(--r-sm)', background: v.grad, marginBottom: 8 }} />
+                {isWinner && (
+                  <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+                    color: 'var(--sage-700,#2d6b3a)', background: 'var(--sage-100,#d0ecd4)',
+                    borderRadius: 999, padding: '2px 8px', marginBottom: 6,
+                    display: 'inline-flex', alignItems: 'center', gap: 4, letterSpacing: '0.05em' }}>
+                    <Icon name="check" size={10} color="var(--sage-600)" sw={2.5} /> TỐT HƠN
+                  </div>
+                )}
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 600,
+                  color: 'var(--ink-900)', marginBottom: 2 }}>{v.name}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-500)', marginBottom: 8 }}>
+                  {v.priceTotal}tr · {v.match}% phù hợp
+                </div>
+                <button type="button" onClick={() => onChoose(v)}
+                  style={{ width: '100%', fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600,
+                    padding: '6px 0', borderRadius: 999, cursor: 'pointer',
+                    background: isWinner ? 'var(--sage-500)' : 'transparent',
+                    color: isWinner ? '#fff' : 'var(--ink-600)',
+                    border: `1.5px solid ${isWinner ? 'var(--sage-500)' : 'var(--line-200)'}` }}>
+                  {isConfirmed ? '✓ Đã chốt' : isWinner ? 'Chọn vendor này' : 'Chọn'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Tơ Hồng tiebreaker */}
+        {winner && (
+          <div style={{ margin: '0 13px 13px', background: 'var(--kim-50)', border: '1px solid var(--kim-200)',
+            borderRadius: 'var(--r-md)', padding: '10px 12px' }}>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+              color: 'var(--kim-700)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Icon name="sparkles" size={12} color="var(--kim-600)" sw={2} /> Gợi ý của Tơ Hồng
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)', lineHeight: 1.55 }}>
+              {winner.name} phù hợp hơn — {winner.reasons?.[0] || 'điểm phù hợp cao nhất'} và được khách hàng đánh giá {winner.rating}★.
+            </div>
+          </div>
+        )}
+
+        <CardAction>
+          <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 11.5,
+            color: 'var(--ink-400)', alignSelf: 'center' }}>
+            Chọn để chốt vendor cho danh mục này
+          </span>
+        </CardAction>
+      </CardShell>
+    </>
+  );
+}

@@ -3,12 +3,28 @@ import { Icon } from '../../ui/Icon.jsx';
 import { EditAmount } from '../../ui/atoms.jsx';
 import { api } from '../../api.js';
 
-export function CardShell({ children }) {
+export function CardShell({ children, gold = false }) {
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)',
+    <div style={{ background: 'var(--card)',
+      border: `1px solid ${gold ? 'var(--kim-200)' : 'var(--line-100)'}`,
       borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
       {children}
     </div>
+  );
+}
+
+export function GhostBtn({ icon, onClick, children, small = false }) {
+  return (
+    <button type="button" onClick={onClick} style={{
+      display: 'inline-flex', alignItems: 'center', gap: small ? 4 : 6,
+      fontFamily: 'var(--font-ui)', fontSize: small ? 11.5 : 12.5, fontWeight: 600,
+      color: 'var(--ink-600)', background: 'transparent',
+      border: '1.5px solid var(--line-200)', borderRadius: 'var(--r-pill)',
+      padding: small ? '5px 11px' : '7px 14px', cursor: 'pointer', flexShrink: 0,
+    }}>
+      {icon && <Icon name={icon} size={small ? 12 : 14} color="var(--ink-500)" />}
+      {children}
+    </button>
   );
 }
 
