@@ -4,9 +4,34 @@
 const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787';
 const DEV_TOKEN = import.meta.env.VITE_DEV_TOKEN || 'dev';
 
-let tokenProvider = () => DEV_TOKEN;
+// ── Guest token ──────────────────────────────────────────────────────────────
+// Tạo/đọc token ngẫu nhiên lưu localStorage, dùng khi chưa đăng nhập.
+// Backend chấp nhận token bắt đầu bằng "guest_" → userId = token.
+const GUEST_TOKEN_KEY = 'th_guest_token';
+export function getGuestToken() {
+  try {
+    let t = localStorage.getItem(GUEST_TOKEN_KEY);
+    if (!t) {
+      t = 'guest_' + crypto.randomUUID();
+      localStorage.setItem(GUEST_TOKEN_KEY, t);
+    }
+    return t;
+  } catch {
+    return 'guest_fallback';
+  }
+}
+
+export function clearGuestToken() {
+  try { localStorage.removeItem(GUEST_TOKEN_KEY); } catch { /* noop */ }
+}
+
+// Mặc định: dùng guest token; khi Clerk đăng nhập, ghi đè bằng setTokenProvider
+let tokenProvider = () => getGuestToken();
 export function setTokenProvider(fn) {
   tokenProvider = fn;
+}
+export function resetTokenProvider() {
+  tokenProvider = () => getGuestToken();
 }
 
 async function authHeaders(extra = {}) {
@@ -98,6 +123,10 @@ export const api = {
   addGuest: (coupleId, body) => req('POST', `/api/couples/${coupleId}/guests`, body),
   updateGuest: (coupleId, gid, patch) => req('PATCH', `/api/couples/${coupleId}/guests/${gid}`, patch),
   deleteGuest: (coupleId, gid) => req('DELETE', `/api/couples/${coupleId}/guests/${gid}`),
+
+  // ── Guest claim ────────────────────────────────────────────────────────────
+  // Gọi sau khi user đăng ký/đăng nhập Clerk để di trú dữ liệu guest → account
+  claimGuest: (guestToken) => req('POST', '/api/claim', { guestToken }),
 
   // ── Subscription ───────────────────────────────────────────────────────────
   getSubscription: (coupleId) => req('GET', `/api/couples/${coupleId}/subscription`),

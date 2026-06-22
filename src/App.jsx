@@ -18,6 +18,7 @@ import { ScreenGuests } from './screens/Guests.jsx';
 import { Onboarding } from './screens/Onboarding.jsx';
 import { ScreenVendorShortlist } from './screens/Vendors.jsx';
 import { VendorProvider } from './screens/VendorCtx.jsx';
+import { SaveBanner } from './ui/SaveBanner.jsx';
 
 /* ── shared micro-components ─────────────────────────────── */
 function IconButton({ label, children, onClick }) {
@@ -122,7 +123,7 @@ function Drawer({ open, onClose, onNav, onNewChat, conversations, onOpenConversa
 }
 
 /* ── root app ────────────────────────────────────────────── */
-export default function App() {
+export default function App({ isGuest = false, onShowSignIn } = {}) {
   const [tab, setTab] = useState(0);
   const [drawer, setDrawer] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -300,6 +301,7 @@ export default function App() {
     <div className="app-page">
       <div className="app-frame">
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {isGuest && <SaveBanner onSignIn={onShowSignIn} />}
           {/* screen stack — all mounted, shown/hidden via opacity */}
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
             {screens.map((screen, i) => screen && (
