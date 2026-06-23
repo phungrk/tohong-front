@@ -212,7 +212,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
         preferences: { style_tags: styleTags, guest_count: data.guests },
         // top-level fields đọc trực tiếp bởi buildMatchProfile
         guest_count: data.guests,
-        total_budget: data.budget * 1_000_000,  // data.budget là đơn vị triệu VND
+        budget: data.budget,  // đơn vị triệu
       });
       setCoupleId(couple.couple_id);
       loadConversations(couple.couple_id);
