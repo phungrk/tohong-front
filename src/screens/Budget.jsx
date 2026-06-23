@@ -4,7 +4,12 @@ import { EditName, EditAmount, AllocSlider } from '../ui/atoms.jsx';
 import { useBudget } from '../budget/useBudget.js';
 import { track } from '../analytics.js';
 
-function AllocMeter({ cats, total, target, mung }) {
+const CAT_STATE = {
+  trong_muc:    { label: 'Trong mức', color: 'var(--sage-600)', bg: '#edf7ee', border: '#c3dfc7' },
+  vuot_muc:     { label: 'Vượt mức',  color: '#dc2626',         bg: '#fef2f2', border: '#fca5a5' },
+};
+
+function AllocMeter({ cats, total, target, mung, totalEstimated, budgetUsedPct }) {
   const max = Math.max(total, target, 1);
   const over = total - target;
   return (
@@ -26,11 +31,27 @@ function AllocMeter({ cats, total, target, mung }) {
           </div>
         </div>
       </div>
+
+      {/* Stacked allocation bar */}
       <div style={{ position: 'relative', height: 12, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', display: 'flex' }}>
         {cats.map((c) => (
-          <div key={c.id} style={{ width: (c.amt / max) * 100 + '%', background: c.color, transition: 'width .18s ease', borderRight: '1.5px solid var(--card)' }} />
+          <div key={c.id} style={{ width: ((c.allocated_tr || 0) / max) * 100 + '%', background: c.color, transition: 'width .18s ease', borderRight: '1.5px solid var(--card)' }} />
         ))}
       </div>
+
+      {/* Confirmed (estimated) row */}
+      {totalEstimated > 0 && (
+        <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Icon name="check-circle-2" size={13} color="var(--sage-500)" />
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>Đã đặt cọc / chốt</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>
+            {totalEstimated}tr{budgetUsedPct > 0 ? ` · ${budgetUsedPct}%` : ''}
+          </span>
+        </div>
+      )}
+
       {mung > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 11, borderTop: '1px solid var(--line-100)' }}>
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-500)' }}>Tiền mừng dự kiến</span>
@@ -50,9 +71,14 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <EditName value={it.name} onChange={onName} size={13} weight={500} focusNew={it.isNew} />
-        {it.vendor && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đã chọn</span>}
+        {it.vendor && it.status === 'confirmed' && (
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--sage-600)', marginLeft: 7 }}>đã chốt</span>
+        )}
+        {it.vendor && it.status !== 'confirmed' && (
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
+        )}
       </div>
-      <EditAmount value={it.amt} onChange={onAmt} size={13} color="var(--ink-700)" />
+      <EditAmount value={it.amt || 0} onChange={onAmt} size={13} color="var(--ink-700)" />
       <button onClick={onRemove} title="Bỏ" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer',
         background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.55 }}>
         <Icon name="x" size={13} color="var(--ink-400)" />
@@ -64,21 +90,36 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
 function CatRow({ c, itemsTotal, defaultOpen, onAmt, onName, onRemove, onItemAmt, onItemName, onItemRemove, onAddItem }) {
   const [open, setOpen] = useState(!!defaultOpen);
   const used = itemsTotal(c);
-  const left = c.amt - used;
+  const allocated = c.allocated_tr || 0;
+  const left = allocated - used;
   const count = (c.items || []).length;
+  const stateInfo = CAT_STATE[c.state];
+  const isOver = c.state === 'vuot_muc';
+
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-xs)', padding: '12px 13px' }}>
+    <div style={{ background: 'var(--card)', border: `1px solid ${isOver ? '#fca5a5' : 'var(--line-100)'}`, borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-xs)', padding: '12px 13px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
-        <span style={{ width: 22, height: 22, borderRadius: 'var(--r-xs)', background: c.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={c.icon} size={12} color="#fff" sw={2.2} />
+        <span style={{ width: 22, height: 22, borderRadius: 'var(--r-xs)', background: c.color || 'var(--dao-300)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={c.icon || 'circle'} size={12} color="#fff" sw={2.2} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <EditName value={c.name} onChange={onName} size={14.5} focusNew={c.isNew} />
         </div>
-        <EditAmount value={c.amt} onChange={onAmt} size={15} />
+        <EditAmount value={allocated} onChange={onAmt} size={15} color={isOver ? '#dc2626' : 'var(--ink-900)'} />
       </div>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <AllocSlider value={c.amt} color={c.color} onChange={onAmt} />
+        <AllocSlider value={allocated} color={c.color || 'var(--son-500)'} onChange={onAmt} />
+
+        {/* State badge — only shown when there's confirmed spend */}
+        {stateInfo && (c.estimated_tr || 0) > 0 && (
+          <span style={{ flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+            color: stateInfo.color, background: stateInfo.bg, border: `1px solid ${stateInfo.border}`,
+            borderRadius: 999, padding: '2px 8px', whiteSpace: 'nowrap' }}>
+            {c.estimated_tr}tr chốt
+          </span>
+        )}
+
         <button onClick={() => setOpen((o) => !o)} style={{ height: 30, borderRadius: 'var(--r-pill)', flexShrink: 0, cursor: 'pointer', padding: '0 11px',
           background: open ? 'var(--son-50)' : 'transparent', border: `1px solid ${open ? 'var(--son-200)' : 'var(--line-200)'}`,
           display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: open ? 'var(--son-600)' : 'var(--ink-500)' }}>
@@ -109,7 +150,7 @@ function CatRow({ c, itemsTotal, defaultOpen, onAmt, onName, onRemove, onItemAmt
             </button>
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600,
               color: left < 0 ? 'var(--danger-500)' : (left === 0 ? 'var(--ink-400)' : 'var(--sage-500)') }}>
-              {left < 0 ? `Vượt ${-left}tr` : (left === 0 ? `Đã dùng hết ${c.amt}tr` : `Còn trống ${left}tr`)}
+              {left < 0 ? `Vượt ${-left}tr` : (left === 0 ? `Đã dùng hết ${allocated}tr` : `Còn trống ${left}tr`)}
             </span>
           </div>
         </div>
@@ -140,7 +181,14 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
           </span>
         </div>
 
-        <AllocMeter cats={bud.cats} total={bud.total} target={bud.totalTarget} mung={bud.mung} />
+        <AllocMeter
+          cats={bud.cats}
+          total={bud.total}
+          target={bud.totalTarget}
+          mung={bud.mung}
+          totalEstimated={bud.totalEstimated}
+          budgetUsedPct={bud.budgetUsedPct}
+        />
 
         <div className="ds-label" style={{ margin: '20px 2px 11px' }}>Các hạng mục · kéo để chỉnh · mở để xem mục con</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -168,7 +216,6 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
           <Icon name="plus" size={16} color="var(--son-600)" /> Thêm hạng mục
         </button>
       </div>
-
     </div>
   );
 }
