@@ -63,6 +63,14 @@ function AllocMeter({ cats, total, target, mung, totalEstimated, budgetUsedPct }
 }
 
 function ItemRow({ it, onAmt, onName, onRemove }) {
+  const [amtStr, setAmtStr] = useState(String(it.amt || 0));
+  useEffect(() => { setAmtStr(String(it.amt || 0)); }, [it.amt]);
+
+  const commitAmt = () => {
+    const n = parseInt(amtStr, 10);
+    onAmt(isNaN(n) || n < 0 ? 0 : n);
+  };
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0' }}>
       <span style={{ width: 18, height: 18, borderRadius: 'var(--r-xs)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -78,7 +86,24 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
         )}
       </div>
-      <EditAmount value={it.amt || 0} onChange={onAmt} size={13} color="var(--ink-700)" />
+      <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
+        <input
+          value={amtStr}
+          inputMode="numeric"
+          onChange={(e) => setAmtStr(e.target.value.replace(/\D/g, ''))}
+          onBlur={commitAmt}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+          style={{
+            width: Math.max(24, amtStr.length * 8 + 4),
+            fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13,
+            color: 'var(--ink-700)', textAlign: 'right',
+            border: 'none', borderBottom: '1px dashed var(--line-200)', outline: 'none',
+            background: 'transparent', padding: '1px 2px',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        />
+        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--ink-500)' }}>tr</span>
+      </span>
       <button onClick={onRemove} title="Bỏ" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer',
         background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.55 }}>
         <Icon name="x" size={13} color="var(--ink-400)" />
