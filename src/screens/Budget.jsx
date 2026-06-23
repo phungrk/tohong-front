@@ -87,7 +87,7 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
   );
 }
 
-function CatRow({ c, itemsTotal, defaultOpen, onAmt, onName, onRemove, onItemAmt, onItemName, onItemRemove, onAddItem }) {
+function CatRow({ c, itemsTotal, totalTarget, defaultOpen, onAmt, onName, onRemove, onItemAmt, onItemName, onItemRemove, onAddItem }) {
   const [open, setOpen] = useState(!!defaultOpen);
   const used = itemsTotal(c);
   const allocated = c.allocated_tr || 0;
@@ -95,6 +95,7 @@ function CatRow({ c, itemsTotal, defaultOpen, onAmt, onName, onRemove, onItemAmt
   const count = (c.items || []).length;
   const stateInfo = CAT_STATE[c.state];
   const isOver = c.state === 'vuot_muc';
+  const pctDisplay = totalTarget > 0 ? Math.round((allocated / totalTarget) * 100) : null;
 
   return (
     <div style={{ background: 'var(--card)', border: `1px solid ${isOver ? '#fca5a5' : 'var(--line-100)'}`, borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-xs)', padding: '12px 13px' }}>
@@ -105,11 +106,14 @@ function CatRow({ c, itemsTotal, defaultOpen, onAmt, onName, onRemove, onItemAmt
         <div style={{ flex: 1, minWidth: 0 }}>
           <EditName value={c.name} onChange={onName} size={14.5} focusNew={c.isNew} />
         </div>
+        {pctDisplay !== null && (
+          <span style={{ flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-300)', fontVariantNumeric: 'tabular-nums' }}>{pctDisplay}%</span>
+        )}
         <EditAmount value={allocated} onChange={onAmt} size={15} color={isOver ? '#dc2626' : 'var(--ink-900)'} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <AllocSlider value={allocated} color={c.color || 'var(--son-500)'} onChange={onAmt} />
+        <AllocSlider value={allocated} max={totalTarget || 300} color={c.color || 'var(--son-500)'} onChange={onAmt} />
 
         {/* State badge — only shown when there's confirmed spend */}
         {stateInfo && (c.estimated_tr || 0) > 0 && (
@@ -199,7 +203,7 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
             </div>
           )}
           {bud.cats.map((c, i) => (
-            <CatRow key={c.id} c={c} itemsTotal={bud.itemsTotal} defaultOpen={i === 0}
+            <CatRow key={c.id} c={c} itemsTotal={bud.itemsTotal} totalTarget={bud.totalTarget} defaultOpen={i === 0}
               onAmt={(v) => { bud.setAmt(c.id, v); track('budget_category_amount_changed', { journey: 'budget', category_id: c.id, new_amt: v }); }}
               onName={(n) => bud.rename(c.id, n)}
               onRemove={() => { bud.remove(c.id); track('budget_category_removed', { journey: 'budget', category_id: c.id }); }}
