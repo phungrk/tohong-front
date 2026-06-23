@@ -2,15 +2,15 @@ import { createContext, useContext, useState } from 'react';
 import { api } from '../api.js';
 
 export const VENDOR_CATEGORIES = [
-  { id: 'tiec',   name: 'Tiệc & nhà hàng', icon: 'utensils-crossed', color: 'var(--son-500)',      budget: 220 },
-  { id: 'chup',   name: 'Chụp ảnh / quay', icon: 'camera',           color: 'var(--dao-400,#6b8fa5)', budget: 60 },
-  { id: 'trang',  name: 'Trang trí & hoa', icon: 'flower-2',          color: 'var(--son-300)',      budget: 70 },
-  { id: 'trangp', name: 'Trang phục',       icon: 'shirt',             color: 'var(--kim-300)',      budget: 50 },
-  { id: 'nhac',   name: 'Âm nhạc / MC',    icon: 'music-2',           color: 'var(--ink-300)',      budget: 30 },
+  { id: 'venue',         name: 'Tiệc & nhà hàng', icon: 'utensils-crossed', color: 'var(--son-500)',          budget: 220 },
+  { id: 'photography',   name: 'Chụp ảnh / quay', icon: 'camera',           color: 'var(--dao-400,#6b8fa5)', budget: 60  },
+  { id: 'decor',         name: 'Trang trí & hoa', icon: 'flower-2',          color: 'var(--son-300)',          budget: 70  },
+  { id: 'attire',        name: 'Trang phục',       icon: 'shirt',             color: 'var(--kim-300)',          budget: 50  },
+  { id: 'entertainment', name: 'Âm nhạc / MC',    icon: 'music-2',           color: 'var(--ink-300)',          budget: 30  },
 ];
 
 export const VENDOR_POOL = {
-  tiec: [
+  venue: [
     { id: 'nikko', name: 'Nikko Saigon', price: 9, priceUnit: 'tr/bàn', priceTotal: 180,
       rating: 4.8, rv: 312, match: 94, spec: '200 khách · Q.1, TP.HCM',
       grad: 'linear-gradient(135deg,#c9907a,#9a5b4a)',
@@ -33,7 +33,7 @@ export const VENDOR_POOL = {
       breakdown: { budget: 70, style: 95, avail: 80 },
       reviews: [{ name: 'Chị Ngọc & Anh Minh', text: 'Đẳng cấp thực sự, khách nước ngoài rất ấn tượng.' }] },
   ],
-  chup: [
+  photography: [
     { id: 'mphoto', name: 'M Photo Studio', price: 25, priceUnit: 'tr/gói', priceTotal: 25,
       rating: 4.9, rv: 156, match: 96, spec: 'Album + phóng sự · Q.3, TP.HCM',
       grad: 'linear-gradient(135deg,#7a9ab5,#4a6a85)',
@@ -56,7 +56,7 @@ export const VENDOR_POOL = {
       breakdown: { budget: 98, style: 75, avail: 92 },
       reviews: [{ name: 'Nam & Hương', text: 'Giá hợp lý, chất lượng ổn, giao phim đúng hẹn.' }] },
   ],
-  trang: [
+  decor: [
     { id: 'flowerholic', name: 'Flowerholic Studio', price: 45, priceUnit: 'tr/gói', priceTotal: 45,
       rating: 4.9, rv: 211, match: 93, spec: 'Decor full · Q.10, TP.HCM',
       grad: 'linear-gradient(135deg,#e0b0a0,#c08070)',
@@ -72,7 +72,7 @@ export const VENDOR_POOL = {
       breakdown: { budget: 81, style: 88, avail: 95 },
       reviews: [{ name: 'Lan & Việt', text: 'Đẹp lung linh, style cổ điển đúng yêu cầu.' }] },
   ],
-  trangp: [
+  attire: [
     { id: 'moibridal', name: 'Mơi Bridal', price: 25, priceUnit: 'tr/gói', priceTotal: 25,
       rating: 4.9, rv: 344, match: 95, spec: 'Áo dài + váy cưới · Q.3, TP.HCM',
       grad: 'linear-gradient(135deg,#e0c0b0,#c09070)',
@@ -88,7 +88,7 @@ export const VENDOR_POOL = {
       breakdown: { budget: 84, style: 98, avail: 88 },
       reviews: [{ name: 'Ngân & Phúc', text: 'Váy đẹp đúng ý, thiết kế riêng rất xứng đáng.' }] },
   ],
-  nhac: [
+  entertainment: [
     { id: 'soundsaigon', name: 'Sound Saigon Band', price: 15, priceUnit: 'tr/buổi', priceTotal: 15,
       rating: 4.8, rv: 127, match: 91, spec: 'Ban nhạc 6 người · TP.HCM',
       grad: 'linear-gradient(135deg,#a0b0c0,#708090)',
@@ -104,15 +104,6 @@ export const VENDOR_POOL = {
       breakdown: { budget: 98, style: 72, avail: 90 },
       reviews: [{ name: 'Kiên & Ngọc', text: 'Giá hợp lý, không khí sôi động, tiệc vui.' }] },
   ],
-};
-
-// Map vendor category → budget category ID
-const VENDOR_TO_BUDGET_CAT = {
-  tiec:   'venue',
-  chup:   'photography',
-  trang:  'decor',
-  trangp: 'attire',
-  nhac:   'entertainment',
 };
 
 const VendorCtx = createContext(null);
@@ -159,10 +150,7 @@ export function VendorProvider({ coupleId, children }) {
         confirmed: wasConfirmed ? null : cat.confirmed,
       },
     }));
-    if (wasConfirmed) {
-      const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
-      if (budgetCatId) syncBudgetItem(budgetCatId, { remove: cat.confirmed });
-    }
+    if (wasConfirmed) syncBudgetItem(catId, { remove: cat.confirmed });
   };
 
   const confirmVendor = (catId, vendorId) => {
@@ -170,16 +158,14 @@ export function VendorProvider({ coupleId, children }) {
     const vendor = cat.shortlisted.find((v) => v.id === vendorId);
     if (!vendor) return;
     setSaved((prev) => ({ ...prev, [catId]: { ...cat, confirmed: vendor } }));
-    const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
-    if (budgetCatId) syncBudgetItem(budgetCatId, { add: vendor, remove: cat.confirmed ?? undefined });
+    syncBudgetItem(catId, { add: vendor, remove: cat.confirmed ?? undefined });
   };
 
   const unconfirmVendor = (catId) => {
     const cat = saved[catId];
     if (!cat) return;
     setSaved((prev) => ({ ...prev, [catId]: { ...cat, confirmed: null } }));
-    const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
-    if (budgetCatId && cat.confirmed) syncBudgetItem(budgetCatId, { remove: cat.confirmed });
+    if (cat.confirmed) syncBudgetItem(catId, { remove: cat.confirmed });
   };
 
   const getCatStatus = (catId) => {
