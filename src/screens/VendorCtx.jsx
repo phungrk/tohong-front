@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { api } from '../api.js';
 
 export const VENDOR_CATEGORIES = [
   { id: 'tiec',   name: 'Tiệc & nhà hàng', icon: 'utensils-crossed', color: 'var(--son-500)',      budget: 220 },
@@ -105,10 +106,39 @@ export const VENDOR_POOL = {
   ],
 };
 
+// Map vendor category → budget category ID
+const VENDOR_TO_BUDGET_CAT = {
+  tiec:   'venue',
+  chup:   'photography',
+  trang:  'decor',
+  trangp: 'attire',
+  nhac:   'entertainment',
+};
+
 const VendorCtx = createContext(null);
 
-export function VendorProvider({ children }) {
+export function VendorProvider({ coupleId, children }) {
   const [saved, setSaved] = useState({});
+
+  // GET budget → mutate items in one category → PUT back
+  const syncBudgetItem = async (budgetCatId, { add, remove }) => {
+    if (!coupleId) return;
+    try {
+      const data = await api.getBudget(coupleId);
+      if (!data) return;
+      const categories = (data.categories || []).map((cat) => {
+        if (cat.id !== budgetCatId) return cat;
+        let items = cat.items || [];
+        if (remove) items = items.filter((it) => it.id !== `vendor_${remove.id}`);
+        if (add) {
+          items = items.filter((it) => it.id !== `vendor_${add.id}`);
+          items = [...items, { id: `vendor_${add.id}`, name: add.name, amt: add.priceTotal, status: 'confirmed', vendor: true }];
+        }
+        return { ...cat, items };
+      });
+      await api.putBudget(coupleId, { categories, total_tr: data.total_tr, guests: data.guests, mung_tr: data.mung_tr });
+    } catch { /* silent — local state is source of truth for UI */ }
+  };
 
   const saveVendor = (catId, vendor) => {
     setSaved((prev) => {
@@ -119,34 +149,37 @@ export function VendorProvider({ children }) {
   };
 
   const unsaveVendor = (catId, vendorId) => {
-    setSaved((prev) => {
-      const cat = prev[catId];
-      if (!cat) return prev;
-      return {
-        ...prev,
-        [catId]: {
-          shortlisted: cat.shortlisted.filter((v) => v.id !== vendorId),
-          confirmed: cat.confirmed?.id === vendorId ? null : cat.confirmed,
-        },
-      };
-    });
+    const cat = saved[catId];
+    if (!cat) return;
+    const wasConfirmed = cat.confirmed?.id === vendorId;
+    setSaved((prev) => ({
+      ...prev,
+      [catId]: {
+        shortlisted: cat.shortlisted.filter((v) => v.id !== vendorId),
+        confirmed: wasConfirmed ? null : cat.confirmed,
+      },
+    }));
+    if (wasConfirmed) {
+      const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
+      if (budgetCatId) syncBudgetItem(budgetCatId, { remove: cat.confirmed });
+    }
   };
 
   const confirmVendor = (catId, vendorId) => {
-    setSaved((prev) => {
-      const cat = prev[catId] || { shortlisted: [], confirmed: null };
-      const vendor = cat.shortlisted.find((v) => v.id === vendorId);
-      if (!vendor) return prev;
-      return { ...prev, [catId]: { ...cat, confirmed: vendor } };
-    });
+    const cat = saved[catId] || { shortlisted: [], confirmed: null };
+    const vendor = cat.shortlisted.find((v) => v.id === vendorId);
+    if (!vendor) return;
+    setSaved((prev) => ({ ...prev, [catId]: { ...cat, confirmed: vendor } }));
+    const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
+    if (budgetCatId) syncBudgetItem(budgetCatId, { add: vendor, remove: cat.confirmed ?? undefined });
   };
 
   const unconfirmVendor = (catId) => {
-    setSaved((prev) => {
-      const cat = prev[catId];
-      if (!cat) return prev;
-      return { ...prev, [catId]: { ...cat, confirmed: null } };
-    });
+    const cat = saved[catId];
+    if (!cat) return;
+    setSaved((prev) => ({ ...prev, [catId]: { ...cat, confirmed: null } }));
+    const budgetCatId = VENDOR_TO_BUDGET_CAT[catId];
+    if (budgetCatId && cat.confirmed) syncBudgetItem(budgetCatId, { remove: cat.confirmed });
   };
 
   const getCatStatus = (catId) => {

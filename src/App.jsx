@@ -297,7 +297,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   ];
 
   return (
-    <VendorProvider>
+    <VendorProvider coupleId={coupleId}>
     <div className="app-page">
       <div className="app-frame">
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
