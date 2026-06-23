@@ -1,6 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api.js';
 
+// color + icon are UI-only — not stored in API schema
+const CAT_META = {
+  venue:         { color: 'var(--son-500)',  icon: 'utensils-crossed' },
+  ceremony:      { color: 'var(--son-300)',  icon: 'heart'            },
+  photography:   { color: 'var(--dao-400)',  icon: 'camera'           },
+  jewelry:       { color: 'var(--kim-400)',  icon: 'gem'              },
+  attire:        { color: 'var(--kim-300)',  icon: 'shirt'            },
+  decor:         { color: 'var(--son-300)',  icon: 'flower-2'         },
+  entertainment: { color: 'var(--ink-300)',  icon: 'music-2'          },
+  makeup:        { color: 'var(--dao-300)',  icon: 'sparkles'         },
+  transport:     { color: 'var(--ink-400)',  icon: 'car'              },
+  stationery:    { color: 'var(--kim-200)',  icon: 'mail'             },
+  reserve:       { color: 'var(--sage-400)', icon: 'shield'           },
+};
+
+function withMeta(cat) {
+  const m = CAT_META[cat.id] || { color: 'var(--dao-300)', icon: 'circle' };
+  return { ...m, ...cat }; // API fields win over defaults, but color/icon filled in
+}
+
 export function fmtTr(n) { return n + 'tr'; }
 export function fmtFull(n) { return (n * 1_000_000).toLocaleString('vi-VN') + ' ₫'; }
 
@@ -24,7 +44,7 @@ export function useBudget(coupleId = null, initial = []) {
     api.getBudget(coupleId)
       .then((data) => {
         if (data?.categories) {
-          setCats(data.categories);
+          setCats(data.categories.map(withMeta));
           setMeta({
             totalTr: Number(data.total_tr) || 0,
             guests: Number(data.guests) || 0,
