@@ -78,7 +78,9 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
         )}
       </div>
-      <EditAmount value={it.amt || 0} onChange={onAmt} size={13} color="var(--ink-700)" />
+      <div style={{ flexShrink: 0, minWidth: 48, textAlign: 'right' }}>
+        <EditAmount value={it.amt || 0} onChange={onAmt} size={13} color="var(--ink-700)" />
+      </div>
       <button onClick={onRemove} title="Bỏ" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer',
         background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.55 }}>
         <Icon name="x" size={13} color="var(--ink-400)" />
