@@ -68,6 +68,7 @@ export function EditAmount({ value, onChange, size = 15, color = 'var(--ink-900)
           autoFocus
           value={draft}
           inputMode="numeric"
+          autoComplete="off"
           onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
           onBlur={commit}
           onKeyDown={(e) => {
