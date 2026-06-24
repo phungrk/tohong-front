@@ -179,7 +179,7 @@ function OBPerson({ icon, label, name, onName, namePh }) {
           {label}
         </span>
       </div>
-      <input value={name} onChange={(e) => onName(e.target.value)} placeholder={namePh}
+      <input value={name} onChange={(e) => onName(e.target.value)} placeholder={namePh} autoComplete="off"
         style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink-900)',
           background: 'var(--card)', border: '1.5px solid var(--line-200)',
           borderRadius: 'var(--r-md)', padding: '10px 14px', outline: 'none', boxSizing: 'border-box' }} />
