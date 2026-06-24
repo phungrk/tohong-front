@@ -157,6 +157,7 @@ export function VMatchChatCard({ catId }) {
                     background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '50%',
                     color: isSaved ? 'var(--son-500)' : 'var(--ink-300)' }}>
                     <Icon name="heart" size={18} color={isSaved ? 'var(--son-500)' : 'var(--ink-300)'}
+                      fill={isSaved ? 'var(--son-500)' : 'none'}
                       sw={isSaved ? 2.5 : 1.8} />
                   </button>
                 </div>
