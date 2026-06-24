@@ -95,6 +95,7 @@ export function EditAmount({ value, onChange, size = 15, color = 'var(--ink-900)
         fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: size, color,
         fontVariantNumeric: 'tabular-nums', background: 'transparent', border: 'none',
         borderBottom: '1px dashed transparent', padding: 0, cursor: 'text', lineHeight: 1.2,
+        flexShrink: 0, whiteSpace: 'nowrap',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--line-300)')}
       onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
