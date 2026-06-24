@@ -297,7 +297,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   ];
 
   return (
-    <VendorProvider coupleId={coupleId}>
+    <VendorProvider coupleId={coupleId} onBudgetSync={() => setRefreshKeys((prev) => ({ ...prev, budget: prev.budget + 1 }))}>
     <div className="app-page">
       <div className="app-frame">
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

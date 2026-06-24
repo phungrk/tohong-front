@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../api.js';
 
 export const VENDOR_CATEGORIES = [
@@ -108,10 +108,33 @@ export const VENDOR_POOL = {
 
 const VendorCtx = createContext(null);
 
-export function VendorProvider({ coupleId, children }) {
+const storageKey = (id) => (id ? `th_vendors_${id}` : null);
+
+function loadSaved(coupleId) {
+  try {
+    const k = storageKey(coupleId);
+    if (!k) return {};
+    const raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+export function VendorProvider({ coupleId, onBudgetSync, children }) {
   const [saved, setSaved] = useState({});
 
-  // GET budget → mutate items in one category → PUT back
+  // Load persisted state when coupleId becomes available
+  useEffect(() => {
+    if (!coupleId) return;
+    setSaved(loadSaved(coupleId));
+  }, [coupleId]);
+
+  // Persist whenever saved or coupleId changes
+  useEffect(() => {
+    if (!coupleId) return;
+    try { localStorage.setItem(storageKey(coupleId), JSON.stringify(saved)); } catch {}
+  }, [saved, coupleId]);
+
+  // GET budget → mutate items in one category → PUT back → trigger refresh
   const syncBudgetItem = async (budgetCatId, { add, remove }) => {
     if (!coupleId) return;
     try {
@@ -123,11 +146,18 @@ export function VendorProvider({ coupleId, children }) {
         if (remove) items = items.filter((it) => it.id !== `vendor_${remove.id}`);
         if (add) {
           items = items.filter((it) => it.id !== `vendor_${add.id}`);
-          items = [...items, { id: `vendor_${add.id}`, name: add.name, amt: add.priceTotal, status: 'confirmed', vendor: true }];
+          items = [...items, {
+            id: `vendor_${add.id}`,
+            name: add.name,
+            amt: add.priceTotal ?? add.price ?? 0,
+            status: 'confirmed',
+            vendor: true,
+          }];
         }
         return { ...cat, items };
       });
       await api.putBudget(coupleId, { categories, total_tr: data.total_tr, guests: data.guests, mung_tr: data.mung_tr });
+      onBudgetSync?.();
     } catch { /* silent — local state is source of truth for UI */ }
   };
 
