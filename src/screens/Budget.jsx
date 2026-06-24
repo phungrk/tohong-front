@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { EditName, EditAmount, AllocSlider } from '../ui/atoms.jsx';
 import { useBudget } from '../budget/useBudget.js';
@@ -64,6 +64,7 @@ function AllocMeter({ cats, total, target, mung, totalEstimated, budgetUsedPct }
 
 function ItemRow({ it, onAmt, onName, onRemove }) {
   const [amtStr, setAmtStr] = useState(String(it.amt || 0));
+  const amtRef = useRef(null);
   useEffect(() => { setAmtStr(String(it.amt || 0)); }, [it.amt]);
 
   const commitAmt = () => {
@@ -78,7 +79,14 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
         <Icon name={it.vendor ? 'store' : 'circle-small'} size={it.vendor ? 10 : 13} color={it.vendor ? 'var(--son-500)' : 'var(--ink-400)'} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <EditName value={it.name} onChange={onName} size={13} weight={500} focusNew={it.isNew} />
+        <EditName
+          value={it.name}
+          onChange={onName}
+          onCommit={() => amtRef.current?.focus()}
+          size={13}
+          weight={500}
+          focusNew={it.isNew}
+        />
         {it.vendor && it.status === 'confirmed' && (
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--sage-600)', marginLeft: 7 }}>đã chốt</span>
         )}
@@ -88,8 +96,10 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
       </div>
       <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
         <input
+          ref={amtRef}
           value={amtStr}
           inputMode="numeric"
+          autoComplete="off"
           onChange={(e) => setAmtStr(e.target.value.replace(/\D/g, ''))}
           onBlur={commitAmt}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}

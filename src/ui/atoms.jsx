@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from './Icon.jsx';
 
 export function ThreadMark({ size = 24, color = 'var(--son-500)', dot = 'var(--kim-400)' }) {
@@ -50,9 +50,14 @@ export function Thread({ w = '100%', mt = 0, mb = 0 }) {
   );
 }
 
-export function EditAmount({ value, onChange, size = 15, color = 'var(--ink-900)', align = 'right' }) {
+export function EditAmount({ value, onChange, autoFocus = false, size = 15, color = 'var(--ink-900)', align = 'right' }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
+
+  useEffect(() => {
+    if (autoFocus) { setDraft(String(value)); setEditing(true); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFocus]);
 
   const startEdit = () => { setDraft(String(value)); setEditing(true); };
   const commit = () => {
@@ -106,12 +111,16 @@ export function EditAmount({ value, onChange, size = 15, color = 'var(--ink-900)
   );
 }
 
-export function EditName({ value, onChange, size = 15, weight = 600, focusNew = false }) {
+export function EditName({ value, onChange, onCommit, size = 15, weight = 600, focusNew = false }) {
   const [editing, setEditing] = useState(focusNew);
   const [draft, setDraft] = useState(value);
 
   const startEdit = () => { setDraft(value); setEditing(true); };
-  const commit = () => { onChange(draft.trim() || value); setEditing(false); };
+  const commit = () => {
+    onChange(draft.trim() || value);
+    setEditing(false);
+    onCommit?.();
+  };
 
   if (editing) {
     return (
