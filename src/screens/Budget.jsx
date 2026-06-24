@@ -87,9 +87,6 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
           weight={500}
           focusNew={it.isNew}
         />
-        {it.vendor && it.status === 'confirmed' && (
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--sage-600)', marginLeft: 7 }}>đã chốt</span>
-        )}
         {it.vendor && it.status !== 'confirmed' && (
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
         )}
