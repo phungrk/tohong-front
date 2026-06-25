@@ -101,8 +101,8 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
           onBlur={commitAmt}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
           style={{
-            width: Math.max(32, amtStr.length * 9 + 6),
-            fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13,
+            width: `${Math.max(2, amtStr.length) + 0.5}ch`,
+            fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 12,
             color: 'var(--ink-700)', textAlign: 'right',
             border: 'none', borderBottom: '1px dashed var(--line-200)', outline: 'none',
             background: 'transparent', padding: '1px 2px',
