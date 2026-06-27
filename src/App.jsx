@@ -200,22 +200,30 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     const weddingDate = `${data.weddingY}-${String(data.weddingM).padStart(2, '0')}-01`;
 
     try {
-      const { couple } = await api.createCouple({
-        bride_name: data.brideName,
-        groom_name: data.groomName,
-        wedding_date: weddingDate,
-        wedding_role: data.userRole,   // 'bride' | 'groom' — stored in member record
-      });
-      await api.updateProfile(couple.couple_id, {
-        couple: { city: data.city },
+      // Tái dùng couple đang hiển thị (getMe luôn load couples[0]). Nếu tạo couple
+      // mới mỗi lần onboarding, couple mới bị append vào cuối user.couples nhưng
+      // reload app lại lấy couples[0] (couple cũ nhất) → lựa chọn onboarding (vd
+      // ngân sách 200tr) bị mồ côi, app hiển thị couple cũ. Chỉ tạo khi chưa có.
+      let cid = coupleId;
+      if (!cid) {
+        const { couple } = await api.createCouple({
+          bride_name: data.brideName,
+          groom_name: data.groomName,
+          wedding_date: weddingDate,
+          wedding_role: data.userRole,   // 'bride' | 'groom' — stored in member record
+        });
+        cid = couple.couple_id;
+      }
+      await api.updateProfile(cid, {
+        couple: { bride_name: data.brideName, groom_name: data.groomName, wedding_date: weddingDate, city: data.city },
         families: { bride_region: region, groom_region: region },
         preferences: { style_tags: styleTags, guest_count: data.guests },
         // top-level fields đọc trực tiếp bởi buildMatchProfile
         guest_count: data.guests,
         budget: data.budget,  // đơn vị triệu
       });
-      setCoupleId(couple.couple_id);
-      loadConversations(couple.couple_id);
+      setCoupleId(cid);
+      loadConversations(cid);
     } catch {
       // API unavailable — local profile in localStorage đủ để vào app
     }
