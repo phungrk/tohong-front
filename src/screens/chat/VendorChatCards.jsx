@@ -1,10 +1,58 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
-import { VENDOR_CATEGORIES, VENDOR_POOL, useVendorCtx } from '../VendorCtx.jsx';
+import { VENDOR_CATEGORIES, useVendorCtx } from '../VendorCtx.jsx';
+import { api } from '../../api.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 
 export const ChatActionsCtx = createContext({ pushUser: () => {}, pushAI: () => {} });
 export const useChatActions = () => useContext(ChatActionsCtx);
+
+/* ── Map frontend catId → category mà backend matcher (vendorMatcher.js) dùng.
+   Frontend dùng id khớp budget category (decor/attire), nhưng VENDOR_POOL backend
+   gắn category 'flower'/'wedding_attire' → phải map, nếu không sẽ trả rỗng. ── */
+const FE_TO_MATCH_CATEGORY = {
+  venue: 'venue',
+  photography: 'photography',
+  decor: 'flower',
+  attire: 'wedding_attire',
+};
+
+/* Gradient fallback theo danh mục khi vendor không có ảnh. */
+const CAT_FALLBACK_GRAD = {
+  venue: 'linear-gradient(135deg,#c9907a,#9a5b4a)',
+  photography: 'linear-gradient(135deg,#7a9ab5,#4a6a85)',
+  decor: 'linear-gradient(135deg,#e0b0a0,#c08070)',
+  attire: 'linear-gradient(135deg,#e0c0b0,#c09070)',
+};
+
+/* Map vendor từ API (/api/vendors/match) → shape mà các card + luồng save/budget dùng. */
+function adaptVendor(bv, catId) {
+  const bk = bv.match?.scoreBreakdown || {};
+  const img = bv.photos?.[0]?.url || null;
+  const spec = bv.spec || (bv.tags || []).slice(0, 2).join(' · ');
+  return {
+    id: bv.id,
+    name: bv.name,
+    priceTotal: bv.priceMin ?? bv.price ?? 0,   // dùng giá "từ" làm ước lượng cho budget
+    priceMax: bv.priceMax ?? null,
+    priceUnit: spec,
+    rating: bv.rating ?? 0,
+    rv: bv.reviewCount ?? 0,
+    match: bv.match?.totalScore ?? 0,           // 0–100
+    spec,
+    grad: img ? `center/cover no-repeat url("${img}")` : (CAT_FALLBACK_GRAD[catId] || 'linear-gradient(135deg,#d4a0a0,#a06060)'),
+    reasons: (bv.match?.reasons || []).map((r) => (typeof r === 'string' ? r : r.label)),
+    why: bv.match?.whySentence || '',
+    includes: bv.tags || [],
+    breakdown: {
+      budget: Math.round((bk.budget ?? 0.5) * 100),
+      style:  Math.round((bk.style ?? 0.5) * 100),
+      avail:  Math.round((bk.availability ?? 0.5) * 100),
+    },
+    reviews: [],                                 // backend chưa có review text
+    description: bv.description || '',
+  };
+}
 
 /* ── SaveFlash ─────────────────────────────────────────────── */
 function SaveFlash({ visible, name }) {
@@ -31,6 +79,17 @@ function MatchBadge({ pct }) {
       borderRadius: 999, padding: '2px 8px', flexShrink: 0 }}>
       {pct}%
     </span>
+  );
+}
+
+/* ── Trạng thái nhỏ trong card (loading / error / empty) ───────── */
+function CardNote({ icon, children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 14px',
+      fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-500)' }}>
+      <Icon name={icon} size={15} color="var(--ink-400)" sw={1.8} />
+      {children}
+    </div>
   );
 }
 
@@ -80,15 +139,29 @@ export function VPickerChatCard() {
 
 /* ── VMatchChatCard ─────────────────────────────────────────── */
 export function VMatchChatCard({ catId }) {
-  const { saved, saveVendor } = useVendorCtx();
+  const { coupleId, saved, saveVendor } = useVendorCtx();
   const { pushUser, pushAI } = useChatActions();
   const [flash, setFlash] = useState(null);
+  const [vendors, setVendors] = useState(null);  // null = đang tải
+  const [error, setError] = useState(false);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
-  const vendors = VENDOR_POOL[catId] || [];
-  const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
+
+  useEffect(() => {
+    let alive = true;
+    const matchCategory = FE_TO_MATCH_CATEGORY[catId] || catId;
+    api.matchVendors(coupleId, { category: matchCategory, limit: 5 })
+      .then((res) => {
+        if (!alive) return;
+        setVendors((res?.vendors || []).map((v) => adaptVendor(v, catId)));
+      })
+      .catch(() => { if (alive) setError(true); });
+    return () => { alive = false; };
+  }, [catId, coupleId]);
 
   if (!cat) return null;
+
+  const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
 
   const onSave = (v) => {
     saveVendor(catId, v);
@@ -98,81 +171,97 @@ export function VMatchChatCard({ catId }) {
 
   const onDetail = (v) => {
     pushUser(`Xem chi tiết ${v.name}`);
-    pushAI(VDetailChatCard, { catId, vendorId: v.id });
+    pushAI(VDetailChatCard, { catId, vendor: v });
   };
 
   const onCompare = () => {
-    const top2 = vendors.slice(0, 2);
+    const top2 = (vendors || []).slice(0, 2);
     if (top2.length < 2) return;
     pushUser(`So sánh ${top2[0].name} và ${top2[1].name}`);
-    pushAI(VCompareChatCard, { catId, ids: top2.map((v) => v.id) });
+    pushAI(VCompareChatCard, { catId, vendors: top2 });
   };
 
   return (
     <>
       <SaveFlash visible={!!flash} name={flash} />
       <CardShell gold>
-        <CardHead icon={cat.icon} kicker={`${vendors.length} gợi ý phù hợp`} title={cat.name} />
-        <div style={{ padding: '4px 0 2px' }}>
-          {vendors.map((v, i) => {
-            const isBest = i === 0;
-            const isSaved = savedIds.includes(v.id);
-            return (
-              <div key={v.id} style={{ padding: '10px 14px',
-                borderBottom: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  {/* swatch */}
-                  <div style={{ width: 54, height: 54, borderRadius: 'var(--r-sm)', flexShrink: 0,
-                    background: v.grad, position: 'relative' }}>
-                    {isBest && (
-                      <span style={{ position: 'absolute', top: -5, left: -5,
-                        background: 'var(--son-500)', color: '#fff',
-                        fontSize: 9, fontWeight: 700, letterSpacing: '0.05em',
-                        borderRadius: 999, padding: '2px 6px', fontFamily: 'var(--font-ui)' }}>
-                        BEST
-                      </span>
-                    )}
+        <CardHead icon={cat.icon}
+          kicker={vendors ? `${vendors.length} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
+          title={cat.name} />
+
+        {vendors === null && !error && (
+          <CardNote icon="loader">Đang tìm vendor phù hợp với hồ sơ của bạn…</CardNote>
+        )}
+        {error && (
+          <CardNote icon="triangle-alert">Không tải được gợi ý. Thử lại sau giúp Tơ Hồng nhé.</CardNote>
+        )}
+        {vendors !== null && !error && vendors.length === 0 && (
+          <CardNote icon="search-x">Chưa tìm thấy vendor phù hợp cho danh mục này.</CardNote>
+        )}
+
+        {vendors !== null && vendors.length > 0 && (
+          <div style={{ padding: '4px 0 2px' }}>
+            {vendors.map((v, i) => {
+              const isBest = i === 0;
+              const isSaved = savedIds.includes(v.id);
+              return (
+                <div key={v.id} style={{ padding: '10px 14px',
+                  borderBottom: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    {/* swatch */}
+                    <div style={{ width: 54, height: 54, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                      background: v.grad, position: 'relative' }}>
+                      {isBest && (
+                        <span style={{ position: 'absolute', top: -5, left: -5,
+                          background: 'var(--son-500)', color: '#fff',
+                          fontSize: 9, fontWeight: 700, letterSpacing: '0.05em',
+                          borderRadius: 999, padding: '2px 6px', fontFamily: 'var(--font-ui)' }}>
+                          BEST
+                        </span>
+                      )}
+                    </div>
+                    {/* info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600,
+                          color: 'var(--ink-900)', flex: 1, minWidth: 0,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
+                        <MatchBadge pct={v.match} />
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginBottom: 5 }}>
+                        {v.priceTotal}tr{v.priceMax && v.priceMax !== v.priceTotal ? `–${v.priceMax}tr` : ''} · {v.spec}
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {v.reasons.slice(0, 2).map((r) => (
+                          <span key={r} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
+                            background: 'var(--sage-50,#edf7ee)', border: '1px solid var(--sage-200,#b8d9be)',
+                            borderRadius: 999, padding: '2px 7px' }}>{r}</span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* save button */}
+                    <button type="button" onClick={() => onSave(v)} style={{ flexShrink: 0, padding: 6,
+                      background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '50%',
+                      color: isSaved ? 'var(--son-500)' : 'var(--ink-300)' }}>
+                      <Icon name="heart" size={18} color={isSaved ? 'var(--son-500)' : 'var(--ink-300)'}
+                        fill={isSaved ? 'var(--son-500)' : 'none'}
+                        sw={isSaved ? 2.5 : 1.8} />
+                    </button>
                   </div>
-                  {/* info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600,
-                        color: 'var(--ink-900)', flex: 1, minWidth: 0,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
-                      <MatchBadge pct={v.match} />
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginBottom: 5 }}>
-                      {v.priceTotal}tr · {v.spec}
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {v.reasons.slice(0, 2).map((r) => (
-                        <span key={r} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
-                          background: 'var(--sage-50,#edf7ee)', border: '1px solid var(--sage-200,#b8d9be)',
-                          borderRadius: 999, padding: '2px 7px' }}>{r}</span>
-                      ))}
-                    </div>
-                  </div>
-                  {/* save button */}
-                  <button type="button" onClick={() => onSave(v)} style={{ flexShrink: 0, padding: 6,
-                    background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '50%',
-                    color: isSaved ? 'var(--son-500)' : 'var(--ink-300)' }}>
-                    <Icon name="heart" size={18} color={isSaved ? 'var(--son-500)' : 'var(--ink-300)'}
-                      fill={isSaved ? 'var(--son-500)' : 'none'}
-                      sw={isSaved ? 2.5 : 1.8} />
+                  {/* view detail */}
+                  <button type="button" onClick={() => onDetail(v)}
+                    style={{ marginTop: 8, fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)',
+                      background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+                      display: 'flex', alignItems: 'center', gap: 3 }}>
+                    Xem chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
                   </button>
                 </div>
-                {/* view detail */}
-                <button type="button" onClick={() => onDetail(v)}
-                  style={{ marginTop: 8, fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)',
-                    background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
-                    display: 'flex', alignItems: 'center', gap: 3 }}>
-                  Xem chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        {vendors.length >= 2 && (
+              );
+            })}
+          </div>
+        )}
+
+        {vendors !== null && vendors.length >= 2 && (
           <CardAction>
             <GhostBtn icon="sliders-horizontal" small onClick={onCompare}>So sánh top 2</GhostBtn>
           </CardAction>
@@ -183,13 +272,12 @@ export function VMatchChatCard({ catId }) {
 }
 
 /* ── VDetailChatCard ─────────────────────────────────────────── */
-export function VDetailChatCard({ catId, vendorId }) {
+export function VDetailChatCard({ catId, vendor }) {
   const { saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(false);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
-  const vendor = (VENDOR_POOL[catId] || []).find((v) => v.id === vendorId);
-  const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendorId);
+  const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
 
   if (!cat || !vendor) return null;
 
@@ -205,7 +293,7 @@ export function VDetailChatCard({ catId, vendorId }) {
       <CardShell gold>
         <CardHead icon={cat.icon} kicker="Chi tiết vendor" title={vendor.name} />
 
-        {/* hero gradient */}
+        {/* hero gradient / ảnh */}
         <div style={{ height: 140, background: vendor.grad, position: 'relative', flexShrink: 0 }}>
           <div style={{ position: 'absolute', bottom: 10, right: 10,
             background: 'rgba(0,0,0,0.52)', color: '#fff', borderRadius: 999,
@@ -240,33 +328,45 @@ export function VDetailChatCard({ catId, vendorId }) {
           ))}
         </div>
 
-        {/* services */}
-        <div style={{ padding: '8px 14px 12px' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
-            letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Bao gồm</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 10px' }}>
-            {vendor.includes.map((item) => (
-              <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5,
-                fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-700)' }}>
-                <Icon name="check" size={12} color="var(--sage-500)" sw={2.5} /> {item}
-              </div>
-            ))}
+        {/* why sentence */}
+        {vendor.why && (
+          <div style={{ padding: '4px 14px 0', fontFamily: 'var(--font-body)', fontSize: 12.5,
+            color: 'var(--ink-700)', lineHeight: 1.55 }}>
+            {vendor.why}
           </div>
-        </div>
+        )}
 
-        {/* review */}
-        <div style={{ padding: '0 14px 14px' }}>
-          <div style={{ background: 'var(--son-50)', border: '1px solid var(--son-100)',
-            borderRadius: 'var(--r-md)', padding: '10px 12px' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)',
-              lineHeight: 1.55, fontStyle: 'italic' }}>
-              &ldquo;{vendor.reviews[0].text}&rdquo;
-            </div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 4 }}>
-              — {vendor.reviews[0].name}
+        {/* services / tags */}
+        {vendor.includes?.length > 0 && (
+          <div style={{ padding: '10px 14px 12px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+              letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Đặc điểm</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 10px' }}>
+              {vendor.includes.map((item) => (
+                <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5,
+                  fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-700)' }}>
+                  <Icon name="check" size={12} color="var(--sage-500)" sw={2.5} /> {item}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* review (chỉ hiện khi có) */}
+        {vendor.reviews?.length > 0 && (
+          <div style={{ padding: '0 14px 14px' }}>
+            <div style={{ background: 'var(--son-50)', border: '1px solid var(--son-100)',
+              borderRadius: 'var(--r-md)', padding: '10px 12px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)',
+                lineHeight: 1.55, fontStyle: 'italic' }}>
+                &ldquo;{vendor.reviews[0].text}&rdquo;
+              </div>
+              <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 4 }}>
+                — {vendor.reviews[0].name}
+              </div>
+            </div>
+          </div>
+        )}
 
         <CardAction>
           {isSaved ? (
@@ -284,15 +384,11 @@ export function VDetailChatCard({ catId, vendorId }) {
 }
 
 /* ── VCompareChatCard ─────────────────────────────────────────── */
-export function VCompareChatCard({ catId, ids }) {
+export function VCompareChatCard({ catId, vendors = [] }) {
   const { saved, saveVendor, confirmVendor } = useVendorCtx();
   const [flash, setFlash] = useState(null);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
-  const vendors = ids
-    .map((id) => (VENDOR_POOL[catId] || []).find((v) => v.id === id))
-    .filter(Boolean);
-  const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
   const confirmedId = saved[catId]?.confirmed?.id;
   const winner = vendors.length > 0 ? vendors.reduce((a, b) => (a.match >= b.match ? a : b)) : null;
 
