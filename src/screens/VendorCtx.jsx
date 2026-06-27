@@ -6,7 +6,6 @@ export const VENDOR_CATEGORIES = [
   { id: 'photography',   name: 'Chụp ảnh / quay', icon: 'camera',           color: 'var(--dao-400,#6b8fa5)', budget: 60  },
   { id: 'decor',         name: 'Trang trí & hoa', icon: 'flower-2',          color: 'var(--son-300)',          budget: 70  },
   { id: 'attire',        name: 'Trang phục',       icon: 'shirt',             color: 'var(--kim-300)',          budget: 50  },
-  { id: 'entertainment', name: 'Âm nhạc / MC',    icon: 'music-2',           color: 'var(--ink-300)',          budget: 30  },
 ];
 
 export const VENDOR_POOL = {
@@ -87,22 +86,6 @@ export const VENDOR_POOL = {
       includes: ['Váy cưới thiết kế riêng', 'Phụ kiện đầy đủ', '3 buổi thử đồ', 'Áo dài dự phòng'],
       breakdown: { budget: 84, style: 98, avail: 88 },
       reviews: [{ name: 'Ngân & Phúc', text: 'Váy đẹp đúng ý, thiết kế riêng rất xứng đáng.' }] },
-  ],
-  entertainment: [
-    { id: 'soundsaigon', name: 'Sound Saigon Band', price: 15, priceUnit: 'tr/buổi', priceTotal: 15,
-      rating: 4.8, rv: 127, match: 91, spec: 'Ban nhạc 6 người · TP.HCM',
-      grad: 'linear-gradient(135deg,#a0b0c0,#708090)',
-      reasons: ['Acoustic live', 'Hát Việt + Anh', 'Có MC kết hợp'],
-      includes: ['Ban nhạc 4 tiếng', 'MC dẫn chương trình', 'Thiết bị âm thanh', 'Bài theo yêu cầu'],
-      breakdown: { budget: 91, style: 88, avail: 95 },
-      reviews: [{ name: 'Hải & Phương', text: 'Ban nhạc chuyên nghiệp, khách mời rất thích.' }] },
-    { id: 'djtony', name: 'DJ Tony Events', price: 12, priceUnit: 'tr/buổi', priceTotal: 12,
-      rating: 4.6, rv: 89, match: 78, spec: 'DJ + MC · TP.HCM',
-      grad: 'linear-gradient(135deg,#b0a0c0,#907090)',
-      reasons: ['Giá tốt nhất', 'Set list linh hoạt', 'Ánh sáng sân khấu'],
-      includes: ['DJ set 4 tiếng', 'MC bilingual', 'Đèn sân khấu', 'Laser & LED'],
-      breakdown: { budget: 98, style: 72, avail: 90 },
-      reviews: [{ name: 'Kiên & Ngọc', text: 'Giá hợp lý, không khí sôi động, tiệc vui.' }] },
   ],
 };
 
