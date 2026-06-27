@@ -9,10 +9,10 @@ const CAT_META = {
   jewelry:       { color: 'var(--kim-400)',  icon: 'gem'              },
   attire:        { color: 'var(--kim-300)',  icon: 'shirt'            },
   decor:         { color: 'var(--son-300)',  icon: 'flower-2'         },
-  entertainment: { color: 'var(--ink-300)',  icon: 'music-2'          },
   makeup:        { color: 'var(--dao-300)',  icon: 'sparkles'         },
   transport:     { color: 'var(--ink-400)',  icon: 'car'              },
   stationery:    { color: 'var(--kim-200)',  icon: 'mail'             },
+  honeymoon:     { color: 'var(--dao-400)',  icon: 'palmtree'         },
   reserve:       { color: 'var(--sage-400)', icon: 'shield'           },
 };
 
@@ -89,8 +89,23 @@ export function useBudget(coupleId = null, initial = []) {
   const total = cats.reduce((s, c) => s + (c.allocated_tr || 0), 0);
   const over = total - meta.totalTr;
 
+  // honeymoon là mục thêm sau (init 0%). Khi user phân bổ honeymoon, rút tương ứng
+  // từ reserve (dự phòng) — giữ tổng = budget, không đụng các mục khác. Nếu reserve
+  // không đủ thì kẹp về 0 (UI sẽ cảnh báo vượt).
   const setAmt = (id, amt) =>
-    mutate((cs) => cs.map((c) => (c.id === id ? { ...c, allocated_tr: Math.max(0, Math.round(amt)) } : c)));
+    mutate((cs) => {
+      const val = Math.max(0, Math.round(amt));
+      if (id === 'honeymoon') {
+        const cur = cs.find((c) => c.id === 'honeymoon');
+        const delta = val - (cur?.allocated_tr || 0);
+        return cs.map((c) => {
+          if (c.id === 'honeymoon') return { ...c, allocated_tr: val };
+          if (c.id === 'reserve') return { ...c, allocated_tr: Math.max(0, (c.allocated_tr || 0) - delta) };
+          return c;
+        });
+      }
+      return cs.map((c) => (c.id === id ? { ...c, allocated_tr: val } : c));
+    });
   const rename = (id, name) =>
     mutate((cs) => cs.map((c) => (c.id === id ? { ...c, name } : c)));
   const toggleLock = (id) =>
