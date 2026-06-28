@@ -235,7 +235,7 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
             </div>
           )}
           {bud.cats.map((c, i) => (
-            <CatRow key={c.id} c={c} itemsTotal={bud.itemsTotal} totalTarget={bud.totalTarget} defaultOpen={i === 0}
+            <CatRow key={c.id} c={c} itemsTotal={bud.itemsTotal} totalTarget={bud.totalTarget} defaultOpen={(c.items || []).length > 0}
               onAmt={(v) => { bud.setAmt(c.id, v); track('budget_category_amount_changed', { journey: 'budget', category_id: c.id, new_amt: v }); }}
               onName={(n) => bud.rename(c.id, n)}
               onRemove={() => { bud.remove(c.id); track('budget_category_removed', { journey: 'budget', category_id: c.id }); }}
