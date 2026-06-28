@@ -197,7 +197,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     const styleTags = (styleProfile || []).filter(s => s.pct > 0).slice(0, 3).map(s => STYLE_TAG_MAP[s.key] || s.key);
 
     // Chuyển tháng/năm cưới → ISO date (ngày 1 đầu tháng)
-    const weddingDate = `${data.weddingY}-${String(data.weddingM).padStart(2, '0')}-01`;
+    const weddingDate = `${data.weddingY}-${String(data.weddingM).padStart(2, '0')}-${String(data.weddingD || 1).padStart(2, '0')}`;
 
     try {
       // Tái dùng couple đang hiển thị (getMe luôn load couples[0]). Nếu tạo couple

@@ -159,10 +159,10 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
       .then((s) => {
         setData((prev) => ({
           ...prev,
-          bride:    s.profile.bride_name || prev.bride,
-          groom:    s.profile.groom_name || prev.groom,
-          date:     fmtDate(s.profile.wedding_date) || prev.date,
-          dateRaw:  s.profile.wedding_date ? String(s.profile.wedding_date).split('T')[0] : prev.dateRaw,
+          bride:    s.profile?.bride_name || prev.bride,
+          groom:    s.profile?.groom_name || prev.groom,
+          date:     fmtDate(s.profile?.wedding_date) || prev.date,
+          dateRaw:  s.profile?.wedding_date ? String(s.profile.wedding_date).split('T')[0] : prev.dateRaw,
           daysLeft: s.days_left ?? prev.daysLeft,
           totalDays: s.total_days ?? prev.totalDays,
           doneDays:  s.done_days ?? prev.doneDays,
