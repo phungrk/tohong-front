@@ -314,11 +314,26 @@ export function VMatchChatCard({ catId }) {
 
 /* ── VDetailChatCard ─────────────────────────────────────────── */
 export function VDetailChatCard({ catId, vendor }) {
-  const { saved, saveVendor } = useVendorCtx();
+  const { coupleId, saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(false);
+  // why khởi tạo bằng câu template (đã có sẵn từ list), swap sang bản AI khi về.
+  const [why, setWhy] = useState(vendor?.why || '');
+  // Khởi tạo loading=true ngay khi sẽ fetch, tránh setState đồng bộ trong effect.
+  const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
+
+  // Lazy: bấm xem chi tiết mới gọi AI (backend cache theo profile-hash).
+  useEffect(() => {
+    if (!vendor?.id || !coupleId) return;
+    let alive = true;
+    api.getVendorDetail(vendor.id, coupleId)
+      .then((res) => { if (alive && res?.match?.whyThisVendor) setWhy(res.match.whyThisVendor); })
+      .catch(() => {})
+      .finally(() => { if (alive) setWhyLoading(false); });
+    return () => { alive = false; };
+  }, [vendor?.id, coupleId]);
 
   if (!cat || !vendor) return null;
 
@@ -369,11 +384,12 @@ export function VDetailChatCard({ catId, vendor }) {
           ))}
         </div>
 
-        {/* why sentence */}
-        {vendor.why && (
+        {/* why sentence — template trước, swap sang bản AI (dimmed + caret khi đang viết) */}
+        {why && (
           <div style={{ padding: '4px 14px 0', fontFamily: 'var(--font-body)', fontSize: 12.5,
-            color: 'var(--ink-700)', lineHeight: 1.55 }}>
-            {vendor.why}
+            color: 'var(--ink-700)', lineHeight: 1.55,
+            opacity: whyLoading ? 0.6 : 1, transition: 'opacity .2s ease' }}>
+            {why}{whyLoading && <span className="vm-caret">▌</span>}
           </div>
         )}
 
