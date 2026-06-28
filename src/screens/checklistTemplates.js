@@ -129,12 +129,12 @@ function assignStatus(phases, daysLeft) {
 }
 
 export const DEFAULT_RUNDOWN = [
-  { id: 'rd_0', name: 'Cô dâu makeup từ sáng sớm',                    tag: 'Lễ',   done: false },
-  { id: 'rd_1', name: 'Lễ xin dâu',                                    tag: 'Lễ',   done: false },
-  { id: 'rd_2', name: 'Lễ vu quy',                                     tag: 'Lễ',   done: false },
-  { id: 'rd_3', name: 'Tiệc cưới chính',                               tag: 'Tiệc', done: false },
-  { id: 'rd_4', name: 'Ghi tiền mừng cẩn thận',                        tag: 'Tiệc', done: false },
-  { id: 'rd_5', name: 'Thanh toán vendor tại chỗ (nếu có khoản cuối)', tag: 'Tiệc', done: false },
+  { id: 'rd_0', time: '06:00', name: 'Cô dâu makeup từ sáng sớm',                    tag: 'Lễ',   done: false },
+  { id: 'rd_1', time: '09:00', name: 'Lễ xin dâu',                                    tag: 'Lễ',   done: false },
+  { id: 'rd_2', time: '10:00', name: 'Lễ vu quy',                                     tag: 'Lễ',   done: false },
+  { id: 'rd_3', time: '11:00', name: 'Tiệc cưới chính',                               tag: 'Tiệc', done: false },
+  { id: 'rd_4', time: '12:30', name: 'Ghi tiền mừng cẩn thận',                        tag: 'Tiệc', done: false },
+  { id: 'rd_5', time: '14:00', name: 'Thanh toán vendor tại chỗ (nếu có khoản cuối)', tag: 'Tiệc', done: false },
 ];
 
 export function buildTemplate(daysLeft) {

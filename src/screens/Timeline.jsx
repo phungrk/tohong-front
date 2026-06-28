@@ -376,7 +376,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {} }) {
   const [taskSheetOpen, setTaskSheetOpen] = useState(false);
   const saveTimer = useRef(null);
 
-  const lastTime = rundown.length ? rundown[rundown.length - 1].time : '13:30';
+  const lastTime = rundown.length ? (rundown[rundown.length - 1].time ?? '13:30') : '13:30';
   const suggestTime = (() => {
     const [h, m] = lastTime.split(':').map(Number);
     const t = Math.min(23 * 60 + 55, h * 60 + m + 30);
