@@ -7,16 +7,6 @@ import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 export const ChatActionsCtx = createContext({ pushUser: () => {}, pushAI: () => {} });
 export const useChatActions = () => useContext(ChatActionsCtx);
 
-/* ── Map frontend catId → category mà backend matcher (vendorMatcher.js) dùng.
-   Frontend dùng id khớp budget category (decor/attire), nhưng VENDOR_POOL backend
-   gắn category 'flower'/'wedding_attire' → phải map, nếu không sẽ trả rỗng. ── */
-const FE_TO_MATCH_CATEGORY = {
-  venue: 'venue',
-  photography: 'photography',
-  decor: 'flower',
-  attire: 'wedding_attire',
-};
-
 /* Gradient fallback theo danh mục khi vendor không có ảnh. */
 const CAT_FALLBACK_GRAD = {
   venue: 'linear-gradient(135deg,#c9907a,#9a5b4a)',
@@ -149,8 +139,7 @@ export function VMatchChatCard({ catId }) {
 
   useEffect(() => {
     let alive = true;
-    const matchCategory = FE_TO_MATCH_CATEGORY[catId] || catId;
-    api.matchVendors(coupleId, { category: matchCategory, limit: 5 })
+    api.matchVendors(coupleId, { category: catId, limit: 5 })
       .then((res) => {
         if (!alive) return;
         setVendors((res?.vendors || []).map((v) => adaptVendor(v, catId)));
