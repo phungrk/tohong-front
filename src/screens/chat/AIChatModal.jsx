@@ -55,7 +55,7 @@ function VendorThread({ vendorSeed }) {
   useEffect(() => {
     const InitCard = vendorSeed?.catId ? VMatchChatCard : VPickerChatCard;
     const initProps = vendorSeed?.catId ? { catId: vendorSeed.catId } : {};
-    setMessages([{ id: 0, type: 'card', Card: InitCard, props: initProps }]);
+    setMessages([{ id: vendorSeed?.catId ?? 'picker', type: 'card', Card: InitCard, props: initProps }]);
   }, [vendorSeed?.catId]);
 
   useEffect(() => {
