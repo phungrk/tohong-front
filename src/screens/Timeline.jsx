@@ -3,6 +3,7 @@ import { Icon } from '../ui/Icon.jsx';
 import { Avatar } from '../ui/atoms.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { buildTemplate } from './checklistTemplates.js';
 
 const EMPTY_PHASES = [
   { id: 'ph_current', label: 'Việc cần làm', status: 'current', tasks: [] },
@@ -382,25 +383,37 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {} }) {
     return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
   })();
 
-  // Load timeline data + AI suggestions on mount
+  // Load timeline data + AI suggestions on mount.
+  // If the timeline has never been saved (updated_at === null) and we know the wedding date,
+  // auto-generate the appropriate checklist template and save it.
   useEffect(() => {
     if (!coupleId) return;
     let cancelled = false;
     Promise.all([api.getTimeline(coupleId), api.getSummary(coupleId)])
       .then(async ([data, summary]) => {
         if (cancelled) return;
-        if (data?.phases) setPhases(data.phases);
-        if (data?.rundown) setRundown(data.rundown);
+        const daysLeft = summary?.days_left ?? null;
         setWedding({
           date: summary?.profile?.wedding_date || null,
-          daysLeft: summary?.days_left ?? null,
+          daysLeft,
         });
-        if (data?.rundown?.length) {
-          try {
-            const result = await api.getTimelineSuggestions(coupleId);
-            if (!cancelled && result?.source === 'ai') setSuggestions(result.suggestions || []);
-          } catch {
-            if (!cancelled) setSuggestions([]);
+
+        if (!data?.updated_at && daysLeft != null) {
+          // First load after onboarding — generate template from wedding date
+          const { phases: initPhases, rundown: initRundown } = buildTemplate(daysLeft);
+          setPhases(initPhases);
+          setRundown(initRundown);
+          api.putTimeline(coupleId, { phases: initPhases, rundown: initRundown }).catch(() => {});
+        } else {
+          if (data?.phases) setPhases(data.phases);
+          if (data?.rundown) setRundown(data.rundown);
+          if (data?.rundown?.length) {
+            try {
+              const result = await api.getTimelineSuggestions(coupleId);
+              if (!cancelled && result?.source === 'ai') setSuggestions(result.suggestions || []);
+            } catch {
+              if (!cancelled) setSuggestions([]);
+            }
           }
         }
       })
