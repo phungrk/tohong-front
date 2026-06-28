@@ -171,7 +171,7 @@ export function VMatchChatCard({ catId }) {
   const [flash, setFlash] = useState(null);
   const [vendors, setVendors] = useState(null);  // null = đang tải
   const [error, setError] = useState(false);
-  const [intro, setIntro] = useState('');
+  const [whyThoseVendors, setWhyThoseVendors] = useState('');
   const [phase, setPhase] = useState('loading');  // loading → intro → cards
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
@@ -183,10 +183,10 @@ export function VMatchChatCard({ catId }) {
         if (!alive) return;
         const list = (res?.vendors || []).map((v) => adaptVendor(v, catId));
         setVendors(list);
-        const intro = res?.intro || '';
-        setIntro(intro);
-        // Có intro → gõ chữ trước rồi mới hiện card; không có → hiện card luôn.
-        setPhase(list.length && intro ? 'intro' : 'cards');
+        const why = res?.whyThoseVendors || '';
+        setWhyThoseVendors(why);
+        // Có why → gõ chữ trước rồi mới hiện card; không có → hiện card luôn.
+        setPhase(list.length && why ? 'intro' : 'cards');
       })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
@@ -234,8 +234,8 @@ export function VMatchChatCard({ catId }) {
           <CardNote icon="search-x">Chưa tìm thấy vendor phù hợp cho danh mục này.</CardNote>
         )}
 
-        {intro && vendors?.length > 0 && (
-          <Typewriter text={intro} borderBottom={showCards}
+        {whyThoseVendors && vendors?.length > 0 && (
+          <Typewriter text={whyThoseVendors} borderBottom={showCards}
             onDone={() => setPhase('cards')} />
         )}
 
