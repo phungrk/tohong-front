@@ -655,3 +655,22 @@ textarea {
     opacity: 1;
   }
 }
+
+/* Vendor match list — typewriter caret + staggered card reveal */
+@keyframes vmFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes vmCaret {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+.vm-card-in {
+  animation: vmFadeUp 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.vm-caret {
+  display: inline-block;
+  margin-left: 1px;
+  color: var(--son-500);
+  animation: vmCaret 0.9s steps(1) infinite;
+}

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from '../VendorCtx.jsx';
 import { api } from '../../api.js';
@@ -32,7 +32,7 @@ function adaptVendor(bv, catId) {
     spec,
     grad: img ? `center/cover no-repeat url("${img}")` : (CAT_FALLBACK_GRAD[catId] || 'linear-gradient(135deg,#d4a0a0,#a06060)'),
     reasons: (bv.match?.reasons || []).map((r) => (typeof r === 'string' ? r : r.label)),
-    why: bv.match?.whySentence || '',
+    why: bv.match?.whyThisVendor || '',
     includes: bv.tags || [],
     breakdown: {
       budget: Math.round((bk.budget ?? 0.5) * 100),
@@ -127,6 +127,43 @@ export function VPickerChatCard() {
   );
 }
 
+/* ── Typewriter ─────────────────────────────────────────────────
+   Gõ intro từng chữ kiểu chat. Bấm để hiện ngay (skip). text ổn định
+   trong vòng đời card nên effect chỉ chạy 1 lần khi mount. */
+function Typewriter({ text, speed = 12, onDone, borderBottom }) {
+  const [len, setLen] = useState(0);
+  const doneRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  useEffect(() => { onDoneRef.current = onDone; });
+
+  const markDone = () => {
+    if (!doneRef.current) { doneRef.current = true; onDoneRef.current?.(); }
+  };
+
+  useEffect(() => {
+    let i = 0;
+    const id = setInterval(() => {
+      i += 1;
+      setLen(i);
+      if (i >= text.length) { clearInterval(id); markDone(); }
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, speed]);
+
+  const typing = len < text.length;
+  const finish = () => { setLen(text.length); markDone(); };
+
+  return (
+    <div onClick={typing ? finish : undefined}
+      style={{ padding: '11px 14px 12px', fontFamily: 'var(--font-body)', fontSize: 12.5,
+        lineHeight: 1.6, color: 'var(--ink-700)', cursor: typing ? 'pointer' : 'default',
+        borderBottom: borderBottom ? '1px solid var(--line-100)' : 'none' }}>
+      {text.slice(0, len)}
+      {typing && <span className="vm-caret">▌</span>}
+    </div>
+  );
+}
+
 /* ── VMatchChatCard ─────────────────────────────────────────── */
 export function VMatchChatCard({ catId }) {
   const { coupleId, saved, saveVendor } = useVendorCtx();
@@ -134,6 +171,8 @@ export function VMatchChatCard({ catId }) {
   const [flash, setFlash] = useState(null);
   const [vendors, setVendors] = useState(null);  // null = đang tải
   const [error, setError] = useState(false);
+  const [intro, setIntro] = useState('');
+  const [phase, setPhase] = useState('loading');  // loading → intro → cards
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
@@ -142,13 +181,20 @@ export function VMatchChatCard({ catId }) {
     api.matchVendors(coupleId, { category: catId, limit: 5 })
       .then((res) => {
         if (!alive) return;
-        setVendors((res?.vendors || []).map((v) => adaptVendor(v, catId)));
+        const list = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        setVendors(list);
+        const intro = res?.intro || '';
+        setIntro(intro);
+        // Có intro → gõ chữ trước rồi mới hiện card; không có → hiện card luôn.
+        setPhase(list.length && intro ? 'intro' : 'cards');
       })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
   }, [catId, coupleId]);
 
   if (!cat) return null;
+
+  const showCards = phase === 'cards';
 
   const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
 
@@ -188,13 +234,19 @@ export function VMatchChatCard({ catId }) {
           <CardNote icon="search-x">Chưa tìm thấy vendor phù hợp cho danh mục này.</CardNote>
         )}
 
-        {vendors !== null && vendors.length > 0 && (
+        {intro && vendors?.length > 0 && (
+          <Typewriter text={intro} borderBottom={showCards}
+            onDone={() => setPhase('cards')} />
+        )}
+
+        {vendors !== null && vendors.length > 0 && showCards && (
           <div style={{ padding: '4px 0 2px' }}>
             {vendors.map((v, i) => {
               const isBest = i === 0;
               const isSaved = savedIds.includes(v.id);
               return (
-                <div key={v.id} style={{ padding: '10px 14px',
+                <div key={v.id} className="vm-card-in"
+                  style={{ padding: '10px 14px', animationDelay: `${i * 80}ms`,
                   borderBottom: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     {/* swatch */}
@@ -250,7 +302,7 @@ export function VMatchChatCard({ catId }) {
           </div>
         )}
 
-        {vendors !== null && vendors.length >= 2 && (
+        {vendors !== null && vendors.length >= 2 && showCards && (
           <CardAction>
             <GhostBtn icon="sliders-horizontal" small onClick={onCompare}>So sánh top 2</GhostBtn>
           </CardAction>
