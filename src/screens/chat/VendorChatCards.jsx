@@ -130,7 +130,7 @@ export function VPickerChatCard() {
 /* ── Typewriter ─────────────────────────────────────────────────
    Gõ intro từng chữ kiểu chat. Bấm để hiện ngay (skip). text ổn định
    trong vòng đời card nên effect chỉ chạy 1 lần khi mount. */
-function Typewriter({ text, speed = 12, onDone, borderBottom }) {
+function Typewriter({ text, speed = 12, onDone, borderBottom, style: styleProp }) {
   const [len, setLen] = useState(0);
   const doneRef = useRef(false);
   const onDoneRef = useRef(onDone);
@@ -157,7 +157,8 @@ function Typewriter({ text, speed = 12, onDone, borderBottom }) {
     <div onClick={typing ? finish : undefined}
       style={{ padding: '11px 14px 12px', fontFamily: 'var(--font-body)', fontSize: 12.5,
         lineHeight: 1.6, color: 'var(--ink-700)', cursor: typing ? 'pointer' : 'default',
-        borderBottom: borderBottom ? '1px solid var(--line-100)' : 'none' }}>
+        borderBottom: borderBottom ? '1px solid var(--line-100)' : 'none',
+        ...styleProp }}>
       {text.slice(0, len)}
       {typing && <span className="vm-caret">▌</span>}
     </div>
@@ -316,9 +317,11 @@ export function VMatchChatCard({ catId }) {
 export function VDetailChatCard({ catId, vendor }) {
   const { coupleId, saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(false);
-  // why khởi tạo bằng câu template (đã có sẵn từ list), swap sang bản AI khi về.
+  // why: câu template từ list; swap → bản AI khi về.
   const [why, setWhy] = useState(vendor?.why || '');
-  // Khởi tạo loading=true ngay khi sẽ fetch, tránh setState đồng bộ trong effect.
+  // typing=true khi AI text về và khác template → chạy Typewriter animation.
+  const [typing, setTyping] = useState(false);
+  // whyLoading: dimm template + caret trong lúc chờ AI.
   const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
@@ -329,7 +332,15 @@ export function VDetailChatCard({ catId, vendor }) {
     if (!vendor?.id || !coupleId) return;
     let alive = true;
     api.getVendorDetail(vendor.id, coupleId)
-      .then((res) => { if (alive && res?.match?.whyThisVendor) setWhy(res.match.whyThisVendor); })
+      .then((res) => {
+        if (!alive) return;
+        const aiText = res?.match?.whyThisVendor;
+        if (aiText) {
+          setWhy(aiText);
+          // Chỉ chạy Typewriter khi AI sinh câu khác template.
+          if (aiText !== (vendor?.why || '')) setTyping(true);
+        }
+      })
       .catch(() => {})
       .finally(() => { if (alive) setWhyLoading(false); });
     return () => { alive = false; };
@@ -384,13 +395,18 @@ export function VDetailChatCard({ catId, vendor }) {
           ))}
         </div>
 
-        {/* why sentence — template trước, swap sang bản AI (dimmed + caret khi đang viết) */}
+        {/* why sentence: template dimmed khi đang chờ AI → Typewriter khi AI về khác template */}
         {why && (
-          <div style={{ padding: '4px 14px 0', fontFamily: 'var(--font-body)', fontSize: 12.5,
-            color: 'var(--ink-700)', lineHeight: 1.55,
-            opacity: whyLoading ? 0.6 : 1, transition: 'opacity .2s ease' }}>
-            {why}{whyLoading && <span className="vm-caret">▌</span>}
-          </div>
+          typing ? (
+            <Typewriter text={why} speed={14} onDone={() => setTyping(false)}
+              style={{ padding: '4px 14px 8px', lineHeight: 1.55 }} />
+          ) : (
+            <div style={{ padding: '4px 14px 0', fontFamily: 'var(--font-body)', fontSize: 12.5,
+              color: 'var(--ink-700)', lineHeight: 1.55,
+              opacity: whyLoading ? 0.6 : 1, transition: 'opacity .2s ease' }}>
+              {why}{whyLoading && <span className="vm-caret">▌</span>}
+            </div>
+          )
         )}
 
         {/* services / tags */}
