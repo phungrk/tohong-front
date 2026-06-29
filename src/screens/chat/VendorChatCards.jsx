@@ -171,6 +171,8 @@ export function VMatchChatCard({ catId }) {
   const { pushUser, pushAI } = useChatActions();
   const [flash, setFlash] = useState(null);
   const [vendors, setVendors] = useState(null);  // null = đang tải
+  const [total, setTotal] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [whyThoseVendors, setWhyThoseVendors] = useState('');
   const [phase, setPhase] = useState('loading');  // loading → intro → cards
@@ -184,18 +186,32 @@ export function VMatchChatCard({ catId }) {
         if (!alive) return;
         const list = (res?.vendors || []).map((v) => adaptVendor(v, catId));
         setVendors(list);
+        setTotal(res?.total ?? list.length);
         const why = res?.whyThoseVendors || '';
         setWhyThoseVendors(why);
-        // Có why → gõ chữ trước rồi mới hiện card; không có → hiện card luôn.
         setPhase(list.length && why ? 'intro' : 'cards');
       })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
   }, [catId, coupleId]);
 
+  const loadMore = () => {
+    if (loadingMore || !vendors) return;
+    setLoadingMore(true);
+    api.matchVendors(coupleId, { category: catId, limit: 5, offset: vendors.length })
+      .then((res) => {
+        const more = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        setVendors((prev) => [...prev, ...more]);
+        setTotal(res?.total ?? total);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
+
   if (!cat) return null;
 
   const showCards = phase === 'cards';
+  const hasMore = vendors !== null && vendors.length < total;
 
   const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
 
@@ -222,7 +238,7 @@ export function VMatchChatCard({ catId }) {
       <SaveFlash visible={!!flash} name={flash} />
       <CardShell gold>
         <CardHead icon={cat.icon}
-          kicker={vendors ? `${vendors.length} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
+          kicker={vendors ? `${vendors.length} / ${total} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
           title={cat.name} />
 
         {vendors === null && !error && (
@@ -300,6 +316,22 @@ export function VMatchChatCard({ catId }) {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {showCards && hasMore && (
+          <div style={{ padding: '10px 14px 4px', borderTop: '1px solid var(--line-100)' }}>
+            <button type="button" onClick={loadMore} disabled={loadingMore}
+              style={{ width: '100%', padding: '9px 0', borderRadius: 'var(--r-pill)',
+                border: '1.5px solid var(--son-300)', background: 'transparent',
+                cursor: loadingMore ? 'default' : 'pointer', opacity: loadingMore ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 600, color: 'var(--son-600)' }}>
+              {loadingMore
+                ? <><Icon name="loader" size={14} color="var(--son-500)" sw={2} /> Đang tải…</>
+                : <><Icon name="chevron-down" size={14} color="var(--son-500)" sw={2} /> Xem thêm {Math.min(5, total - vendors.length)} vendor</>
+              }
+            </button>
           </div>
         )}
 
