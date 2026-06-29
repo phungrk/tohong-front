@@ -172,6 +172,7 @@ export function VMatchChatCard({ catId }) {
   const [flash, setFlash] = useState(null);
   const [vendors, setVendors] = useState(null);  // null = đang tải
   const [total, setTotal] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [whyThoseVendors, setWhyThoseVendors] = useState('');
@@ -197,12 +198,15 @@ export function VMatchChatCard({ catId }) {
 
   const loadMore = () => {
     if (loadingMore || !vendors) return;
+    // Already have extra vendors cached — just expand
+    if (vendors.length > 5) { setExpanded(true); return; }
     setLoadingMore(true);
     api.matchVendors(coupleId, { category: catId, limit: 5, offset: vendors.length })
       .then((res) => {
         const more = (res?.vendors || []).map((v) => adaptVendor(v, catId));
         setVendors((prev) => [...prev, ...more]);
         setTotal(res?.total ?? total);
+        setExpanded(true);
       })
       .catch(() => {})
       .finally(() => setLoadingMore(false));
@@ -212,6 +216,9 @@ export function VMatchChatCard({ catId }) {
 
   const showCards = phase === 'cards';
   const hasMore = vendors !== null && vendors.length < total;
+  const visibleVendors = vendors ? (expanded ? vendors : vendors.slice(0, 5)) : [];
+  const showExpandBtn = showCards && vendors !== null && !expanded && (hasMore || vendors.length > 5);
+  const showCollapseBtn = showCards && expanded;
 
   const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
 
@@ -226,19 +233,12 @@ export function VMatchChatCard({ catId }) {
     pushAI(VDetailChatCard, { catId, vendor: v });
   };
 
-  const onCompare = () => {
-    const top2 = (vendors || []).slice(0, 2);
-    if (top2.length < 2) return;
-    pushUser(`So sánh ${top2[0].name} và ${top2[1].name}`);
-    pushAI(VCompareChatCard, { catId, vendors: top2 });
-  };
-
   return (
     <>
       <SaveFlash visible={!!flash} name={flash} />
       <CardShell gold>
         <CardHead icon={cat.icon}
-          kicker={vendors ? `${vendors.length} / ${total} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
+          kicker={vendors ? `${total} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
           title={cat.name} />
 
         {vendors === null && !error && (
@@ -256,15 +256,15 @@ export function VMatchChatCard({ catId }) {
             onDone={() => setPhase('cards')} />
         )}
 
-        {vendors !== null && vendors.length > 0 && showCards && (
+        {visibleVendors.length > 0 && showCards && (
           <div style={{ padding: '4px 0 2px' }}>
-            {vendors.map((v, i) => {
+            {visibleVendors.map((v, i) => {
               const isBest = i === 0;
               const isSaved = savedIds.includes(v.id);
               return (
                 <div key={v.id} className="vm-card-in"
                   style={{ padding: '10px 14px', animationDelay: `${i * 80}ms`,
-                  borderBottom: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
+                  borderBottom: i < visibleVendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     {/* swatch */}
                     <div style={{ width: 54, height: 54, borderRadius: 'var(--r-sm)', flexShrink: 0,
@@ -319,26 +319,32 @@ export function VMatchChatCard({ catId }) {
           </div>
         )}
 
-        {showCards && hasMore && (
+        {(showExpandBtn || showCollapseBtn) && (
           <div style={{ padding: '10px 14px 4px', borderTop: '1px solid var(--line-100)' }}>
-            <button type="button" onClick={loadMore} disabled={loadingMore}
-              style={{ width: '100%', padding: '9px 0', borderRadius: 'var(--r-pill)',
-                border: '1.5px solid var(--son-300)', background: 'transparent',
-                cursor: loadingMore ? 'default' : 'pointer', opacity: loadingMore ? 0.6 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 600, color: 'var(--son-600)' }}>
-              {loadingMore
-                ? <><Icon name="loader" size={14} color="var(--son-500)" sw={2} /> Đang tải…</>
-                : <><Icon name="chevron-down" size={14} color="var(--son-500)" sw={2} /> Xem thêm {Math.min(5, total - vendors.length)} vendor</>
-              }
-            </button>
+            {showExpandBtn && (
+              <button type="button" onClick={loadMore} disabled={loadingMore}
+                style={{ width: '100%', padding: '9px 0', borderRadius: 'var(--r-pill)',
+                  border: '1.5px solid var(--son-300)', background: 'transparent',
+                  cursor: loadingMore ? 'default' : 'pointer', opacity: loadingMore ? 0.6 : 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 600, color: 'var(--son-600)' }}>
+                {loadingMore
+                  ? <><Icon name="loader" size={14} color="var(--son-500)" sw={2} /> Đang tải…</>
+                  : <><Icon name="chevron-down" size={14} color="var(--son-500)" sw={2} /> Xem thêm {Math.min(5, total - vendors.length)} vendor</>
+                }
+              </button>
+            )}
+            {showCollapseBtn && (
+              <button type="button" onClick={() => setExpanded(false)}
+                style={{ width: '100%', padding: '9px 0', borderRadius: 'var(--r-pill)',
+                  border: '1.5px solid var(--line-200)', background: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 600, color: 'var(--ink-500)' }}>
+                <Icon name="chevron-up" size={14} color="var(--ink-400)" sw={2} /> Thu gọn
+              </button>
+            )}
           </div>
-        )}
-
-        {vendors !== null && vendors.length >= 2 && showCards && (
-          <CardAction>
-            <GhostBtn icon="sliders-horizontal" small onClick={onCompare}>So sánh top 2</GhostBtn>
-          </CardAction>
         )}
       </CardShell>
     </>
