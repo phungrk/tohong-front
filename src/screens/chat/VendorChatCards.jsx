@@ -238,7 +238,7 @@ export function VMatchChatCard({ catId }) {
       <SaveFlash visible={!!flash} name={flash} />
       <CardShell gold>
         <CardHead icon={cat.icon}
-          kicker={vendors ? `${total} gợi ý phù hợp` : 'Tơ Hồng đang tìm…'}
+          kicker={vendors ? 'Gợi ý phù hợp' : 'Tơ Hồng đang tìm…'}
           title={cat.name} />
 
         {vendors === null && !error && (
