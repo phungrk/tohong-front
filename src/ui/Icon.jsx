@@ -69,6 +69,9 @@ import {
   MapPin,
   Palette,
   Bookmark,
+  Car,
+  Mail,
+  Palmtree,
 } from 'lucide-react';
 
 const MAP = {
@@ -139,6 +142,9 @@ const MAP = {
   'map-pin': MapPin,
   palette: Palette,
   bookmark: Bookmark,
+  car: Car,
+  mail: Mail,
+  palmtree: Palmtree,
 };
 
 export function Icon({ name, size = 20, color = 'currentColor', sw = 1.85, ...rest }) {

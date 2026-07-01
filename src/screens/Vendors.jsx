@@ -82,7 +82,7 @@ function VVendorRow({ catId, vendor, onOpenChat }) {
 
 /* ── Category card ─────────────────────────────────────────── */
 function CatCard({ cat, onOpenChat }) {
-  const { saved, getCatStatus } = useVendorCtx();
+  const { saved, getCatStatus, getCatBudget } = useVendorCtx();
   const status = getCatStatus(cat.id);
   const vendors = saved[cat.id]?.shortlisted || [];
   const isConfirmed = status === 'confirmed';
@@ -106,7 +106,7 @@ function CatCard({ cat, onOpenChat }) {
             {cat.name}
           </div>
           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>
-            Budget ~{cat.budget}tr
+            Budget ~{getCatBudget(cat.id)}tr
           </div>
         </div>
         <StatusBadge status={status} />
@@ -143,12 +143,12 @@ function CatCard({ cat, onOpenChat }) {
 
 /* ── Budget summary card ─────────────────────────────────────── */
 function BudgetCard() {
-  const { getCatStatus, getBudgetConfirmed } = useVendorCtx();
-  const totalBudget = VENDOR_CATEGORIES.reduce((s, c) => s + c.budget, 0);
+  const { getCatStatus, getBudgetConfirmed, getCatBudget } = useVendorCtx();
+  const totalBudget = VENDOR_CATEGORIES.reduce((s, c) => s + getCatBudget(c.id), 0);
   const confirmed = getBudgetConfirmed();
   const shortlisted = VENDOR_CATEGORIES.reduce((s, cat) => {
     const status = getCatStatus(cat.id);
-    return s + (status !== 'none' ? cat.budget : 0);
+    return s + (status !== 'none' ? getCatBudget(cat.id) : 0);
   }, 0);
   const confirmedCount = VENDOR_CATEGORIES.filter((c) => getCatStatus(c.id) === 'confirmed').length;
 

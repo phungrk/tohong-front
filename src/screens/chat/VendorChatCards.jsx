@@ -85,7 +85,7 @@ function CardNote({ icon, children }) {
 
 /* ── VPickerChatCard ─────────────────────────────────────────── */
 export function VPickerChatCard() {
-  const { getCatStatus } = useVendorCtx();
+  const { getCatStatus, getCatBudget } = useVendorCtx();
   const { pushUser, pushAI } = useChatActions();
 
   const pick = (cat) => {
@@ -110,7 +110,7 @@ export function VPickerChatCard() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{cat.budget}tr</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{getCatBudget(cat.id)}tr</div>
               </span>
               {status === 'confirmed' && (
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', flexShrink: 0 }} />
