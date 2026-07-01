@@ -27,12 +27,15 @@ function UserBubble({ text }) {
 
 function BotBubble({ children }) {
   return (
-    <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-start' }}>
-      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--son-500)',
-        flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
-        <ThreadMark size={17} color="#fff7f0" dot="#fff" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--son-500)',
+          flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ThreadMark size={15} color="#fff7f0" dot="#fff" />
+        </div>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 700, color: 'var(--son-500)' }}>Mai</span>
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 9 }}>
         {children}
       </div>
     </div>
