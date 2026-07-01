@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
+import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 
 /* ── VDot — ● confirmed indicator (avoids check-circle-2) ──── */
 function VDot() {
@@ -196,6 +198,7 @@ function BudgetCard() {
 /* ── ScreenVendorShortlist (S05) ─────────────────────────────── */
 export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
   const { saved, getCatStatus } = useVendorCtx();
+  const [helpOpen, setHelpOpen] = useState(false);
   const totalSaved = VENDOR_CATEGORIES.reduce((s, c) => s + (saved[c.id]?.shortlisted?.length || 0), 0);
   const confirmedCount = VENDOR_CATEGORIES.filter((c) => getCatStatus(c.id) === 'confirmed').length;
 
@@ -230,10 +233,15 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       {/* scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 24px' }}>
         <BudgetCard />
+        <div style={{ marginBottom: 12 }}>
+          <VFlowOverview onOpen={() => setHelpOpen(true)} />
+        </div>
         {VENDOR_CATEGORIES.map((cat) => (
           <CatCard key={cat.id} cat={cat} onOpenChat={onOpenVendorChat} />
         ))}
       </div>
+
+      <VendorFlowSheet open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
