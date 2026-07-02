@@ -143,64 +143,13 @@ function CatCard({ cat, onOpenChat }) {
   );
 }
 
-/* ── Budget summary card ─────────────────────────────────────── */
-function BudgetCard() {
-  const { getCatStatus, getBudgetConfirmed, getCatBudget } = useVendorCtx();
-  const totalBudget = VENDOR_CATEGORIES.reduce((s, c) => s + getCatBudget(c.id), 0);
-  const confirmed = getBudgetConfirmed();
-  const shortlisted = VENDOR_CATEGORIES.reduce((s, cat) => {
-    const status = getCatStatus(cat.id);
-    return s + (status !== 'none' ? getCatBudget(cat.id) : 0);
-  }, 0);
-  const confirmedCount = VENDOR_CATEGORIES.filter((c) => getCatStatus(c.id) === 'confirmed').length;
-
-  return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)',
-      borderRadius: 'var(--r-lg)', padding: '14px 16px', marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 10 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600,
-          color: confirmed > 0 ? 'var(--sage-600)' : 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>
-          {confirmed}tr
-        </span>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--ink-400)' }}>
-          / {totalBudget}tr đã chốt
-        </span>
-        {confirmedCount > 0 && (
-          <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontSize: 11.5,
-            color: 'var(--sage-600)', fontWeight: 600 }}>
-            {confirmedCount}/{VENDOR_CATEGORIES.length} danh mục
-          </span>
-        )}
-      </div>
-      {/* bar */}
-      <div style={{ height: 7, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', display: 'flex' }}>
-        <div style={{ width: (totalBudget > 0 ? (confirmed / totalBudget) * 100 : 0) + '%',
-          background: 'var(--sage-500)', borderRadius: 999, transition: 'width .3s ease' }} />
-        <div style={{ width: (totalBudget > 0 ? Math.max(0, (shortlisted - confirmed) / totalBudget * 100) : 0) + '%',
-          background: 'var(--kim-300)', borderRadius: 999, transition: 'width .3s ease' }} />
-      </div>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8, fontFamily: 'var(--font-ui)', fontSize: 11 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--sage-600)' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', display: 'inline-block' }} />
-          Đã chốt {confirmed}tr
-        </span>
-        {shortlisted > confirmed && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--kim-600)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--kim-300)', display: 'inline-block' }} />
-            Đang xem xét {shortlisted - confirmed}tr
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ── ScreenVendorShortlist (S05) ─────────────────────────────── */
 export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
-  const { saved, getCatStatus } = useVendorCtx();
+  const { saved, getCatStatus, getBudgetConfirmed, getCatBudget } = useVendorCtx();
   const [helpOpen, setHelpOpen] = useState(false);
   const totalSaved = VENDOR_CATEGORIES.reduce((s, c) => s + (saved[c.id]?.shortlisted?.length || 0), 0);
-  const confirmedCount = VENDOR_CATEGORIES.filter((c) => getCatStatus(c.id) === 'confirmed').length;
+  const totalBudget = VENDOR_CATEGORIES.reduce((s, c) => s + getCatBudget(c.id), 0);
+  const confirmed = getBudgetConfirmed();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--paper)' }}>
@@ -215,10 +164,14 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 600,
               color: 'var(--ink-900)', lineHeight: 1.1 }}>Vendor đã lưu</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>
-              {totalSaved > 0
-                ? `${totalSaved} đang xem xét · ${confirmedCount} đã chốt`
-                : 'Chưa có vendor nào được lưu'}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 3 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
+                color: confirmed > 0 ? 'var(--sage-600)' : 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>
+                {confirmed}tr
+              </span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
+                / {totalBudget}tr đã chốt
+              </span>
             </div>
           </div>
           <button type="button" onClick={() => onOpenVendorChat(null)}
@@ -232,7 +185,6 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
 
       {/* scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 24px' }}>
-        <BudgetCard />
         <div style={{ marginBottom: 12 }}>
           <VFlowOverview onOpen={() => setHelpOpen(true)} />
         </div>
