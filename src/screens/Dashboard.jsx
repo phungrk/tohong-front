@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { AIButton } from '../ui/AIButton.jsx';
 import { ThreadMark, Thread } from '../ui/atoms.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
@@ -148,7 +149,7 @@ function DBUpcoming({ item, onClick }) {
   );
 }
 
-export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOpen }) {
+export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
   const [data, setData] = useState(EMPTY);
 
   useEffect(() => {
@@ -220,6 +221,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
           <ThreadMark size={22} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)' }}>Tơ Hồng</span>
         </div>
+        <AIButton onOpen={onOpenAI} />
       </div>
 
       {/* scrollable content */}
