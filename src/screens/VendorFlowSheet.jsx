@@ -5,21 +5,28 @@ import { Icon } from '../ui/Icon.jsx';
    Lưu → Chốt → Vào ngân sách */
 const FLOW_STEPS = [
   {
-    n: 1, icon: 'heart', color: 'var(--kim-500)', bg: 'var(--kim-50)',
-    label: 'Tìm & Lưu',
+    n: 1, icon: 'search', color: 'var(--kim-500)', bg: 'var(--kim-50)',
+    label: 'Tìm',
+    title: 'Tìm vendor phù hợp',
+    desc: 'Hỏi Tơ Hồng gợi ý vendor theo phong cách, ngân sách và khu vực của bạn cho từng hạng mục.',
+    chip: null,
+  },
+  {
+    n: 2, icon: 'heart', color: 'var(--kim-600,#b8860b)', bg: 'var(--kim-50)',
+    label: 'Lưu',
     title: 'Lưu vendor bạn thích',
-    desc: 'Hỏi Tơ Hồng gợi ý rồi lưu những vendor ưng ý vào từng hạng mục. Vendor đã lưu hiển thị chip',
+    desc: 'Lưu những vendor ưng ý vào từng hạng mục. Vendor đã lưu hiển thị chip',
     chip: { text: 'Đang xem xét', color: 'var(--kim-700)', bg: 'var(--kim-50)', border: 'var(--kim-200)', icon: 'bookmark' },
   },
   {
-    n: 2, icon: 'check-circle-2', color: 'var(--sage-500)', bg: 'var(--sage-50,#edf7ee)',
+    n: 3, icon: 'check-circle-2', color: 'var(--sage-500)', bg: 'var(--sage-50,#edf7ee)',
     label: 'Chốt',
     title: 'Chốt vendor chính thức',
     desc: 'Khi đã quyết định, bấm "Chốt" trên vendor đó. Mỗi hạng mục chỉ chốt một vendor. Vendor đã chốt chuyển sang chip',
     chip: { text: 'Đã chốt', color: 'var(--sage-700,#2d6b3a)', bg: 'var(--sage-50,#edf7ee)', border: 'var(--sage-200,#b8d9be)', dot: true },
   },
   {
-    n: 3, icon: 'wallet', color: 'var(--son-500)', bg: 'var(--son-50)',
+    n: 4, icon: 'wallet', color: 'var(--son-500)', bg: 'var(--son-50)',
     label: 'Vào ngân sách',
     title: 'Tự động vào ngân sách',
     desc: 'Vendor vừa chốt được cộng vào tổng chi phí đã chốt và cập nhật thanh ngân sách bên dưới.',
@@ -48,18 +55,18 @@ export function VFlowOverview({ onOpen }) {
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         {FLOW_STEPS.map((s, i) => (
           <div key={s.n} style={{ display: 'contents' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 72 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 58 }}>
               <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                 background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name={s.icon} size={15} color="#fff" sw={2} />
               </span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600,
                 color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
                 {s.label}
               </span>
             </div>
             {i < FLOW_STEPS.length - 1 && (
-              <span style={{ flex: 1, height: 0, margin: '14px 4px 0',
+              <span style={{ flex: 1, height: 0, margin: '14px 3px 0',
                 borderTop: '1.5px dashed var(--son-300)' }} />
             )}
           </div>
@@ -154,7 +161,7 @@ export function VendorFlowSheet({ open, onClose }) {
                   {s.chip && '.'}
                 </div>
                 {/* budget bar minh hoạ ở bước cuối */}
-                {s.n === 3 && (
+                {s.n === 4 && (
                   <div style={{ marginTop: 10, background: 'var(--card)', border: '1px solid var(--line-100)',
                     borderRadius: 'var(--r-md,10px)', padding: '11px 13px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
