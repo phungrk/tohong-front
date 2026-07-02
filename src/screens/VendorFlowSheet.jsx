@@ -5,14 +5,14 @@ import { Icon } from '../ui/Icon.jsx';
    Lưu → Chốt → Vào ngân sách */
 const FLOW_STEPS = [
   {
-    n: 1, icon: 'bookmark', color: 'var(--kim-500)', bg: 'var(--kim-50)',
-    label: 'Lưu',
+    n: 1, icon: 'heart', color: 'var(--kim-500)', bg: 'var(--kim-50)',
+    label: 'Tìm & Lưu',
     title: 'Lưu vendor bạn thích',
     desc: 'Hỏi Tơ Hồng gợi ý rồi lưu những vendor ưng ý vào từng hạng mục. Vendor đã lưu hiển thị chip',
     chip: { text: 'Đang xem xét', color: 'var(--kim-700)', bg: 'var(--kim-50)', border: 'var(--kim-200)', icon: 'bookmark' },
   },
   {
-    n: 2, icon: 'list-checks', color: 'var(--sage-500)', bg: 'var(--sage-50,#edf7ee)',
+    n: 2, icon: 'check-circle-2', color: 'var(--sage-500)', bg: 'var(--sage-50,#edf7ee)',
     label: 'Chốt',
     title: 'Chốt vendor chính thức',
     desc: 'Khi đã quyết định, bấm "Chốt" trên vendor đó. Mỗi hạng mục chỉ chốt một vendor. Vendor đã chốt chuyển sang chip',
@@ -44,22 +44,22 @@ export function VFlowOverview({ onOpen }) {
           Chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
         </span>
       </div>
-      {/* 3 steps ngang nối bằng thread nét đứt */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      {/* 3 steps: icon tròn trên, text xuống hàng dưới; nối bằng thread nét đứt */}
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         {FLOW_STEPS.map((s, i) => (
-          <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: i < FLOW_STEPS.length - 1 ? 1 : '0 0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-              <span style={{ width: 25, height: 25, borderRadius: '50%', flexShrink: 0,
-                background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: '#fff' }}>
-                {s.n}
+          <div key={s.n} style={{ display: 'contents' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 72 }}>
+              <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name={s.icon} size={15} color="#fff" sw={2} />
               </span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-700)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+                color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
                 {s.label}
               </span>
             </div>
             {i < FLOW_STEPS.length - 1 && (
-              <span style={{ flex: 1, height: 0, margin: '0 8px',
+              <span style={{ flex: 1, height: 0, margin: '14px 4px 0',
                 borderTop: '1.5px dashed var(--son-300)' }} />
             )}
           </div>
