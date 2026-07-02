@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { AIButton } from '../ui/AIButton.jsx';
 import { EditName } from '../ui/atoms.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
@@ -68,7 +69,7 @@ function GkSeg({ value, onChange }) {
   );
 }
 
-export function ScreenGuests({ coupleId = null, onMenuOpen = () => {} }) {
+export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
   const [gs, setGs]       = useState([]);
   const [capacity, setCap] = useState(0);
   const [filter, setFilter] = useState('all');
@@ -152,6 +153,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {} }) {
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Khách mời</div>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginTop: 1 }}>{sums.total} người</div>
           </div>
+          <AIButton onOpen={onOpenAI} />
         </div>
 
         <div style={{ marginBottom: 12 }}>

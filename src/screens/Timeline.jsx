@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { AIButton } from '../ui/AIButton.jsx';
 import { Avatar } from '../ui/atoms.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
@@ -366,7 +367,7 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
   );
 }
 
-export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {} }) {
+export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
   const [tab, setTab] = useState('prep');
   const [phases, setPhases] = useState(EMPTY_PHASES);
   const [rundown, setRundown] = useState([]);
@@ -502,6 +503,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {} }) {
             <Icon name="calendar-heart" size={14} color="var(--son-500)" />
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-600)' }}>{weddingLabel}</span>
           </div>}
+          <AIButton onOpen={onOpenAI} />
         </div>
         <div style={{ display: 'flex', background: 'var(--line-100)', borderRadius: 11, padding: 3, gap: 2 }}>
           {[['prep', 'Chuẩn bị'], ['day', weddingLabel ? `Ngày cưới ${weddingLabel}` : 'Ngày cưới']].map(([v, l]) => (

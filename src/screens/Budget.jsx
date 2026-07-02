@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { AIButton } from '../ui/AIButton.jsx';
 import { EditName, EditAmount, AllocSlider } from '../ui/atoms.jsx';
 import { useBudget } from '../budget/useBudget.js';
 import { track } from '../analytics.js';
@@ -195,7 +196,7 @@ function CatRow({ c, itemsTotal, totalTarget, defaultOpen, onAmt, onName, onRemo
   );
 }
 
-export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
+export function ScreenBudget({ coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
   const bud = useBudget(coupleId);
 
   useEffect(() => {
@@ -212,9 +213,12 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {} }) {
             </button>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--ink-900)' }}>Ngân sách</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-400)' }}>
-            {bud.guests > 0 ? `${bud.guests} khách` : 'Chưa có số khách'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-400)' }}>
+              {bud.guests > 0 ? `${bud.guests} khách` : 'Chưa có số khách'}
+            </span>
+            <AIButton onOpen={onOpenAI} />
+          </div>
         </div>
 
         <AllocMeter

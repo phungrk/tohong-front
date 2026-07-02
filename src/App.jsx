@@ -8,7 +8,6 @@ import {
 import { api } from './api.js';
 import { track, endJourney } from './analytics.js';
 import { Icon } from './ui/Icon.jsx';
-import { AIFab } from './ui/AIFab.jsx';
 import { ThreadMark } from './ui/atoms.jsx';
 import { ScreenDashboard } from './screens/Dashboard.jsx';
 import { AIChatModal } from './screens/chat/AIChatModal.jsx';
@@ -296,11 +295,11 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   };
 
   const screens = [
-    <ScreenDashboard coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
+    <ScreenDashboard coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
-    <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
-    <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} />,
-    <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} />,
+    <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     <ScreenVendorShortlist key={`vendor-${vendorKey}`} onMenuOpen={() => setDrawer(true)} onOpenVendorChat={openAIVendor} />,
   ];
 
@@ -318,7 +317,6 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
                 {screen}
               </div>
             ))}
-            <AIFab tab={tab} hidden={aiOpen} onOpen={() => openAI()} />
           </div>
           <BottomTabBar active={tab} onSelect={navigate} />
           <AIChatModal
