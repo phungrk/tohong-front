@@ -117,7 +117,7 @@ function CatCard({ cat, onOpenChat }) {
           style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none',
             background: vendors.length === 0 ? 'var(--son-500)' : 'transparent' }}>
-          <Icon name={vendors.length === 0 ? 'plus' : 'sparkles'} size={16}
+          <Icon name={vendors.length === 0 ? 'search' : 'sparkles'} size={16}
             color={vendors.length === 0 ? '#fff' : 'var(--son-500)'} sw={2} />
         </button>
       </div>
