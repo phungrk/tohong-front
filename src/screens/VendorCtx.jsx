@@ -18,6 +18,18 @@ export const VENDOR_CATEGORIES = [
 
 const VendorCtx = createContext(null);
 
+// Venue báo giá theo bàn (thường 10 khách/bàn) — quy đổi ra tổng chi phí thật
+// theo số khách, thay vì trừ ngân sách bằng đúng đơn giá 1 bàn.
+const GUESTS_PER_TABLE = 10;
+
+function confirmedAmount(catId, vendor, guests) {
+  const min = vendor.priceTotal ?? vendor.price ?? 0;
+  const avg = vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
+  if (catId !== 'venue') return avg;
+  const g = Number(guests) || 0;
+  return g > 0 ? Math.round((avg / GUESTS_PER_TABLE) * g) : avg;
+}
+
 const storageKey = (id) => (id ? `th_vendors_${id}` : null);
 
 function loadSaved(coupleId) {
@@ -32,6 +44,7 @@ function loadSaved(coupleId) {
 export function VendorProvider({ coupleId, onBudgetSync, children }) {
   const [saved, setSaved] = useState({});
   const [budgetCats, setBudgetCats] = useState({}); // catId → allocated_tr, từ ngân sách thật
+  const [guests, setGuests] = useState(0);
 
   // Load persisted state when coupleId becomes available
   useEffect(() => {
@@ -46,6 +59,7 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
       const map = {};
       (data?.categories || []).forEach((c) => { map[c.id] = Number(c.allocated_tr) || 0; });
       setBudgetCats(map);
+      setGuests(Number(data?.guests) || 0);
     }).catch(() => {});
   }, [coupleId]);
 
@@ -70,7 +84,7 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
           items = [...items, {
             id: `vendor_${add.id}`,
             name: add.name,
-            amt: add.priceTotal ?? add.price ?? 0,
+            amt: confirmedAmount(budgetCatId, add, data.guests),
             status: 'confirmed',
             vendor: true,
           }];
@@ -127,7 +141,10 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
   };
 
   const getBudgetConfirmed = () =>
-    VENDOR_CATEGORIES.reduce((sum, cat) => sum + (saved[cat.id]?.confirmed?.priceTotal || 0), 0);
+    VENDOR_CATEGORIES.reduce((sum, cat) => {
+      const vendor = saved[cat.id]?.confirmed;
+      return sum + (vendor ? confirmedAmount(cat.id, vendor, guests) : 0);
+    }, 0);
 
   const getCatBudget = (catId) => budgetCats[catId] || 0;
 
