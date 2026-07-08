@@ -417,6 +417,7 @@ export function VDetailChatCard({ catId, vendor }) {
   const { pushUser, pushAI } = useChatActions();
   const [flash, setFlash] = useState(false);
   const [galIdx, setGalIdx] = useState(0);
+  const [descOpen, setDescOpen] = useState(false);
   // why: câu template từ list; swap → bản AI khi về.
   const [why, setWhy] = useState(vendor?.why || '');
   // typing=true khi AI text về và khác template → chạy Typewriter animation.
@@ -553,7 +554,25 @@ export function VDetailChatCard({ catId, vendor }) {
           )}
         </div>
 
-        {/* 4. Dịch vụ bao gồm */}
+        {/* 4. Giới thiệu — mô tả vendor thật, thu gọn 3 dòng + mở rộng inline */}
+        {vendor.description && (
+          <div style={{ padding: '11px 14px 4px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+              letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Giới thiệu</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)', lineHeight: 1.55,
+              ...(descOpen ? {} : { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }) }}>
+              {vendor.description}
+            </div>
+            <button type="button" onClick={() => setDescOpen((o) => !o)} style={{ marginTop: 5, display: 'flex',
+              alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)' }}>
+              {descOpen ? 'Thu gọn' : 'Xem thêm'}
+              <Icon name={descOpen ? 'chevron-up' : 'chevron-down'} size={12} color="var(--son-500)" />
+            </button>
+          </div>
+        )}
+
+        {/* 5. Dịch vụ bao gồm */}
         {vendor.includes?.length > 0 && (
           <div style={{ padding: '10px 14px 12px' }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
@@ -569,10 +588,10 @@ export function VDetailChatCard({ catId, vendor }) {
           </div>
         )}
 
-        {/* 5. Đánh giá — chỉ hiện khi có dữ liệu thật */}
+        {/* 6. Đánh giá — chỉ hiện khi có dữ liệu thật */}
         <VReviewsBlock vendor={vendor} />
 
-        {/* 6. CTA */}
+        {/* 7. CTA */}
         <CardAction>
           <GhostBtn icon="columns-2" onClick={onCompare}>So sánh</GhostBtn>
           {isSaved ? (
