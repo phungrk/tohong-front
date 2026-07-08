@@ -72,6 +72,10 @@ import {
   Car,
   Mail,
   Palmtree,
+  Loader2,
+  TriangleAlert,
+  Columns2,
+  MoveHorizontal,
 } from 'lucide-react';
 
 const MAP = {
@@ -145,6 +149,10 @@ const MAP = {
   car: Car,
   mail: Mail,
   palmtree: Palmtree,
+  loader: Loader2,
+  'triangle-alert': TriangleAlert,
+  'columns-2': Columns2,
+  'move-horizontal': MoveHorizontal,
 };
 
 export function Icon({ name, size = 20, color = 'currentColor', sw = 1.85, ...rest }) {
