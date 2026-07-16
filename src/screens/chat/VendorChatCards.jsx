@@ -86,6 +86,14 @@ function MatchBadge({ pct }) {
   );
 }
 
+/* Màu + nhãn định tính suy ra từ điểm match (dùng chung cho pill/nhãn). */
+function vMatchColor(pct) {
+  return pct >= 90 ? 'var(--son-500)' : pct >= 80 ? 'var(--kim-600,#b8860b)' : 'var(--ink-400)';
+}
+function vMatchLabel(pct) {
+  return pct >= 90 ? 'Rất phù hợp' : pct >= 80 ? 'Khá phù hợp' : 'Phù hợp';
+}
+
 /* ── Trạng thái nhỏ trong card (loading / error / empty) ───────── */
 function CardNote({ icon, children }) {
   return (
@@ -235,7 +243,9 @@ export function VMatchChatCard({ catId }) {
 
   const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
 
-  const onSave = (v) => {
+  const onSave = (e, v) => {
+    e.preventDefault();
+    e.stopPropagation();
     saveVendor(catId, v);
     setFlash(v.name);
     setTimeout(() => setFlash(null), 1900);
@@ -269,36 +279,75 @@ export function VMatchChatCard({ catId }) {
         {visibleVendors.length > 0 && showCards && (
           <div style={{ padding: '4px 0 2px' }}>
             {visibleVendors.map((v, i) => {
-              const isBest = i === 0;
+              const rank = i + 1;
               const isSaved = savedIds.includes(v.id);
+              const mc = vMatchColor(v.match);
+              const info = [v.location, v.spec].filter(Boolean).join(' · ');
               return (
-                <div key={v.id} className="vm-card-in"
-                  style={{ padding: '10px 14px', animationDelay: `${i * 80}ms`,
-                  borderBottom: i < visibleVendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    {/* swatch */}
-                    <div style={{ width: 108, height: 108, borderRadius: 'var(--r-sm)', flexShrink: 0,
-                      background: v.grad, position: 'relative' }}>
-                      {isBest && (
-                        <span style={{ position: 'absolute', top: -5, left: -5,
-                          background: 'var(--son-500)', color: '#fff',
-                          fontSize: 9, fontWeight: 700, letterSpacing: '0.05em',
-                          borderRadius: 999, padding: '2px 6px', fontFamily: 'var(--font-ui)' }}>
-                          BEST
+                <a key={v.id} href="#" onClick={(e) => { e.preventDefault(); onDetail(v); }}
+                  className="vm-card-in"
+                  style={{ display: 'block', textDecoration: 'none', padding: '11px 14px',
+                    animationDelay: `${i * 80}ms`,
+                    borderBottom: i < visibleVendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
+                  <div style={{ display: 'flex', gap: 11, alignItems: 'stretch' }}>
+                    {/* thumbnail — tim nổi góc phải-trên, thứ hạng góc trái-trên */}
+                    <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
+                      borderRadius: 'var(--r-sm)', background: v.grad, position: 'relative', overflow: 'hidden' }}>
+                      <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
+                        color: '#fff', fontSize: 10.5, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
+                        fontFamily: 'var(--font-ui)' }}>#{rank}</span>
+                      <button type="button" onClick={(e) => onSave(e, v)}
+                        style={{ position: 'absolute', top: 5, right: 5, width: 28, height: 28, borderRadius: '50%',
+                          border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isSaved ? 'var(--son-500)' : 'rgba(255,255,255,0.85)',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.22)' }}>
+                        <Icon name="heart" size={15} color={isSaved ? '#fff' : 'var(--ink-500)'}
+                          fill={isSaved ? '#fff' : 'none'} sw={isSaved ? 2.5 : 1.9} />
+                      </button>
+                      {rank === 1 && (
+                        <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--son-500)',
+                          color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textAlign: 'center',
+                          padding: '3px 0', fontFamily: 'var(--font-ui)' }}>
+                          PHÙ HỢP NHẤT
                         </span>
                       )}
                     </div>
-                    {/* info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600,
-                          color: 'var(--ink-900)', flex: 1, minWidth: 0,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
-                        <MatchBadge pct={v.match} />
+                    {/* info — thứ tự listing */}
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                      {/* match pill + nhãn định tính */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: '#fff',
+                          background: mc, borderRadius: 6, padding: '2px 6px' }}>{v.match}%</span>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: mc }}>
+                          {vMatchLabel(v.match)}
+                        </span>
                       </div>
-                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginBottom: 5 }}>
-                        {v.priceTotal}tr{v.priceMax && v.priceMax !== v.priceTotal ? `–${v.priceMax}tr` : ''} · {v.spec}
+                      {/* sao + điểm + (review) */}
+                      {v.rating > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
+                          <Icon name="star" size={12} color="var(--kim-500,#c69b2a)" fill="var(--kim-500,#c69b2a)" sw={1.5} />
+                          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-700)' }}>{v.rating}</span>
+                          {v.rv > 0 && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>({v.rv})</span>}
+                        </div>
+                      )}
+                      {/* vị trí · spec */}
+                      {info && (
+                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginTop: 4,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info}</div>
+                      )}
+                      {/* giá trọn gói — đẩy xuống đáy */}
+                      <div style={{ marginTop: 'auto', paddingTop: 5, fontFamily: 'var(--font-ui)', fontSize: 13.5,
+                        fontWeight: 700, color: 'var(--ink-900)' }}>
+                        {v.priceTotal}tr{v.priceMax && v.priceMax !== v.priceTotal ? `–${v.priceMax}tr` : ''}
                       </div>
+                    </div>
+                  </div>
+                  {/* dải "Tơ Hồng gợi ý" — full-width, AI-first */}
+                  {v.reasons.length > 0 && (
+                    <div style={{ marginTop: 9, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                      <Icon name="sparkles" size={13} color="var(--son-400)" sw={1.8} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {v.reasons.slice(0, 2).map((r) => (
                           <span key={r} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
@@ -306,33 +355,15 @@ export function VMatchChatCard({ catId }) {
                             borderRadius: 999, padding: '2px 7px' }}>{r}</span>
                         ))}
                       </div>
-                      {v.description && (
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 11.5, lineHeight: 1.45,
-                          color: 'var(--ink-500)', marginTop: 6,
-                          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {v.description}
-                        </div>
-                      )}
                     </div>
-                    {/* save button */}
-                    <button type="button" onClick={() => onSave(v)} style={{ flexShrink: 0, padding: 6,
-                      background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '50%',
-                      color: isSaved ? 'var(--son-500)' : 'var(--ink-300)' }}>
-                      <Icon name="heart" size={18} color={isSaved ? 'var(--son-500)' : 'var(--ink-300)'}
-                        fill={isSaved ? 'var(--son-500)' : 'none'}
-                        sw={isSaved ? 2.5 : 1.8} />
-                    </button>
-                  </div>
-                  {/* view detail */}
-                  <button type="button" onClick={() => onDetail(v)}
-                    style={{ marginTop: 8, fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)',
-                      background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
-                      display: 'flex', alignItems: 'center', gap: 3 }}>
-                    Xem chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
-                  </button>
-                </div>
+                  )}
+                </a>
               );
             })}
+            <div style={{ textAlign: 'center', padding: '8px 14px 2px', fontFamily: 'var(--font-ui)',
+              fontSize: 10.5, color: 'var(--ink-300)' }}>
+              Chạm card để xem chi tiết
+            </div>
           </div>
         )}
 
