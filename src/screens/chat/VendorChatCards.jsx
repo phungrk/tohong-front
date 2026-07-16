@@ -69,7 +69,7 @@ function SaveFlash({ visible, name }) {
       fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600,
       boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
       <Icon name="heart" size={15} color="#fff" sw={2.5} />
-      Đã lưu {name}
+      Đã lưu {name} vào Vendors
     </div>
   );
 }
@@ -277,7 +277,7 @@ export function VMatchChatCard({ catId }) {
                   borderBottom: i < visibleVendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     {/* swatch */}
-                    <div style={{ width: 54, height: 54, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                    <div style={{ width: 108, height: 108, borderRadius: 'var(--r-sm)', flexShrink: 0,
                       background: v.grad, position: 'relative' }}>
                       {isBest && (
                         <span style={{ position: 'absolute', top: -5, left: -5,
@@ -306,6 +306,13 @@ export function VMatchChatCard({ catId }) {
                             borderRadius: 999, padding: '2px 7px' }}>{r}</span>
                         ))}
                       </div>
+                      {v.description && (
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 11.5, lineHeight: 1.45,
+                          color: 'var(--ink-500)', marginTop: 6,
+                          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {v.description}
+                        </div>
+                      )}
                     </div>
                     {/* save button */}
                     <button type="button" onClick={() => onSave(v)} style={{ flexShrink: 0, padding: 6,
@@ -603,7 +610,7 @@ export function VDetailChatCard({ catId, vendor }) {
             <button type="button" onClick={onSave} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
               gap: 6, fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 700, color: '#fff', background: 'var(--son-500)',
               border: 'none', borderRadius: 'var(--r-pill)', padding: '9px 0', cursor: 'pointer', boxShadow: 'var(--shadow-rose)' }}>
-              <Icon name="heart" size={13} color="#fff" sw={2} /> Lưu vào Shortlist
+              <Icon name="heart" size={13} color="#fff" sw={2} /> Lưu
             </button>
           )}
         </CardAction>
