@@ -208,7 +208,7 @@ export function ScreenBudget({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
       <div style={{ height: '100%', overflowY: 'auto', padding: 'var(--header-pt) 16px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingTop: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <button onClick={onMenuOpen} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+            <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
               <Icon name="chevron-left" size={24} color="var(--ink-700)" />
             </button>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--ink-900)' }}>Ngân sách</span>

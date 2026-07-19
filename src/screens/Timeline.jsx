@@ -490,7 +490,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
       <div style={{ flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--line-100)', padding: 'var(--header-pt) 16px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <button onClick={onMenuOpen} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
+          <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
             <Icon name="chevron-left" size={24} color="var(--ink-700)" />
           </button>
           <div style={{ flex: 1 }}>
