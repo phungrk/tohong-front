@@ -113,7 +113,7 @@ function buildCalendar(vy, vm) {
   return cells;
 }
 
-function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
+export function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
   const today = new Date();
   const [vm, setVm] = useState(initM);
   const [vy, setVy] = useState(initY);
@@ -132,7 +132,7 @@ function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
   const isSel = d => d===selD && vm===selM && vy===selY;
 
   const chev = dir => (
-    <button onClick={() => stepMonth(dir)} style={{ width:30, height:30, display:'flex', alignItems:'center',
+    <button onClick={() => stepMonth(dir)} aria-label={dir<0?'Tháng trước':'Tháng sau'} style={{ width:44, height:44, display:'flex', alignItems:'center',
       justifyContent:'center', background:'transparent', border:'none', cursor:'pointer', borderRadius:8, flexShrink:0 }}>
       <Icon name={dir<0?'chevron-left':'chevron-right'} size={18} color="var(--ink-500)" sw={2.2}/>
     </button>
@@ -162,12 +162,12 @@ function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
           {chev(1)}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:2 }}>
-          <button onClick={() => setVy(y => y-1)} style={{ width:30, height:30, display:'flex', alignItems:'center',
+          <button onClick={() => setVy(y => y-1)} aria-label="Năm trước" style={{ width:44, height:44, display:'flex', alignItems:'center',
             justifyContent:'center', background:'transparent', border:'none', cursor:'pointer' }}>
             <Icon name="chevron-left" size={18} color="var(--ink-500)" sw={2.2}/>
           </button>
           {drumSel(vy, y => setVy(y), years.map(y => ({ v:y, label:String(y) })))}
-          <button onClick={() => setVy(y => y+1)} style={{ width:30, height:30, display:'flex', alignItems:'center',
+          <button onClick={() => setVy(y => y+1)} aria-label="Năm sau" style={{ width:44, height:44, display:'flex', alignItems:'center',
             justifyContent:'center', background:'transparent', border:'none', cursor:'pointer' }}>
             <Icon name="chevron-right" size={18} color="var(--ink-500)" sw={2.2}/>
           </button>
@@ -186,7 +186,9 @@ function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
           return (
             <button key={i} disabled={!c.cur}
               onClick={() => c.cur && (setSelD(c.day), setSelM(vm), setSelY(vy))}
-              style={{ height:38, display:'flex', alignItems:'center', justifyContent:'center',
+              aria-label={c.cur ? `${c.day} tháng ${vm} năm ${vy}` : undefined}
+              aria-pressed={sel}
+              style={{ height:44, display:'flex', alignItems:'center', justifyContent:'center',
                 background:'transparent', border:'none', cursor:c.cur?'pointer':'default', padding:0 }}>
               <span style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center',
                 borderRadius:'50%', fontFamily:'var(--font-ui)', fontSize:14,
@@ -204,11 +206,11 @@ function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
       <div style={{ display:'flex', justifyContent:'flex-end', gap:6, padding:'8px 14px 14px',
         borderTop:'1px solid var(--line-100)' }}>
         <button onClick={onCancel} style={{ fontFamily:'var(--font-ui)', fontSize:13.5, fontWeight:600,
-          color:'var(--ink-500)', background:'transparent', border:'none', cursor:'pointer', padding:'9px 16px', borderRadius:'var(--r-pill)' }}>
+          color:'var(--ink-500)', background:'transparent', border:'none', cursor:'pointer', padding:'13px 16px', minHeight:44, borderRadius:'var(--r-pill)' }}>
           Huỷ
         </button>
         <button onClick={() => onConfirm(selD, selM, selY)} style={{ fontFamily:'var(--font-ui)', fontSize:13.5, fontWeight:700,
-          color:'#fff', background:'var(--son-500)', border:'none', cursor:'pointer', padding:'9px 20px',
+          color:'#fff', background:'var(--son-500)', border:'none', cursor:'pointer', padding:'13px 20px', minHeight:44,
           borderRadius:'var(--r-pill)', boxShadow:'0 2px 10px rgba(168,50,70,.3)' }}>
           Chọn
         </button>

@@ -43,7 +43,7 @@ const TAB_CONF = [
   { id: 'plan',    idx: 2, icon: 'calendar-clock', label: 'Kế hoạch'  },
   { id: 'budget',  idx: 3, icon: 'wallet',         label: 'Ngân sách' },
   { id: 'guests',  idx: 4, icon: 'users',          label: 'Khách mời' },
-  { id: 'vendors', idx: 5, icon: 'store',          label: 'Vendors'   },
+  { id: 'vendors', idx: 5, icon: 'store',          label: 'Nhà cung cấp' },
 ];
 
 const CTX_BY_TAB = { 0: 'home', 2: 'plan', 3: 'budget', 4: 'guests', 5: 'vendor' };
@@ -90,7 +90,7 @@ function Drawer({ open, onClose, onNav, onNewChat, conversations, onOpenConversa
         <div className="drawer-scroll">
           <p className="ds-label">Kế hoạch cưới</p>
           {/* drawer nav → tab indices */}
-          {[['house', 'Trang chủ', 0], ['calendar-clock', 'Kế hoạch', 2], ['wallet', 'Ngân sách', 3], ['users', 'Khách mời', 4], ['store', 'Vendors', 5]].map(([ico, label, idx]) => (
+          {[['house', 'Trang chủ', 0], ['calendar-clock', 'Kế hoạch', 2], ['wallet', 'Ngân sách', 3], ['users', 'Khách mời', 4], ['store', 'Nhà cung cấp', 5]].map(([ico, label, idx]) => (
             <button className="drawer-link" key={label} type="button" onClick={() => { onNav(idx); onClose(); }}>
               <Icon name={ico} size={20} color="var(--son-500)" />
               <span>{label}</span>

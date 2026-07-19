@@ -157,7 +157,7 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       <div style={{ flexShrink: 0, padding: '14px 16px 12px',
         background: 'var(--paper)', borderBottom: '1px solid var(--line-100)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button type="button" onClick={onMenuOpen} style={{ padding: 4, background: 'transparent',
+          <button type="button" onClick={onMenuOpen} aria-label="Mở menu" style={{ padding: 4, background: 'transparent',
             border: 'none', cursor: 'pointer', color: 'var(--ink-500)' }}>
             <Icon name="menu" size={22} color="var(--ink-600)" sw={1.8} />
           </button>

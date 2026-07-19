@@ -386,7 +386,7 @@ export function AppChat({
           setMsgs((m) => m.map((msg) =>
             msg._id === msgId ? {
               ...msg,
-              intro: errMsg || 'Lỗi kết nối — thử lại nhé 🙏',
+              intro: errMsg || 'Không kết nối được tới máy chủ — thử lại nhé 🙏',
               retryTopic: includeContext ? topic : null,
               _streaming: false,
               _error: true,
@@ -406,7 +406,7 @@ export function AppChat({
         setMsgs((m) => m.map((msg) =>
           msg._id === msgId ? {
             ...msg,
-            intro: 'Lỗi kết nối — thử lại nhé 🙏',
+            intro: err.message || 'Không kết nối được tới máy chủ — thử lại nhé 🙏',
             retryTopic: includeContext ? topic : null,
             _streaming: false,
             _error: true,
@@ -481,8 +481,8 @@ export function AppChat({
       <div style={{ flexShrink: 0, borderTop: '1px solid var(--line-100)', background: 'var(--paper)', padding: '10px 14px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--card)', border: '1px solid var(--line-200)',
           borderRadius: 'var(--r-xl)', padding: '6px 6px 6px 16px', boxShadow: 'var(--shadow-xs)' }}>
-          <Icon name="plus" size={20} color="var(--ink-400)" />
           <input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={streaming}
+            aria-label="Nhắn cho Tơ Hồng"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && draft.trim() && !streaming) {
                 const hit = TOPICS.find((t) => draft.toLowerCase().includes(t.id) || draft.toLowerCase().includes(t.chip.toLowerCase()));
@@ -498,7 +498,8 @@ export function AppChat({
                 send(hit || null, draft.trim());
               }
             }}
-            style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', flexShrink: 0,
+            aria-label="Gửi tin nhắn"
+            style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', flexShrink: 0,
               background: (draft.trim() && !streaming) ? 'var(--son-500)' : 'var(--line-200)',
               cursor: (draft.trim() && !streaming) ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

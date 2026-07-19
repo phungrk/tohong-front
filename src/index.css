@@ -6,7 +6,7 @@
   --son-100: #F6D9DE;
   --son-200: #EBB0BA;
   --son-300: #DC8593;
-  --son-400: #C75767;
+  --son-400: #B84B5D; /* darkened from #C75767 for WCAG AA text contrast (4.7:1 on --paper) */
   --son-500: #A83246;
   --son-600: #8E2639;
   --son-700: #721C2C;
@@ -46,8 +46,8 @@
   --ink-700: #4A4039;
   --ink-600: #574C43; /* between 500 & 700 — referenced by screens */
   --ink-500: #6B5D52;
-  --ink-400: #8C7E70;
-  --ink-300: #A99C8D;
+  --ink-400: #706258; /* darkened from #8C7E70 for WCAG AA text contrast (5.6:1 on --paper) */
+  --ink-300: #7C6E64; /* darkened from #A99C8D for WCAG AA text contrast (4.7:1 on --paper) */
 
   /* Semantic status (warm-leaning) */
   --sage-500: #5E8C6A;
@@ -617,6 +617,17 @@ textarea {
 .md table { width: 100%; border-collapse: collapse; margin: 0 0 10px; font-size: 13px; }
 .md th, .md td { border: 1px solid var(--line-200); padding: 6px 10px; text-align: left; }
 .md th { background: var(--sand); font-weight: 600; }
+
+/* ===== Loading skeleton ===== */
+@keyframes dbPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+.db-skel {
+  background: var(--line-100);
+  border-radius: var(--r-sm);
+  animation: dbPulse 1.3s ease-in-out infinite;
+}
 
 /* ===== AI FAB animations ===== */
 @keyframes fabBreath {

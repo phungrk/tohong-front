@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { ThreadMark, Thread } from '../ui/atoms.jsx';
+import { OBCalendar } from './Onboarding.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+
+const pad2 = (n) => String(n).padStart(2, '0');
 
 const EMPTY = {
   bride: 'Cô dâu', groom: 'Chú rể', date: null, dateRaw: null,
@@ -30,15 +33,23 @@ function DBCountdown({ data, onDateSave }) {
   const pct = data.totalDays > 0 ? Math.round((data.doneDays / data.totalDays) * 100) : 0;
   const canEdit = !!onDateSave;
 
-  const handleDateChange = async (e) => {
-    const iso = e.target.value; // "YYYY-MM-DD"
-    if (!iso) return;
+  const [initY, initM, initD] = (() => {
+    if (data.dateRaw) {
+      const [y, m, d] = data.dateRaw.split('-').map(Number);
+      return [y, m, d];
+    }
+    const today = new Date();
+    return [today.getFullYear(), today.getMonth() + 1, today.getDate()];
+  })();
+
+  const handleConfirm = async (d, m, y) => {
     setEditing(false);
     setSaving(true);
-    try { await onDateSave(iso); } finally { setSaving(false); }
+    try { await onDateSave(`${y}-${pad2(m)}-${pad2(d)}`); } finally { setSaving(false); }
   };
 
   return (
+    <>
     <div style={{ background: 'linear-gradient(135deg,var(--son-50) 0%,#fdf2ed 100%)', border: '1px solid var(--son-100)',
       borderRadius: 'var(--r-lg)', padding: '16px 18px 14px', overflow: 'hidden' }}>
       <Thread w="100%" mb={12} />
@@ -54,28 +65,16 @@ function DBCountdown({ data, onDateSave }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 5, position: 'relative' }}>
             <Icon name={saving ? 'loader' : 'calendar-heart'} size={13} color="var(--son-400)" />
-            {editing ? (
-              <input
-                type="date"
-                defaultValue={data.dateRaw || ''}
-                autoFocus
-                onBlur={() => setEditing(false)}
-                onChange={handleDateChange}
-                style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-500)',
-                  border: 'none', background: 'transparent', outline: 'none', width: 120, cursor: 'pointer' }}
-              />
-            ) : (
-              <button
-                onClick={canEdit ? () => setEditing(true) : undefined}
-                title={canEdit ? 'Chỉnh sửa ngày cưới' : undefined}
-                style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-500)',
-                  background: 'none', border: 'none', padding: 0,
-                  cursor: canEdit ? 'pointer' : 'default',
-                  textDecoration: canEdit ? 'underline dotted' : 'none',
-                  textUnderlineOffset: 3 }}>
-                {data.date || 'Chọn ngày'}
-              </button>
-            )}
+            <button
+              onClick={canEdit ? () => setEditing(true) : undefined}
+              title={canEdit ? 'Chỉnh sửa ngày cưới' : undefined}
+              style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-500)',
+                background: 'none', border: 'none', padding: '4px 0',
+                cursor: canEdit ? 'pointer' : 'default',
+                textDecoration: canEdit ? 'underline dotted' : 'none',
+                textUnderlineOffset: 3 }}>
+              {data.date || 'Chọn ngày'}
+            </button>
           </div>
         </div>
       </div>
@@ -89,6 +88,18 @@ function DBCountdown({ data, onDateSave }) {
         </div>
       </div>
     </div>
+    {editing && (
+      <div onClick={() => setEditing(false)} style={{ position: 'absolute', inset: 0, zIndex: 80,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 18px',
+        background: 'rgba(43,36,32,.4)' }}>
+        <OBCalendar
+          initD={initD} initM={initM} initY={initY}
+          onCancel={() => setEditing(false)}
+          onConfirm={handleConfirm}
+        />
+      </div>
+    )}
+    </>
   );
 }
 
@@ -114,8 +125,8 @@ function DBDots({ dots }) {
 
 function DBTile({ icon, color, label, main, sub, children, onClick }) {
   return (
-    <div onClick={onClick} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-xs)',
-      padding: '12px 13px 10px', cursor: 'pointer', minWidth: 0 }}>
+    <button type="button" onClick={onClick} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-xs)',
+      padding: '12px 13px 10px', cursor: 'pointer', minWidth: 0, display: 'block', width: '100%', textAlign: 'left', font: 'inherit' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
         <span style={{ width: 24, height: 24, borderRadius: 'var(--r-xs)', background: color + '22', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -126,15 +137,17 @@ function DBTile({ icon, color, label, main, sub, children, onClick }) {
       <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{main}</div>
       {children}
       <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)', marginTop: 3 }}>{sub}</div>
-    </div>
+    </button>
   );
 }
 
 function DBUpcoming({ item, onClick }) {
   const urgColor = item.weeks <= 3 ? '#b45309' : 'var(--ink-400)';
   return (
-    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-      borderBottom: '1px solid var(--line-100)', cursor: onClick ? 'pointer' : 'default' }}>
+    <button type="button" onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
+      borderBottom: '1px solid var(--line-100)', cursor: onClick ? 'pointer' : 'default',
+      width: '100%', background: 'none', border: 'none', borderBottomWidth: 1, borderBottomStyle: 'solid', borderBottomColor: 'var(--line-100)',
+      textAlign: 'left', font: 'inherit' }}>
       <span style={{ width: 28, height: 28, borderRadius: 'var(--r-sm)', flexShrink: 0, background: item.catColor + '18',
         display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={item.catIcon} size={14} color={item.catColor} />
@@ -143,17 +156,36 @@ function DBUpcoming({ item, onClick }) {
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.task}</div>
         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 1 }}>{item.cat}</div>
       </div>
-      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 700, color: urgColor, flexShrink: 0 }}>{item.weeks}t nữa</span>
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 700, color: urgColor, flexShrink: 0 }}>còn {item.weeks} tuần</span>
       <Icon name="chevron-right" size={14} color="var(--ink-300)" />
+    </button>
+  );
+}
+
+function DBSkeleton() {
+  return (
+    <div style={{ flex: 1, overflow: 'hidden', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}
+      aria-live="polite" aria-busy="true" aria-label="Đang tải bảng điều khiển">
+      <div className="db-skel" style={{ height: 132, borderRadius: 'var(--r-lg)' }} />
+      <div>
+        <div className="db-skel" style={{ height: 12, width: 90, marginBottom: 10 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="db-skel" style={{ height: 92, borderRadius: 'var(--r-lg)' }} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
   const [data, setData] = useState(EMPTY);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!coupleId) return;
+    setLoaded(false);
     const loadStart = Date.now();
     // Load summary (profile + budget + timeline + guests)
     api.getSummary(coupleId)
@@ -181,7 +213,8 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
           budget_pct: s.budget?.total_tr > 0 ? Math.round((s.budget.spent_tr / s.budget.total_tr) * 100) : null,
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, [coupleId]);
 
   const handleDateSave = useCallback(async (iso) => {
@@ -214,7 +247,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: 'var(--header-pt) 16px 11px',
         background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--line-100)' }}>
-        <button onClick={onMenuOpen} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+        <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
           <Icon name="menu" size={22} color="var(--ink-700)" />
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1 }}>
@@ -224,7 +257,8 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
         <AIButton onOpen={onOpenAI} />
       </div>
 
-      {/* scrollable content */}
+      {coupleId && !loaded ? <DBSkeleton /> : (
+      /* scrollable content */
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <DBCountdown data={data} onDateSave={coupleId ? handleDateSave : null} />
 
@@ -254,8 +288,8 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
               onClick={() => navigate(2)}>
               <DBMiniBar pct={tlPct} color="var(--son-400)" />
             </DBTile>
-            <DBTile icon="store" color="var(--kim-500)" label="Vendors"
-              main={`${totalVendors} cat`}
+            <DBTile icon="store" color="var(--kim-500)" label="Nhà cung cấp"
+              main={`${totalVendors} hạng mục`}
               sub={data.vendors.empty > 0 ? `${data.vendors.empty} chưa có vendor` : 'Đã đủ vendor 👌'}
               onClick={() => navigate(5)}>
               <DBDots dots={[
@@ -278,6 +312,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
         </div>}
         <div style={{ height: 4 }} />
       </div>
+      )}
 
     </div>
   );

@@ -9,7 +9,7 @@ const CTX_INFO = {
   plan:   { icon: 'calendar-clock', label: 'Kế hoạch & timeline' },
   budget: { icon: 'wallet',         label: 'Ngân sách' },
   guests: { icon: 'users',          label: 'Khách mời' },
-  vendor: { icon: 'store',          label: 'Vendors' },
+  vendor: { icon: 'store',          label: 'Nhà cung cấp' },
 };
 
 /* ── Vendor thread message rendering ─────────────────────────── */
@@ -122,7 +122,7 @@ export function AIChatModal({
             <ThreadMark size={24} />
             <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
               color: 'var(--ink-900)', lineHeight: 1.1 }}>Tơ Hồng AI</div>
-            <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%',
+            <button onClick={onClose} aria-label="Đóng" style={{ width: 44, height: 44, borderRadius: '50%',
               background: 'var(--line-100)', border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="chevron-down" size={17} color="var(--ink-500)" sw={2.2} />
