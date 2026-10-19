@@ -551,10 +551,10 @@ export function ScreenBudget({
             const vendorStatus = isVendorCat ? (vendorCtx?.getCatStatus?.(cat.id) ?? 'none') : 'none';
             const isOver = cat.state === 'vuot_muc';
 
+            const catMeta = VENDOR_CATEGORIES.find(vc => vc.id === cat.id);
             let iconBg = 'var(--sand)';
-            let iconColor = 'var(--ink-500)';
-            if (vendorStatus === 'confirmed') { iconBg = 'var(--sage-100)'; iconColor = 'var(--sage-600)'; }
-            else if (vendorStatus === 'shortlisted') { iconBg = 'var(--kim-50)'; iconColor = 'var(--kim-700)'; }
+            let iconColor = catMeta?.color || 'var(--ink-500)';
+            if (vendorStatus === 'shortlisted') { iconBg = 'var(--kim-50)'; iconColor = 'var(--kim-700)'; }
 
             let statusLine = '';
             if (isVendorCat) {
@@ -597,11 +597,11 @@ export function ScreenBudget({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{confirmedVendor.name}</div>
                       {confirmedVendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)' }}>{confirmedVendor.spec}</div>}
+                      <span style={{ display: 'inline-block', marginTop: 3, fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '1px 7px' }}>Đã chốt</span>
                     </div>
-                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                      {cvPrice > 0 && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>{cvPrice}tr</div>}
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '1px 7px' }}>Đã chốt</span>
-                    </div>
+                    {cvPrice > 0 && (
+                      <div style={{ flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>{cvPrice}tr</div>
+                    )}
                   </div>
                 )}
               </button>
