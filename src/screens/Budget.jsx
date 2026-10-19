@@ -584,19 +584,19 @@ export function ScreenBudget({
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{cat.allocated_tr || 0}tr</span>
                   <Icon name="chevron-right" size={16} color="var(--ink-300)" />
                 </div>
-                {/* Confirmed vendor inline pill */}
+                {/* Confirmed vendor info — aligned with category name */}
                 {confirmedVendor && (
-                  <div style={{ marginTop: 6 }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-                      border: '1px solid var(--sage-200)', borderRadius: 6, padding: '3px 8px',
-                      background: 'var(--sage-50)', maxWidth: '100%' }}>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {confirmedVendor.name}{cvPrice > 0 ? ` · ${cvPrice}tr` : ''}
-                      </span>
+                  <div style={{ paddingLeft: 34 + 12 }}>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-700)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {confirmedVendor.name}
                     </div>
+                    {cvPrice > 0 && (
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--sage-600)', fontWeight: 600, marginTop: 1, fontVariantNumeric: 'tabular-nums' }}>
+                        {cvPrice}tr
+                      </div>
+                    )}
                     {confirmedVendor.note && (
-                      <div style={{ marginTop: 3, fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', fontStyle: 'italic',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', fontStyle: 'italic', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {confirmedVendor.note}
                       </div>
                     )}
