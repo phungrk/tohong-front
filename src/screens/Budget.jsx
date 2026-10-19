@@ -64,8 +64,173 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
   );
 }
 
+/* ── VendorDetailSheet ───────────────────────────────────────── */
+function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onUnconfirm, onRemove, onNoteChange }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [note, setNote] = useState(vendor?.note || '');
+  const startYRef = useRef(null);
+
+  useEffect(() => {
+    if (vendor) setNote(vendor.note || '');
+  }, [vendor?.id]);
+
+  useEffect(() => {
+    if (!open) setConfirmDelete(false);
+  }, [open]);
+
+  const handleTouchStart = (e) => { startYRef.current = e.touches[0].clientY; };
+  const handleTouchEnd = (e) => {
+    if (startYRef.current == null) return;
+    const delta = e.changedTouches[0].clientY - startYRef.current;
+    if (delta > 60) onClose();
+    startYRef.current = null;
+  };
+
+  if (!vendor) return null;
+
+  const price = vendor.priceTotal ?? vendor.price ?? 0;
+  const diff = catAllocated > 0 && price > 0 ? price - catAllocated : null;
+  const isConfirmed = vendor.status === 'confirmed';
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 499,
+          background: 'rgba(43,36,32,0.38)',
+          opacity: open ? 1 : 0,
+          transition: 'opacity .22s',
+          pointerEvents: open ? 'auto' : 'none',
+        }}
+      />
+      {/* Sheet */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 500,
+          background: 'var(--paper)',
+          borderRadius: '22px 22px 0 0',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          transform: open ? 'translateY(0)' : 'translateY(105%)',
+          transition: 'transform .3s cubic-bezier(.2,.7,.3,1)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {/* Grabber */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--line-300)' }} />
+        </div>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px 12px' }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 'var(--r-sm)', flexShrink: 0,
+            background: vendor.grad || (isConfirmed ? 'linear-gradient(135deg,var(--sage-100),var(--sage-200))' : 'var(--sand)'),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon name="store" size={22} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>
+            {vendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 2 }}>{vendor.spec}</div>}
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', flexShrink: 0 }}>
+            <Icon name="x" size={20} color="var(--ink-500)" />
+          </button>
+        </div>
+
+        <div style={{ padding: '0 16px 16px' }}>
+          {/* Price + status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>
+              {price > 0 ? `${price}tr` : 'Chưa có giá'}
+            </span>
+            {isConfirmed && (
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
+            )}
+          </div>
+
+          {/* Rating */}
+          {vendor.rating != null && (
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--ink-600)', marginBottom: 8 }}>
+              ★ {vendor.rating.toFixed(1)}{vendor.rv ? ` (${vendor.rv} lượt review)` : ''}
+            </div>
+          )}
+
+          <div style={{ height: 1, background: 'var(--line-100)', margin: '12px 0' }} />
+
+          {/* Note */}
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={() => onNoteChange(note)}
+            placeholder="Thêm ghi chú…"
+            rows={3}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--ink-800)',
+              background: 'var(--sand)', border: '1px solid var(--line-100)',
+              borderRadius: 'var(--r-sm)', padding: '10px 12px', resize: 'none', outline: 'none',
+            }}
+          />
+
+          {/* Compare */}
+          {diff !== null && (
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 8 }}>
+              Dự toán: {catAllocated}tr ·{' '}
+              <span style={{ color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)', fontWeight: 600 }}>
+                {diff > 0 ? `+${diff}tr` : `${diff}tr`}
+              </span>
+            </div>
+          )}
+
+          <div style={{ height: 1, background: 'var(--line-100)', margin: '14px 0' }} />
+
+          {/* Confirm delete sub-state */}
+          {confirmDelete ? (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--ink-700)', marginBottom: 14 }}>
+                Bỏ <strong>{vendor.name}</strong> khỏi danh sách?
+              </div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button onClick={() => setConfirmDelete(false)} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, padding: '9px 20px', borderRadius: 999, background: 'var(--sand)', border: '1px solid var(--line-200)', cursor: 'pointer', color: 'var(--ink-700)' }}>Huỷ</button>
+                <button onClick={() => { onRemove(); }} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, padding: '9px 20px', borderRadius: 999, background: 'var(--danger-500)', border: 'none', cursor: 'pointer', color: '#fff' }}>Xác nhận xóa</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Primary action */}
+              <button
+                onClick={isConfirmed ? onUnconfirm : onConfirm}
+                style={{
+                  width: '100%', padding: '13px 0', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700,
+                  background: isConfirmed ? 'var(--line-200)' : 'var(--sage-500)',
+                  color: isConfirmed ? 'var(--ink-700)' : '#fff',
+                  border: 'none', marginBottom: 10,
+                }}>
+                {isConfirmed ? 'Huỷ chốt' : 'Chốt vendor'}
+              </button>
+              {/* Remove */}
+              <button
+                onClick={() => setConfirmDelete(true)}
+                style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--danger-500)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>
+                Bỏ khỏi danh sách
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ── BudgetCatDetail ─────────────────────────────────────────── */
 function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpenAI }) {
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
   const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
   const confirmedVendorId = catVendors.confirmed?.id;
@@ -129,37 +294,45 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                 const price = vendor.priceTotal ?? vendor.price ?? 0;
                 const diff = price - allocated;
                 return (
-                  <div key={vendor.id} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 'var(--r-sm)', flexShrink: 0,
-                      background: isConfirmed ? 'linear-gradient(135deg,var(--sage-100),var(--sage-200))' : 'var(--sand)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon name={cat.icon || 'store'} size={18} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</div>
-                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
-                        {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
-                      </div>
-                      {price > 0 && allocated > 0 && (
-                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
-                          {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
-                        </div>
-                      )}
-                    </div>
+                  <div key={vendor.id} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center' }}>
+                    {/* DETAIL_ZONE */}
                     <button
-                      onClick={() => isConfirmed ? vendorCtx.unconfirmVendor(cat.id) : vendorCtx.confirmVendor(cat.id, vendor.id)}
-                      style={{
-                        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-                        padding: '5px 12px', borderRadius: 999, cursor: 'pointer', flexShrink: 0,
-                        background: isConfirmed ? 'var(--sage-500)' : 'transparent',
-                        color: isConfirmed ? '#fff' : 'var(--sage-600)',
-                        border: isConfirmed ? 'none' : '1.5px solid var(--sage-200)',
-                      }}>
-                      Chốt
+                      onClick={() => setSelectedVendorId(vendor.id)}
+                      style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                        background: isConfirmed ? 'linear-gradient(135deg,var(--sage-100),var(--sage-200))' : 'var(--sand)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name={cat.icon || 'store'} size={18} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</div>
+                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
+                          {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
+                        </div>
+                        {price > 0 && allocated > 0 && (
+                          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
+                            {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
+                          </div>
+                        )}
+                      </div>
                     </button>
-                    <button onClick={() => vendorCtx.unsaveVendor(cat.id, vendor.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' }}>
-                      <Icon name="x" size={14} color="var(--ink-400)" />
-                    </button>
+                    {/* ACTION_ZONE */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px 0 0', flexShrink: 0 }}>
+                      <button
+                        onClick={() => isConfirmed ? vendorCtx.unconfirmVendor(cat.id) : vendorCtx.confirmVendor(cat.id, vendor.id)}
+                        style={{
+                          fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+                          padding: '5px 12px', borderRadius: 999, cursor: 'pointer', flexShrink: 0,
+                          background: isConfirmed ? 'var(--sage-500)' : 'transparent',
+                          color: isConfirmed ? '#fff' : 'var(--sage-600)',
+                          border: isConfirmed ? 'none' : '1.5px solid var(--sage-200)',
+                        }}>
+                        Chốt
+                      </button>
+                      <button onClick={() => vendorCtx.unsaveVendor(cat.id, vendor.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                        <Icon name="x" size={14} color="var(--ink-400)" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -205,6 +378,29 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           </button>
         </div>
       )}
+
+      {/* Vendor Detail Sheet */}
+      {isVendorCat && (() => {
+        const selectedVendor = selectedVendorId
+          ? catVendors.shortlisted.find((v) => v.id === selectedVendorId)
+          : null;
+        const isConfirmedVendor = catVendors.confirmed?.id === selectedVendorId;
+        const vendorForSheet = selectedVendor
+          ? { ...selectedVendor, status: isConfirmedVendor ? 'confirmed' : 'shortlisted' }
+          : null;
+        return (
+          <VendorDetailSheet
+            vendor={vendorForSheet}
+            catAllocated={allocated}
+            open={!!selectedVendorId}
+            onClose={() => setSelectedVendorId(null)}
+            onConfirm={() => { vendorCtx.confirmVendor(cat.id, selectedVendorId); setSelectedVendorId(null); }}
+            onUnconfirm={() => { vendorCtx.unconfirmVendor(cat.id); setSelectedVendorId(null); }}
+            onRemove={() => { vendorCtx.unsaveVendor(cat.id, selectedVendorId); setSelectedVendorId(null); }}
+            onNoteChange={(note) => vendorCtx.updateVendorNote(cat.id, selectedVendorId, note)}
+          />
+        );
+      })()}
     </div>
   );
 }

@@ -148,8 +148,24 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
 
   const getCatBudget = (catId) => budgetCats[catId] || 0;
 
+  const getSaved = (catId) => saved[catId] || { shortlisted: [], confirmed: null };
+
+  const updateVendorNote = (catId, vendorId, note) => {
+    setSaved((prev) => {
+      const cat = prev[catId] || { shortlisted: [], confirmed: null };
+      return {
+        ...prev,
+        [catId]: {
+          ...cat,
+          shortlisted: cat.shortlisted.map((v) => v.id === vendorId ? { ...v, note } : v),
+          confirmed: cat.confirmed?.id === vendorId ? { ...cat.confirmed, note } : cat.confirmed,
+        },
+      };
+    });
+  };
+
   return (
-    <VendorCtx.Provider value={{ coupleId, saved, saveVendor, unsaveVendor, confirmVendor, unconfirmVendor, getCatStatus, getBudgetConfirmed, getCatBudget }}>
+    <VendorCtx.Provider value={{ coupleId, saved, saveVendor, unsaveVendor, confirmVendor, unconfirmVendor, getCatStatus, getBudgetConfirmed, getCatBudget, getSaved, updateVendorNote }}>
       {children}
     </VendorCtx.Provider>
   );
