@@ -268,16 +268,59 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           {allocated}<span style={{ fontSize: 18 }}>tr</span>
         </div>
         <AllocSlider value={allocated} max={bud.totalTarget || 300} color="var(--son-500)" onChange={(v) => bud.setAmt(cat.id, v)} />
-        {confirmedVendorAmt > 0 && (
-          <div style={{ marginTop: 10, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
-            Vendor đã chốt:{' '}
-            <span style={{ fontWeight: 700, color: allocated >= confirmedVendorAmt ? 'var(--sage-600)' : 'var(--danger-500)' }}>{confirmedVendorAmt}tr</span>
-            {allocated < confirmedVendorAmt && (
-              <span style={{ color: 'var(--danger-500)' }}> (thiếu {confirmedVendorAmt - allocated}tr)</span>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Confirmed Vendor Card */}
+      {isVendorCat && catVendors.confirmed && (() => {
+        const cv = catVendors.confirmed;
+        const price = cv.priceTotal ?? cv.price ?? 0;
+        const diff = price > 0 && allocated > 0 ? price - allocated : null;
+        return (
+          <div style={{ marginBottom: 14 }}>
+            <div className="ds-label" style={{ margin: '0 2px 10px' }}>Vendor đã chốt</div>
+            <div style={{
+              background: 'var(--sage-50)', border: '1.5px solid var(--sage-300)',
+              borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center',
+            }}>
+              <button
+                onClick={() => setSelectedVendorId(cv.id)}
+                style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 12px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                  background: cv.grad || 'linear-gradient(135deg,var(--sage-100),var(--sage-200))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name={cat.icon || 'store'} size={22} color="var(--sage-600)" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--ink-900)' }}>{cv.name}</span>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+                      color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '2px 8px' }}>Đã chốt</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-600)', marginTop: 2 }}>
+                    {price > 0 ? `${price}tr` : 'Chưa có giá'}{cv.spec ? ` · ${cv.spec}` : ''}
+                  </div>
+                  {diff !== null && (
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)', marginTop: 2 }}>
+                      {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
+                    </div>
+                  )}
+                </div>
+              </button>
+              <div style={{ padding: '0 12px 0 0', flexShrink: 0 }}>
+                <button
+                  onClick={() => vendorCtx.unconfirmVendor(cat.id)}
+                  style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+                    padding: '6px 14px', borderRadius: 999, cursor: 'pointer',
+                    background: 'transparent', color: 'var(--sage-600)',
+                    border: '1.5px solid var(--sage-300)' }}>
+                  Huỷ chốt
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Vendor section */}
       {isVendorCat && (
