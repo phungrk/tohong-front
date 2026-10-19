@@ -579,28 +579,26 @@ export function ScreenBudget({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
-                    {!confirmedVendor && (
-                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: vendorStatus === 'shortlisted' ? 'var(--kim-700)' : 'var(--ink-400)', marginTop: 2 }}>{statusLine}</div>
-                    )}
+                    {!confirmedVendor && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: vendorStatus === 'shortlisted' ? 'var(--kim-700)' : 'var(--ink-400)', marginTop: 2 }}>{statusLine}</div>}
                   </div>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{cat.allocated_tr || 0}tr</span>
                   <Icon name="chevron-right" size={16} color="var(--ink-300)" />
                 </div>
-                {/* Confirmed vendor mini-row */}
+                {/* Confirmed vendor inline pill */}
                 {confirmedVendor && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--sage-100)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', flexShrink: 0,
-                      background: confirmedVendor.grad || 'linear-gradient(135deg,var(--sage-100),var(--sage-200))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon name={cat.icon || 'store'} size={15} color="var(--sage-600)" />
+                  <div style={{ marginTop: 6 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
+                      border: '1px solid var(--sage-200)', borderRadius: 6, padding: '3px 8px',
+                      background: 'var(--sage-50)', maxWidth: '100%' }}>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {confirmedVendor.name}{cvPrice > 0 ? ` · ${cvPrice}tr` : ''}
+                      </span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{confirmedVendor.name}</div>
-                      {confirmedVendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)' }}>{confirmedVendor.spec}</div>}
-                      <span style={{ display: 'inline-block', marginTop: 3, fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '1px 7px' }}>Đã chốt</span>
-                    </div>
-                    {cvPrice > 0 && (
-                      <div style={{ flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>{cvPrice}tr</div>
+                    {confirmedVendor.note && (
+                      <div style={{ marginTop: 3, fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', fontStyle: 'italic',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {confirmedVendor.note}
+                      </div>
                     )}
                   </div>
                 )}
