@@ -566,48 +566,46 @@ export function ScreenBudget({
               statusLine = cnt > 0 ? `${cnt} mục con` : 'Chưa có mục con';
             }
 
-            {(() => {
-              const confirmedVendor = vendorStatus === 'confirmed' ? vendorCtx?.getSaved?.(cat.id)?.confirmed : null;
-              const cvPrice = confirmedVendor ? (confirmedVendor.priceTotal ?? confirmedVendor.price ?? 0) : 0;
-              return (
-                <button key={cat.id}
-                  onClick={() => { onOpenCat(cat.id); track('budget_category_opened', { journey: 'budget', category_id: cat.id }); }}
-                  style={{ background: 'var(--card)', border: `1px solid ${isOver ? '#fca5a5' : vendorStatus === 'confirmed' ? 'var(--sage-200)' : 'var(--line-100)'}`, borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-xs)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', width: '100%' }}>
-                  {/* Top row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 'var(--r-sm)', flexShrink: 0, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon name={cat.icon || 'circle'} size={16} color={iconColor} />
+            const confirmedVendor = vendorStatus === 'confirmed' ? vendorCtx?.getSaved?.(cat.id)?.confirmed : null;
+            const cvPrice = confirmedVendor ? (confirmedVendor.priceTotal ?? confirmedVendor.price ?? 0) : 0;
+            return (
+              <button key={cat.id}
+                onClick={() => { onOpenCat(cat.id); track('budget_category_opened', { journey: 'budget', category_id: cat.id }); }}
+                style={{ background: 'var(--card)', border: `1px solid ${isOver ? '#fca5a5' : vendorStatus === 'confirmed' ? 'var(--sage-200)' : 'var(--line-100)'}`, borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-xs)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', width: '100%' }}>
+                {/* Top row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 'var(--r-sm)', flexShrink: 0, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name={cat.icon || 'circle'} size={16} color={iconColor} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
+                    {!confirmedVendor && (
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: vendorStatus === 'shortlisted' ? 'var(--kim-700)' : 'var(--ink-400)', marginTop: 2 }}>{statusLine}</div>
+                    )}
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{cat.allocated_tr || 0}tr</span>
+                  <Icon name="chevron-right" size={16} color="var(--ink-300)" />
+                </div>
+                {/* Confirmed vendor mini-row */}
+                {confirmedVendor && (
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--sage-100)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', flexShrink: 0,
+                      background: confirmedVendor.grad || 'linear-gradient(135deg,var(--sage-100),var(--sage-200))',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name={cat.icon || 'store'} size={15} color="var(--sage-600)" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
-                      {!confirmedVendor && (
-                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: vendorStatus === 'shortlisted' ? 'var(--kim-700)' : 'var(--ink-400)', marginTop: 2 }}>{statusLine}</div>
-                      )}
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{confirmedVendor.name}</div>
+                      {confirmedVendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)' }}>{confirmedVendor.spec}</div>}
                     </div>
-                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{cat.allocated_tr || 0}tr</span>
-                    <Icon name="chevron-right" size={16} color="var(--ink-300)" />
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      {cvPrice > 0 && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>{cvPrice}tr</div>}
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '1px 7px' }}>Đã chốt</span>
+                    </div>
                   </div>
-                  {/* Confirmed vendor mini-row */}
-                  {confirmedVendor && (
-                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--sage-100)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', flexShrink: 0,
-                        background: confirmedVendor.grad || 'linear-gradient(135deg,var(--sage-100),var(--sage-200))',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon name={cat.icon || 'store'} size={15} color="var(--sage-600)" />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{confirmedVendor.name}</div>
-                        {confirmedVendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)' }}>{confirmedVendor.spec}</div>}
-                      </div>
-                      <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                        {cvPrice > 0 && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--sage-600)', fontVariantNumeric: 'tabular-nums' }}>{cvPrice}tr</div>}
-                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '1px 7px' }}>Đã chốt</span>
-                      </div>
-                    </div>
-                  )}
-                </button>
-              );
-            })()}
+                )}
+              </button>
+            );
           })}
         </div>
 
