@@ -291,7 +291,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
             <DBTile icon="store" color="var(--kim-500)" label="Nhà cung cấp"
               main={`${totalVendors} hạng mục`}
               sub={data.vendors.empty > 0 ? `${data.vendors.empty} chưa có vendor` : 'Đã đủ vendor 👌'}
-              onClick={() => navigate(5)}>
+              onClick={() => navigate(3)}>
               <DBDots dots={[
                 { n: data.vendors.confirmed,  color: 'var(--sage-500)' },
                 { n: data.vendors.shortlisted, color: '#fbbf24'        },

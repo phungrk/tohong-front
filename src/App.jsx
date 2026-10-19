@@ -15,7 +15,6 @@ import { ScreenTimeline } from './screens/Timeline.jsx';
 import { ScreenBudget } from './screens/Budget.jsx';
 import { ScreenGuests } from './screens/Guests.jsx';
 import { Onboarding } from './screens/Onboarding.jsx';
-import { ScreenVendorShortlist } from './screens/Vendors.jsx';
 import { VendorProvider } from './screens/VendorCtx.jsx';
 import { SaveBanner } from './ui/SaveBanner.jsx';
 
@@ -39,14 +38,13 @@ function Brand() {
 
 /* ── bottom tab bar (4 tabs — chat is now the AI modal) ─────── */
 const TAB_CONF = [
-  { id: 'home',    idx: 0, icon: 'house',          label: 'Trang chủ' },
-  { id: 'plan',    idx: 2, icon: 'calendar-clock', label: 'Kế hoạch'  },
-  { id: 'budget',  idx: 3, icon: 'wallet',         label: 'Ngân sách' },
-  { id: 'guests',  idx: 4, icon: 'users',          label: 'Khách mời' },
-  { id: 'vendors', idx: 5, icon: 'store',          label: 'Nhà cung cấp' },
+  { id: 'home',   idx: 0, icon: 'house',          label: 'Trang chủ' },
+  { id: 'plan',   idx: 2, icon: 'calendar-clock', label: 'Kế hoạch'  },
+  { id: 'budget', idx: 3, icon: 'wallet',         label: 'Ngân sách' },
+  { id: 'guests', idx: 4, icon: 'users',          label: 'Khách mời' },
 ];
 
-const CTX_BY_TAB = { 0: 'home', 2: 'plan', 3: 'budget', 4: 'guests', 5: 'vendor' };
+const CTX_BY_TAB = { 0: 'home', 2: 'plan', 3: 'budget', 4: 'guests' };
 
 function BottomTabBar({ active, onSelect }) {
   return (
@@ -90,7 +88,7 @@ function Drawer({ open, onClose, onNav, onNewChat, conversations, onOpenConversa
         <div className="drawer-scroll">
           <p className="ds-label">Kế hoạch cưới</p>
           {/* drawer nav → tab indices */}
-          {[['house', 'Trang chủ', 0], ['calendar-clock', 'Kế hoạch', 2], ['wallet', 'Ngân sách', 3], ['users', 'Khách mời', 4], ['store', 'Nhà cung cấp', 5]].map(([ico, label, idx]) => (
+          {[['house', 'Trang chủ', 0], ['calendar-clock', 'Kế hoạch', 2], ['wallet', 'Ngân sách', 3], ['users', 'Khách mời', 4]].map(([ico, label, idx]) => (
             <button className="drawer-link" key={label} type="button" onClick={() => { onNav(idx); onClose(); }}>
               <Icon name={ico} size={20} color="var(--son-500)" />
               <span>{label}</span>
@@ -134,8 +132,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const [coupleId, setCoupleId] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [refreshKeys, setRefreshKeys] = useState({ budget: 0, guests: 0, timeline: 0 });
-  const [vendorKey, setVendorKey] = useState(0);
   const [vendorSeed, setVendorSeed] = useState(null);
+  const [budgetOpenCatId, setBudgetOpenCatId] = useState(null);
   const [chatSession, setChatSession] = useState({
     conversationId: null,
     messages: null,
@@ -277,7 +275,6 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
 
   const navigate = (i) => {
     if (i === 1) { openAI(CTX_BY_TAB[tab] || 'home'); return; }
-    if (i === 5 && tab === 5) { setVendorKey((k) => k + 1); return; }
     track('tab_selected', { tab_index: i });
     setTab(i);
   };
@@ -298,9 +295,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     <ScreenDashboard coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenBudget key={`budget-${refreshKeys.budget}`} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={setBudgetOpenCatId} onOpenVendorChat={openAIVendor} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenVendorShortlist key={`vendor-${vendorKey}`} onMenuOpen={() => setDrawer(true)} onOpenVendorChat={openAIVendor} />,
   ];
 
   return (
