@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { EditName, AllocSlider } from '../ui/atoms.jsx';
-import { useBudget } from '../budget/useBudget.js';
+import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
 
@@ -235,6 +235,9 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
   const confirmedVendorId = catVendors.confirmed?.id;
   const allocated = cat.allocated_tr || 0;
+  const { basePct, base } = getCategoryBaseline(cat.id, bud.totalTarget || 0);
+  const pct = bud.totalTarget > 0 ? Math.round(allocated / bud.totalTarget * 100) : 0;
+  const diff = allocated - base;
   const confirmedVendorAmt = catVendors.confirmed
     ? (catVendors.confirmed.priceTotal ?? catVendors.confirmed.price ?? 0)
     : 0;
@@ -267,16 +270,36 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-900)', marginBottom: 12, fontVariantNumeric: 'tabular-nums' }}>
           {allocated}<span style={{ fontSize: 18 }}>tr</span>
         </div>
-        <AllocSlider value={allocated} max={bud.totalTarget || 300} color="var(--son-500)" onChange={(v) => bud.setAmt(cat.id, v)} />
-        {confirmedVendorAmt > 0 && (
-          <div style={{ marginTop: 10, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
-            Vendor đã chốt:{' '}
-            <span style={{ fontWeight: 700, color: allocated >= confirmedVendorAmt ? 'var(--sage-600)' : 'var(--danger-500)' }}>{confirmedVendorAmt}tr</span>
-            {allocated < confirmedVendorAmt && (
-              <span style={{ color: 'var(--danger-500)' }}> (thiếu {confirmedVendorAmt - allocated}tr)</span>
+        <div style={{ width: 'calc(100% - 96px)', margin: '0 48px' }}>
+          <AllocSlider value={allocated} max={bud.totalTarget || 300} color="var(--son-500)" onChange={(v) => bud.setAmt(cat.id, v)} />
+        </div>
+        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {bud.totalTarget > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>Ngân sách cưới</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>{bud.totalTarget}tr</span>
+            </div>
+          )}
+          {basePct > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>Dự toán ban đầu ({basePct}% ngân sách cưới)</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-600)', fontVariantNumeric: 'tabular-nums' }}>{base}tr</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--son-600)' : diff < 0 ? 'var(--sage-600)' : 'var(--ink-400)' }}>
+              Hiện tại chiếm {pct}%
+              {diff > 0 && ` · +${diff}tr so với ban đầu`}
+              {diff < 0 && ` · −${Math.abs(diff)}tr so với ban đầu`}
+              {diff === 0 && ' · bằng ban đầu'}
+            </span>
+            {diff !== 0 && base > 0 && (
+              <button onClick={() => bud.setAmt(cat.id, base)} style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--son-600)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', flexShrink: 0, marginLeft: 8 }}>
+                Reset
+              </button>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Vendor section */}

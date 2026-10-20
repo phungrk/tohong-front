@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api.js';
 
+export const DEFAULT_CATEGORY_PCT = {
+  venue: 40, ceremony: 10, photography: 8, jewelry: 7, attire: 6,
+  decor: 6, makeup: 3, transport: 2, stationery: 2, honeymoon: 6, reserve: 10,
+};
+
+export function getCategoryBaseline(catId, budgetTarget) {
+  const basePct = DEFAULT_CATEGORY_PCT[catId] ?? 0;
+  const base = budgetTarget > 0 ? Math.round(budgetTarget * basePct / 100) : 0;
+  return { basePct, base };
+}
+
 // color + icon are UI-only — not stored in API schema
 const CAT_META = {
   venue:         { color: 'var(--son-500)',  icon: 'utensils-crossed' },
