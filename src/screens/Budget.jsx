@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { EditName, AllocSlider } from '../ui/atoms.jsx';
+import { BaselineSlider } from '../components/BaselineSlider.jsx';
 import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
@@ -266,39 +267,48 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
 
       {/* Dự toán card */}
       <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', padding: '16px 18px', marginBottom: 14 }}>
-        <div className="ds-label" style={{ marginBottom: 8 }}>Dự toán</div>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-900)', marginBottom: 12, fontVariantNumeric: 'tabular-nums' }}>
-          {allocated}<span style={{ fontSize: 18 }}>tr</span>
-        </div>
-        <div style={{ width: 'calc(100% - 96px)', margin: '0 48px' }}>
-          <AllocSlider value={allocated} max={bud.totalTarget || 300} color="var(--son-500)" onChange={(v) => bud.setAmt(cat.id, v)} />
-        </div>
-        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {bud.totalTarget > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>Ngân sách cưới</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>{bud.totalTarget}tr</span>
+        {/* Row 1: 2-column header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="ds-label" style={{ color: 'var(--kim-600)', marginBottom: 4 }}>Dự toán</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+              {allocated}<span style={{ fontSize: 17 }}>tr</span>
             </div>
-          )}
-          {basePct > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>Dự toán ban đầu ({basePct}% ngân sách cưới)</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-600)', fontVariantNumeric: 'tabular-nums' }}>{base}tr</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--son-600)' : diff < 0 ? 'var(--sage-600)' : 'var(--ink-400)' }}>
-              Hiện tại chiếm {pct}%
-              {diff > 0 && ` · +${diff}tr so với ban đầu`}
-              {diff < 0 && ` · −${Math.abs(diff)}tr so với ban đầu`}
-              {diff === 0 && ' · bằng ban đầu'}
-            </span>
-            {diff !== 0 && base > 0 && (
-              <button onClick={() => bud.setAmt(cat.id, base)} style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--son-600)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', flexShrink: 0, marginLeft: 8 }}>
-                Reset
-              </button>
-            )}
           </div>
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            <div className="ds-label" style={{ color: 'var(--ink-400)', marginBottom: 4 }}>Ngân sách cưới</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-500)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+              {bud.totalTarget || '—'}{bud.totalTarget > 0 && <span style={{ fontSize: 17 }}>tr</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: BaselineSlider + Reset */}
+        <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 48, gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <BaselineSlider
+              value={allocated}
+              max={bud.totalTarget || 300}
+              base={base}
+              pct={pct}
+              diff={diff}
+              step={5}
+              onChange={(v) => bud.setAmt(cat.id, v)}
+            />
+          </div>
+          <button
+            onClick={() => { bud.setAmt(cat.id, base); track('budget_category_reset', { category_id: cat.id, from: allocated, to: base }); }}
+            disabled={diff === 0}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+              fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--son-600)',
+              background: 'none', border: 'none', cursor: diff === 0 ? 'default' : 'pointer',
+              padding: '4px 0', opacity: diff === 0 ? 0.35 : 1,
+            }}
+          >
+            <Icon name="rotate-ccw" size={12} color="var(--son-600)" />
+            Reset
+          </button>
         </div>
       </div>
 
