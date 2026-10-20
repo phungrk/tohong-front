@@ -290,8 +290,6 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
               value={allocated}
               max={bud.totalTarget || 300}
               base={base}
-              pct={pct}
-              diff={diff}
               step={5}
               onChange={(v) => bud.setAmt(cat.id, v)}
             />
