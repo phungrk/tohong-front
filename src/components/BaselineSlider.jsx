@@ -26,7 +26,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
 
   const tooltipBg =
     diff > 0 ? 'var(--son-600)' :
-    diff < 0 ? 'var(--sage-600)' : 'var(--ink-700)';
+    diff < 0 ? 'var(--sage-500)' : 'var(--ink-700)';
   const tooltipText =
     diff > 0 ? `+${diff}tr` :
     diff < 0 ? `−${Math.abs(diff)}tr` :
