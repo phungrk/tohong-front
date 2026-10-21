@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Baseline marker never sits closer than this to the left end of the track
+const MIN_BASE_POS = 0.2;
+
 export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
   const [local, setLocal] = useState(value);
   const dragging = useRef(false);
@@ -16,10 +19,24 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
     if (clamped !== lastSent.current) { lastSent.current = clamped; onChange(clamped); }
   };
 
+  // Piecewise scale: 0→base fills [0, basePos], base→max fills [basePos, 1].
+  // When base/max ≥ MIN_BASE_POS this collapses to the plain linear scale.
+  const basePos = base > 0 && base < max ? Math.max(base / max, MIN_BASE_POS) : null;
+  const toFrac = (v) => {
+    const c = Math.min(Math.max(v, 0), max);
+    if (basePos === null) return max > 0 ? c / max : 0;
+    return c <= base ? c / base * basePos : basePos + (c - base) / (max - base) * (1 - basePos);
+  };
+  const fromFrac = (f) => {
+    const c = Math.min(Math.max(f, 0), 1);
+    if (basePos === null) return c * max;
+    return c <= basePos ? c / basePos * base : base + (c - basePos) / (1 - basePos) * (max - base);
+  };
+
   const valueFromX = (clientX) => {
     const r = boxRef.current.getBoundingClientRect();
     const w = r.width - 16;
-    return w > 0 ? (clientX - r.left - 8) / w * max : 0;
+    return w > 0 ? fromFrac((clientX - r.left - 8) / w) : 0;
   };
 
   const onPointerDown = (e) => {
@@ -43,11 +60,10 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
   const diff = local - base;
 
   // % along the inset rail (8px each side)
-  const rp = (v) => `${Math.min(Math.max(v / max * 100, 0), 100)}%`;
+  const rp = (v) => `${toFrac(v) * 100}%`;
 
-  // absolute left in the OUTER container, accounting for 8px thumb-inset
-  // calc(8px + (100% - 16px) * fraction) maps [0..max] → [8px..(W-8px)]
-  const thumbLeft = (v) => `calc(8px + (100% - 16px) * ${Math.min(Math.max(v / max, 0), 1)})`;
+  // Same position in the outer container: maps fraction → [8px .. W-8px]
+  const thumbLeft = (v) => `calc(8px + (100% - 16px) * ${toFrac(v)})`;
 
   const tooltipBg =
     diff > 0 ? 'var(--son-600)' :
