@@ -1,18 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
 
-const CSS = `
-.bsl-input { -webkit-appearance: none; appearance: none; }
-.bsl-input::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; opacity: 0; }
-.bsl-input::-moz-range-thumb { width: 16px; height: 16px; opacity: 0; border: none; background: none; }
-`;
-
 export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
   const [local, setLocal] = useState(value);
   const dragging = useRef(false);
+  const boxRef = useRef(null);
+  const lastSent = useRef(value);
 
   useEffect(() => {
-    if (!dragging.current) setLocal(value);
+    if (!dragging.current) { setLocal(value); lastSent.current = value; }
   }, [value]);
+
+  const commit = (v) => {
+    const clamped = Math.min(Math.max(Math.round(v / step) * step, 0), max);
+    setLocal(clamped);
+    if (clamped !== lastSent.current) { lastSent.current = clamped; onChange(clamped); }
+  };
+
+  const valueFromX = (clientX) => {
+    const r = boxRef.current.getBoundingClientRect();
+    const w = r.width - 16;
+    return w > 0 ? (clientX - r.left - 8) / w * max : 0;
+  };
+
+  const onPointerDown = (e) => {
+    dragging.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.focus({ preventScroll: true });
+    commit(valueFromX(e.clientX));
+  };
+  const onPointerMove = (e) => { if (dragging.current) commit(valueFromX(e.clientX)); };
+  const endDrag = () => { dragging.current = false; };
+
+  const onKeyDown = (e) => {
+    const big = step * 4;
+    const map = { ArrowLeft: -step, ArrowDown: -step, ArrowRight: step, ArrowUp: step, PageDown: -big, PageUp: big };
+    if (e.key in map) { e.preventDefault(); commit(local + map[e.key]); }
+    else if (e.key === 'Home') { e.preventDefault(); commit(0); }
+    else if (e.key === 'End') { e.preventDefault(); commit(max); }
+  };
 
   const pct  = max > 0 ? Math.round(local / max * 100) : 0;
   const diff = local - base;
@@ -32,15 +57,8 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
     diff < 0 ? `−${Math.abs(diff)}tr` :
     'Ban đầu';
 
-  const handleChange = (e) => {
-    const v = parseInt(e.target.value, 10);
-    setLocal(v);
-    onChange(v);
-  };
-
   return (
     <>
-      <style>{CSS}</style>
       {/*
         Outer: 80px, overflow visible.
         Layout (px from top):
@@ -143,24 +161,26 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           </span>
         </div>
 
-        {/* ── Native input — full width, transparent ────────────────── */}
-        <input
-          type="range"
-          min={0}
-          max={max}
-          step={step}
-          value={local}
-          className="bsl-input"
+        {/* Hit area: whole track band, captures the pointer so drags never drop */}
+        <div
+          ref={boxRef}
+          role="slider"
+          tabIndex={0}
           aria-label="Dự toán"
+          aria-valuemin={0}
+          aria-valuemax={max}
+          aria-valuenow={local}
           aria-valuetext={`${local} triệu, ${pct}% ngân sách cưới, ${tooltipText}`}
-          onMouseDown={() => { dragging.current = true; }}
-          onTouchStart={() => { dragging.current = true; }}
-          onMouseUp={() => { dragging.current = false; }}
-          onTouchEnd={() => { dragging.current = false; }}
-          onChange={handleChange}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onLostPointerCapture={endDrag}
+          onKeyDown={onKeyDown}
           style={{
-            position: 'absolute', left: 0, top: 22, width: '100%', height: 30,
-            opacity: 0, cursor: 'pointer', margin: 0, zIndex: 10,
+            position: 'absolute', left: 0, right: 0, top: 10, height: 50,
+            cursor: 'pointer', zIndex: 30, outline: 'none',
+            touchAction: 'none', WebkitTapHighlightColor: 'transparent', userSelect: 'none',
           }}
         />
       </div>
