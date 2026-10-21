@@ -42,63 +42,70 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
   return (
     <>
       <style>{CSS}</style>
-      {/* Outer: full-width hit area for the native input */}
-      <div style={{ position: 'relative', height: 66 }}>
+      {/*
+        Layout (px from top of 80px container):
+          0–18  : tooltip zone
+          18–40 : thumb (center 29)
+          33–39 : track (center 36)
+          50–80 : baseline label
+        Native input covers the thumb+track zone.
+      */}
+      <div style={{ position: 'relative', height: 80, overflow: 'visible' }}>
 
-        {/* Visual rail — inset 8px each side so 0% and 100% align with native thumb center */}
-        <div style={{ position: 'absolute', left: 8, right: 8, top: 0, bottom: 0, pointerEvents: 'none' }}>
+        {/* Visual rail — inset 8px each side */}
+        <div style={{ position: 'absolute', left: 8, right: 8, top: 0, bottom: 0, pointerEvents: 'none', overflow: 'visible' }}>
 
           {/* Track base */}
           <div style={{
-            position: 'absolute', top: 31, left: 0, right: 0,
+            position: 'absolute', top: 36, left: 0, right: 0,
             height: 6, borderRadius: 999, background: 'var(--line-200)',
           }} />
 
           {/* Over-baseline zone tint */}
           <div style={{
-            position: 'absolute', top: 31, left: p(base), right: 0,
+            position: 'absolute', top: 36, left: p(base), right: 0,
             height: 6, borderRadius: '0 999px 999px 0', background: 'var(--son-50)',
           }} />
 
-          {/* Fill: 0 → min(value, base) */}
+          {/* Fill: 0 → min(local, base) */}
           <div style={{
-            position: 'absolute', top: 31, left: 0,
+            position: 'absolute', top: 36, left: 0,
             width: local <= base ? p(local) : p(base),
             height: 6, borderRadius: local <= base ? 999 : '999px 0 0 999px',
             background: 'var(--son-500)',
           }} />
 
-          {/* Over-baseline fill: base → value */}
+          {/* Over-baseline fill: base → local */}
           {local > base && (
             <div style={{
-              position: 'absolute', top: 31, left: p(base),
+              position: 'absolute', top: 36, left: p(base),
               width: `calc(${p(local)} - ${p(base)})`,
               height: 6, borderRadius: '0 999px 999px 0', background: 'var(--son-300)',
             }} />
           )}
 
-          {/* Baseline marker */}
+          {/* Baseline marker line */}
           <div style={{
-            position: 'absolute', top: 25, left: p(base),
+            position: 'absolute', top: 30, left: p(base),
             width: 2, height: 18, borderRadius: 1,
             background: 'var(--ink-700)', marginLeft: -1,
           }} />
 
           {/* Baseline label */}
           <div style={{
-            position: 'absolute', top: 47, left: p(base),
+            position: 'absolute', top: 52, left: p(base),
             transform: 'translateX(-50%)', whiteSpace: 'nowrap',
             fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-500)',
           }}>
             Ban đầu <strong style={{ color: 'var(--ink-700)' }}>{base}tr</strong>
           </div>
 
-          {/* Tooltip above thumb */}
+          {/* Tooltip — sits above thumb, inside container */}
           <div style={{
-            position: 'absolute', top: -1, left: p(local),
+            position: 'absolute', top: 2, left: p(local),
             transform: 'translateX(-50%)',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            zIndex: 3,
+            zIndex: 5, pointerEvents: 'none',
           }}>
             <div style={{
               background: tooltipBg, color: '#fff',
@@ -116,15 +123,15 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
             }} />
           </div>
 
-          {/* Thumb pill — zIndex 2 so it sits above track, below tooltip */}
+          {/* Thumb pill */}
           <div style={{
-            position: 'absolute', top: 23, left: p(local),
+            position: 'absolute', top: 27, left: p(local),
             transform: 'translateX(-50%)',
             minWidth: 34, height: 22, padding: '0 6px',
             background: '#fff', border: '2px solid var(--son-500)',
             borderRadius: 999, boxShadow: '0 1px 4px rgba(0,0,0,.18)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 2,
+            zIndex: 4,
           }}>
             <span style={{
               fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
@@ -135,7 +142,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           </div>
         </div>
 
-        {/* Native input — full outer width so thumb center maps to [8, width-8] */}
+        {/* Native input — full outer width, thumb zone covers track+thumb */}
         <input
           type="range"
           min={0}
@@ -150,7 +157,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           onMouseUp={() => { dragging.current = false; }}
           onTouchEnd={() => { dragging.current = false; }}
           onChange={handleChange}
-          style={{ position: 'absolute', left: 0, top: 18, width: '100%', height: 30, zIndex: 4 }}
+          style={{ position: 'absolute', left: 0, top: 22, width: '100%', height: 30, zIndex: 6 }}
         />
       </div>
     </>
