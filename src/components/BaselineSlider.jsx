@@ -73,7 +73,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
             width: local <= base ? rp(local) : rp(base),
             height: 6,
             borderRadius: local <= base ? 999 : '999px 0 0 999px',
-            background: 'var(--son-500)',
+            background: diff < 0 ? 'var(--sage-500)' : 'var(--son-500)',
           }} />
 
           {/* Over-baseline fill: base → local */}
@@ -130,14 +130,14 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           position: 'absolute', top: 27, left: thumbLeft(local),
           transform: 'translateX(-50%)',
           minWidth: 34, height: 22, padding: '0 6px',
-          background: '#fff', border: '2px solid var(--son-500)',
+          background: '#fff', border: `2px solid ${tooltipBg}`,
           borderRadius: 999, boxShadow: '0 1px 4px rgba(0,0,0,.18)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none', zIndex: 19,
         }}>
           <span style={{
             fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
-            color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums',
+            color: tooltipBg, fontVariantNumeric: 'tabular-nums',
           }}>
             {pct}%
           </span>
