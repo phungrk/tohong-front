@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
-import { ThreadMark } from '../ui/atoms.jsx';
-import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
+import { ThreadMark, Thread } from '../ui/atoms.jsx';
 import { OBCalendar } from './Onboarding.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
@@ -51,27 +50,26 @@ function DBCountdown({ data, onDateSave }) {
 
   return (
     <>
-    <div style={{ paddingBottom: 16, borderBottom: '1px solid var(--line-100)' }}>
+    <div style={{ background: 'linear-gradient(135deg,var(--son-50) 0%,#fdf2ed 100%)', border: '1px solid var(--son-100)',
+      borderRadius: 'var(--r-lg)', padding: '16px 18px 14px', overflow: 'hidden' }}>
+      <Thread w="100%" mb={12} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="ds-label" style={{ color: 'var(--kim-600)', marginBottom: 4 }}>Còn</div>
+        <div>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--son-600)',
-            lineHeight: 1, fontVariantNumeric: 'lining-nums tabular-nums' }}>
-            {data.daysLeft ?? '—'}<span style={{ fontSize: 17, fontWeight: 500, color: 'var(--ink-500)' }}> ngày</span>
-          </div>
+            lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{data.daysLeft ?? '—'}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--son-400)', marginTop: 3 }}>ngày nữa</div>
         </div>
-        <div style={{ textAlign: 'right', flexShrink: 0, maxWidth: '55%' }}>
-          <div className="ds-label" style={{ marginBottom: 4 }}>Đám cưới</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.2, textWrap: 'pretty' }}>
+        <div style={{ textAlign: 'right', paddingTop: 4 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>
             {data.bride} &amp; {data.groom}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 4, position: 'relative' }}>
-            <Icon name={saving ? 'loader' : 'calendar-heart'} size={13} color="var(--son-500)" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 5, position: 'relative' }}>
+            <Icon name={saving ? 'loader' : 'calendar-heart'} size={13} color="var(--son-400)" />
             <button
               onClick={canEdit ? () => setEditing(true) : undefined}
               title={canEdit ? 'Chỉnh sửa ngày cưới' : undefined}
-              style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-600)',
-                background: 'none', border: 'none', padding: '4px 0', fontVariantNumeric: 'lining-nums tabular-nums',
+              style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-500)',
+                background: 'none', border: 'none', padding: '4px 0',
                 cursor: canEdit ? 'pointer' : 'default',
                 textDecoration: canEdit ? 'underline dotted' : 'none',
                 textUnderlineOffset: 3 }}>
@@ -81,12 +79,12 @@ function DBCountdown({ data, onDateSave }) {
         </div>
       </div>
       <div style={{ marginTop: 14 }}>
-        <div style={{ height: 6, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', marginBottom: 6 }}>
-          <div style={{ height: '100%', width: pct + '%', background: 'var(--son-500)', borderRadius: 999, transition: 'width .4s ease' }} />
+        <div style={{ height: 5, borderRadius: 999, background: 'var(--son-100)', overflow: 'hidden', marginBottom: 5 }}>
+          <div style={{ height: '100%', width: pct + '%', background: 'var(--son-400)', borderRadius: 999, transition: 'width .4s ease' }} />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--ink-400)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--son-400)' }}>
           <span>Bắt đầu lên kế hoạch</span>
-          <span style={{ fontVariantNumeric: 'lining-nums tabular-nums' }}>{pct}% hành trình</span>
+          <span>{pct}% hành trình 💕</span>
         </div>
       </div>
     </div>
@@ -105,18 +103,78 @@ function DBCountdown({ data, onDateSave }) {
   );
 }
 
+function DBMiniBar({ pct, color }) {
+  return (
+    <div style={{ height: 4, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', margin: '7px 0 2px' }}>
+      <div style={{ height: '100%', width: pct + '%', background: color, borderRadius: 999 }} />
+    </div>
+  );
+}
+
+function DBDots({ dots }) {
+  return (
+    <div style={{ display: 'flex', gap: 5, alignItems: 'center', margin: '7px 0 2px' }}>
+      {dots.map((d, i) => (
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: d.color }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: d.color, display: 'inline-block' }} />{d.n}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DBTile({ icon, color, label, main, sub, children, onClick }) {
+  return (
+    <button type="button" onClick={onClick} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-xs)',
+      padding: '12px 13px 10px', cursor: 'pointer', minWidth: 0, display: 'block', width: '100%', textAlign: 'left', font: 'inherit' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+        <span style={{ width: 24, height: 24, borderRadius: 'var(--r-xs)', background: color + '22', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={13} color={color} />
+        </span>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-500)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      </div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{main}</div>
+      {children}
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 3 }}>{sub}</div>
+    </button>
+  );
+}
+
+function DBUpcoming({ item, onClick }) {
+  const urgColor = item.weeks <= 3 ? '#b45309' : 'var(--ink-400)';
+  return (
+    <button type="button" onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
+      borderBottom: '1px solid var(--line-100)', cursor: onClick ? 'pointer' : 'default',
+      width: '100%', background: 'none', border: 'none', borderBottomWidth: 1, borderBottomStyle: 'solid', borderBottomColor: 'var(--line-100)',
+      textAlign: 'left', font: 'inherit' }}>
+      <span style={{ width: 28, height: 28, borderRadius: 'var(--r-sm)', flexShrink: 0, background: item.catColor + '18',
+        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name={item.catIcon} size={14} color={item.catColor} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.task}</div>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>{item.cat}</div>
+      </div>
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: urgColor, flexShrink: 0 }}>còn {item.weeks} tuần</span>
+      <Icon name="chevron-right" size={14} color="var(--ink-300)" />
+    </button>
+  );
+}
+
 function DBSkeleton() {
   return (
-    <div style={{ flex: 1, overflow: 'hidden', padding: '16px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}
+    <div style={{ flex: 1, overflow: 'hidden', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}
       aria-live="polite" aria-busy="true" aria-label="Đang tải bảng điều khiển">
-      <div className="db-skel" style={{ height: 110, borderRadius: 'var(--r-md)' }} />
-      <div className="db-skel" style={{ height: 12, width: 90, marginTop: 6 }} />
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="db-skel" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
-          <div className="db-skel" style={{ flex: 1, height: 36, borderRadius: 'var(--r-sm)' }} />
+      <div className="db-skel" style={{ height: 132, borderRadius: 'var(--r-lg)' }} />
+      <div>
+        <div className="db-skel" style={{ height: 12, width: 90, marginBottom: 10 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="db-skel" style={{ height: 92, borderRadius: 'var(--r-lg)' }} />
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
@@ -201,43 +259,58 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
 
       {coupleId && !loaded ? <DBSkeleton /> : (
       /* scrollable content */
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <DBCountdown data={data} onDateSave={coupleId ? handleDateSave : null} />
 
-        <SectionHeader label="Tổng quan" />
-        <ListRow icon="wallet" title="Ngân sách" onClick={() => navigate(3)}
-          value={<Amount value={data.budget.total_tr} unit="tr" />}
-          sub={data.budget.over
-            ? `Vượt ${data.budget.spent_tr - data.budget.total_tr}tr so với ngân sách`
-            : `Đã dùng ${bPct}% ngân sách`}
-          subColor={data.budget.over ? 'var(--danger-500)' : 'var(--ink-400)'} />
-        <ListRow icon="users" title="Khách mời" onClick={() => navigate(4)}
-          done={data.guests.total > 0 && data.guests.pending === 0}
-          value={<Amount value={data.guests.total} />}
-          sub={`${data.guests.yes} sẽ tới · ${data.guests.pending} chờ${data.guests.capacity ? ` · sức chứa ${data.guests.capacity}` : ''}`}
-          subColor={data.guests.pending > 0 ? 'var(--kim-700)' : 'var(--ink-400)'} />
-        <ListRow icon="list-checks" title="Kế hoạch" onClick={() => navigate(2)}
-          done={data.timeline.total > 0 && data.timeline.done === data.timeline.total}
-          value={<Amount value={`${data.timeline.done}/${data.timeline.total}`} />}
-          sub={`${tlPct}% việc đã xong`} />
-        <ListRow icon="store" title="Nhà cung cấp" onClick={() => navigate(3)} isLast={data.upcoming.length === 0}
-          done={totalVendors > 0 && data.vendors.empty === 0}
-          value={<Amount value={totalVendors} unit=" hạng mục" unitSize={13} />}
-          sub={data.vendors.empty > 0
-            ? `${data.vendors.confirmed} đã chốt · ${data.vendors.empty} chưa có vendor`
-            : `${data.vendors.confirmed} đã chốt · ${data.vendors.shortlisted} đang xem`}
-          subColor={data.vendors.empty > 0 ? 'var(--ink-400)' : 'var(--sage-600)'} />
+        {/* summary grid */}
+        <div>
+          <div className="ds-label" style={{ marginBottom: 10 }}>Tổng quan</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <DBTile icon="wallet" color="var(--son-500)" label="Ngân sách"
+              main={`${data.budget.total_tr}tr`}
+              sub={data.budget.over ? `Vượt ${data.budget.spent_tr - data.budget.total_tr}tr` : 'Cân đối 👌'}
+              onClick={() => navigate(3)}>
+              <DBMiniBar pct={bPct} color={data.budget.over ? 'var(--danger-500)' : 'var(--sage-500)'} />
+            </DBTile>
+            <DBTile icon="users" color="var(--son-400)" label="Khách mời"
+              main={String(data.guests.total)}
+              sub={`${data.guests.capacity} sức chứa`}
+              onClick={() => navigate(4)}>
+              <DBDots dots={[
+                { n: data.guests.yes,     color: 'var(--sage-500)' },
+                { n: data.guests.pending, color: '#fbbf24'         },
+                { n: data.guests.no,      color: 'var(--ink-300)'  },
+              ]} />
+            </DBTile>
+            <DBTile icon="list-checks" color="var(--dao-400)" label="Timeline"
+              main={`${data.timeline.done}/${data.timeline.total}`}
+              sub="việc hoàn thành"
+              onClick={() => navigate(2)}>
+              <DBMiniBar pct={tlPct} color="var(--son-400)" />
+            </DBTile>
+            <DBTile icon="store" color="var(--kim-500)" label="Nhà cung cấp"
+              main={`${totalVendors} hạng mục`}
+              sub={data.vendors.empty > 0 ? `${data.vendors.empty} chưa có vendor` : 'Đã đủ vendor 👌'}
+              onClick={() => navigate(3)}>
+              <DBDots dots={[
+                { n: data.vendors.confirmed,  color: 'var(--sage-500)' },
+                { n: data.vendors.shortlisted, color: '#fbbf24'        },
+                { n: data.vendors.empty,      color: 'var(--ink-300)'  },
+              ]} />
+            </DBTile>
+          </div>
+        </div>
 
-        {data.upcoming.length > 0 && <>
-          <SectionHeader label="Sắp tới" />
-          {data.upcoming.map((item, i) => (
-            <ListRow key={item.id} icon={item.catIcon} title={item.task} sub={item.cat}
-              isLast={i === data.upcoming.length - 1}
-              value={<Amount value={item.weeks} unit=" tuần" unitSize={13}
-                color={item.weeks <= 3 ? 'var(--kim-700)' : 'var(--ink-900)'} />}
-              onClick={() => navigate(item.tab)} />
-          ))}
-        </>}
+        {/* upcoming */}
+        {data.upcoming.length > 0 && <div>
+          <div className="ds-label" style={{ marginBottom: 6 }}>Sắp tới</div>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-xs)', padding: '0 14px' }}>
+            {data.upcoming.map((item) => (
+              <DBUpcoming key={item.id} item={item} onClick={() => navigate(item.tab)} />
+            ))}
+          </div>
+        </div>}
+        <div style={{ height: 4 }} />
       </div>
       )}
 
