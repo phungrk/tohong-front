@@ -282,7 +282,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
                 { n: data.guests.no,      color: 'var(--ink-300)'  },
               ]} />
             </DBTile>
-            <DBTile icon="list-checks" color="var(--dao-400)" label="Timeline"
+            <DBTile icon="list-checks" color="var(--dao-400)" label="Kế hoạch"
               main={`${data.timeline.done}/${data.timeline.total}`}
               sub="việc hoàn thành"
               onClick={() => navigate(2)}>

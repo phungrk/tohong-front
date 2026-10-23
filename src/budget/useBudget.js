@@ -27,9 +27,15 @@ const CAT_META = {
   reserve:       { color: 'var(--sage-400)', icon: 'shield'           },
 };
 
+// Old server default → new label; user-renamed categories are left alone.
+const RENAMED_DEFAULTS = [
+  { id: 'venue', from: /^tiệc cưới\s*\(địa điểm/i, to: 'Nhà hàng tiệc cưới' },
+];
+
 function withMeta(cat) {
   const m = CAT_META[cat.id] || { color: 'var(--dao-300)', icon: 'circle' };
-  return { ...m, ...cat }; // API fields win over defaults, but color/icon filled in
+  const rename = RENAMED_DEFAULTS.find((r) => r.id === cat.id && r.from.test(cat.name || ''));
+  return { ...m, ...cat, ...(rename ? { name: rename.to } : {}) };
 }
 
 export function fmtTr(n) { return n + 'tr'; }

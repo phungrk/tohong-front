@@ -432,7 +432,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
             <Icon name="chevron-left" size={24} color="var(--ink-700)" />
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Timeline</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Kế hoạch</div>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>
               {donePrep}/{allTasks.length} việc xong{wedding.daysLeft != null ? ` · còn ${wedding.daysLeft} ngày` : ''}
             </div>

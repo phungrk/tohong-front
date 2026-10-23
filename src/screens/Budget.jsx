@@ -371,8 +371,10 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           )}
           <button
             onClick={() => onOpenVendorChat(cat.id)}
-            style={{ width: '100%', marginTop: 12, padding: '12px 0', background: 'var(--son-50)', border: '1px solid var(--son-100)', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--son-600)' }}>
-            Hỏi Tơ Hồng gợi ý {cat.name.toLowerCase()}
+            style={{ width: '100%', marginTop: 12, padding: '12px 0', background: 'var(--son-50)', border: '1px solid var(--son-100)', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--son-600)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <Icon name="search" size={16} color="var(--son-600)" sw={2} />
+            Tìm {cat.name.toLowerCase()}
           </button>
         </div>
       )}
@@ -592,7 +594,7 @@ export function ScreenBudget({
               let subColor = 'var(--ink-400)';
               if (vendorConfirmed) { subText = confirmedVendor.name; subColor = 'var(--sage-600)'; }
               else if (isVendorCat && shortlistCount > 0) { subText = `Đang xem ${shortlistCount} vendor`; subColor = 'var(--kim-700)'; }
-              else if (isVendorCat) subText = 'Chưa chốt vendor';
+              else if (isVendorCat) subText = 'Tìm vendor';
               else {
                 const cnt = (cat.items || []).length;
                 subText = cnt > 0 ? `${cnt} mục con` : 'Chưa có mục con';
