@@ -535,7 +535,7 @@ export function ScreenBudget({
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
         {/* Total card — observed for compact trigger */}
-        <div ref={totalCardRef} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-xs)', padding: '16px 18px', marginBottom: 18 }}>
+        <div ref={totalCardRef} style={{ paddingBottom: 16, borderBottom: '1px solid var(--line-100)', marginBottom: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 14, marginBottom: 12 }}>
             <div>
               <div className="ds-label">Đã phân bổ</div>
