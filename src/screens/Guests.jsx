@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { EditName } from '../ui/atoms.jsx';
+import { ListRow, SectionHeader } from '../ui/ListRow.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
 
 const GKST = {
-  yes:     { label: 'Sẽ tới',  color: 'var(--sage-500)', bg: '#edf7ee', border: '#c3dfc7',        icon: 'check' },
-  pending: { label: 'Chờ',     color: '#b45309',          bg: '#fef9ed', border: '#fcd34d',        icon: 'clock-4' },
-  no:      { label: 'Từ chối', color: 'var(--ink-400)',   bg: 'var(--sand)', border: 'var(--line-200)', icon: 'x' },
+  yes:     { label: 'Sẽ tới',  color: 'var(--sage-600)', bg: 'var(--sage-50)', border: 'var(--sage-200)', icon: 'check' },
+  pending: { label: 'Chờ',     color: 'var(--kim-700)',  bg: 'var(--kim-50)',  border: 'var(--kim-200)',  icon: 'clock-4' },
+  no:      { label: 'Từ chối', color: 'var(--ink-400)',  bg: 'transparent',    border: 'var(--line-200)', icon: 'x' },
 };
 
 function calcSums(gs) {
@@ -16,18 +17,6 @@ function calcSums(gs) {
   const pending = gs.filter((g) => g.status === 'pending').reduce((n, g) => n + g.count, 0);
   const no      = gs.filter((g) => g.status === 'no').reduce((n, g) => n + g.count, 0);
   return { yes, pending, no, total: yes + pending + no };
-}
-
-function GkAvatar({ name, side }) {
-  return (
-    <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: side === 'trai' ? '#dbeafe' : 'var(--son-50)',
-      fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600,
-      color: side === 'trai' ? '#1d4ed8' : 'var(--son-600)',
-      border: `1.5px solid ${side === 'trai' ? '#bfdbfe' : 'var(--son-100)'}` }}>
-      {name.charAt(0)}
-    </div>
-  );
 }
 
 function GkBadge({ status, onClick }) {
@@ -41,18 +30,16 @@ function GkBadge({ status, onClick }) {
   );
 }
 
-function GkRow({ g, onCycle, onRename }) {
+function GkRow({ g, onCycle, onRename, isLast }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: '1px solid var(--line-100)' }}>
-      <GkAvatar name={g.name} side={g.side} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <EditName value={g.name} onChange={onRename} size={16} weight={600} focusNew={g.isNew} />
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>
-          {g.role}{g.count > 1 ? ` · ${g.count} người` : ''}
-        </div>
-      </div>
-      <GkBadge status={g.status} onClick={onCycle} />
-    </div>
+    <ListRow
+      letter={(g.name || '?').charAt(0).toUpperCase()}
+      done={g.status === 'yes'}
+      title={<EditName value={g.name} onChange={onRename} size={16} weight={400} focusNew={g.isNew} />}
+      sub={`${g.role}${g.count > 1 ? ` · ${g.count} người` : ''}`}
+      right={<GkBadge status={g.status} onClick={onCycle} />}
+      isLast={isLast}
+    />
   );
 }
 
@@ -159,10 +146,10 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
         <div style={{ marginBottom: 12 }}>
           <div style={{ height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', display: 'flex', marginBottom: 4 }}>
             <div style={{ width: (capacity > 0 ? (sums.yes / capacity) * 100 : 0) + '%', background: 'var(--sage-500)', transition: 'width .25s ease' }} />
-            <div style={{ width: (capacity > 0 ? (sums.pending / capacity) * 100 : 0) + '%', background: '#fbbf24' }} />
+            <div style={{ width: (capacity > 0 ? (sums.pending / capacity) * 100 : 0) + '%', background: 'var(--kim-400)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
-            <span><b style={{ color: 'var(--sage-500)' }}>{sums.yes}</b> xác nhận · <b style={{ color: '#b45309' }}>{sums.pending}</b> chờ</span>
+            <span><b style={{ color: 'var(--sage-600)' }}>{sums.yes}</b> xác nhận · <b style={{ color: 'var(--kim-700)' }}>{sums.pending}</b> chờ</span>
             <span>{capacity > 0 ? `Sức chứa ${capacity} khách` : 'Chưa đặt sức chứa'}</span>
           </div>
         </div>
@@ -180,17 +167,11 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
         {sections.map((sec) => (
           <div key={sec.key}>
             {filter === 'all' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '14px 0 4px' }}>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: sec.key === 'trai' ? '#1d4ed8' : 'var(--son-600)' }}>{sec.label}</span>
-                <span style={{ flex: 1, height: 1, background: 'var(--line-100)' }} />
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
-                  {sec.items.reduce((n, x) => n + x.count, 0)} người
-                </span>
-              </div>
+              <SectionHeader label={sec.label} count={`${sec.items.reduce((n, x) => n + x.count, 0)} người`} />
             )}
-            {sec.items.map((x) => (
-              <GkRow key={x.id} g={x} onCycle={() => cycle(x.id)} onRename={(n) => rename(x.id, n)} />
+            {sec.items.map((x, i) => (
+              <GkRow key={x.id} g={x} isLast={i === sec.items.length - 1}
+                onCycle={() => cycle(x.id)} onRename={(n) => rename(x.id, n)} />
             ))}
           </div>
         ))}
