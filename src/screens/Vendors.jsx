@@ -2,39 +2,10 @@ import { useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
-
-/* ── VDot — ● confirmed indicator (avoids check-circle-2) ──── */
-function VDot() {
-  return <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', flexShrink: 0, display: 'inline-block' }} />;
-}
-
-/* ── Status badge ─────────────────────────────────────────── */
-function StatusBadge({ status }) {
-  if (status === 'confirmed') {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
-        color: 'var(--sage-700,#2d6b3a)', background: 'var(--sage-50,#edf7ee)',
-        border: '1px solid var(--sage-200,#b8d9be)', borderRadius: 999, padding: '3px 8px' }}>
-        <VDot /> Đã chốt
-      </span>
-    );
-  }
-  if (status === 'shortlisted') {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
-        color: 'var(--kim-700)', background: 'var(--kim-50)',
-        border: '1px solid var(--kim-200)', borderRadius: 999, padding: '3px 8px' }}>
-        <Icon name="bookmark" size={11} color="var(--kim-600)" sw={2} /> Đang xem xét
-      </span>
-    );
-  }
-  return null;
-}
+import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
-function VVendorRow({ catId, vendor, onOpenChat }) {
+function VVendorRow({ catId, vendor }) {
   const { saved, confirmVendor, unconfirmVendor, unsaveVendor } = useVendorCtx();
   const confirmedId = saved[catId]?.confirmed?.id;
   const isConfirmed = confirmedId === vendor.id;
@@ -48,36 +19,28 @@ function VVendorRow({ catId, vendor, onOpenChat }) {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-      borderBottom: '1px solid var(--line-100)' }}>
-      {/* swatch */}
-      <div style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', flexShrink: 0,
-        background: vendor.grad }} />
-      {/* info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600,
-          color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {vendor.name}
-        </div>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
-          {vendor.priceTotal}tr · {vendor.priceUnit}
-        </div>
-      </div>
-      {/* confirm toggle */}
-      <button type="button" onClick={toggleConfirm} style={{ flexShrink: 0,
-        display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
-        padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
-        background: isConfirmed ? 'var(--sage-500)' : 'var(--card)',
-        color: isConfirmed ? '#fff' : 'var(--ink-500)',
-        border: `1.5px solid ${isConfirmed ? 'var(--sage-500)' : 'var(--line-200)'}` }}>
-        {isConfirmed ? <><VDot /> Chốt</> : 'Chốt'}
-      </button>
-      {/* unsave */}
-      <button type="button" onClick={() => unsaveVendor(catId, vendor.id)} style={{ flexShrink: 0,
-        padding: 6, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-300)' }}>
-        <Icon name="x" size={16} color="var(--ink-300)" sw={2} />
-      </button>
+    <div style={{ paddingLeft: 44 }}>
+      <ListRow
+        leading={<div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'center', background: vendor.grad }} />}
+        title={vendor.name}
+        sub={`${vendor.priceTotal}tr · ${vendor.priceUnit}`}
+        subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
+        right={<>
+          <button type="button" onClick={toggleConfirm} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
+            padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
+            background: isConfirmed ? 'var(--sage-600)' : 'transparent',
+            color: isConfirmed ? '#fff' : 'var(--ink-500)',
+            border: `1px solid ${isConfirmed ? 'var(--sage-600)' : 'var(--line-200)'}` }}>
+            {isConfirmed ? <><Icon name="check" size={12} color="#fff" sw={2.5} /> Đã chốt</> : 'Chốt'}
+          </button>
+          <button type="button" aria-label="Bỏ lưu" onClick={() => unsaveVendor(catId, vendor.id)} style={{
+            padding: 6, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}>
+            <Icon name="x" size={16} color="var(--ink-300)" sw={2} />
+          </button>
+        </>}
+      />
     </div>
   );
 }
@@ -87,54 +50,41 @@ function CatCard({ cat, onOpenChat }) {
   const { saved, getCatStatus, getCatBudget } = useVendorCtx();
   const status = getCatStatus(cat.id);
   const vendors = saved[cat.id]?.shortlisted || [];
-  const isConfirmed = status === 'confirmed';
+  const confirmedVendor = saved[cat.id]?.confirmed || null;
+
+  let sub = 'Chưa chốt vendor';
+  let subColor = 'var(--ink-400)';
+  if (status === 'confirmed' && confirmedVendor) { sub = confirmedVendor.name; subColor = 'var(--sage-600)'; }
+  else if (vendors.length > 0) { sub = `Đang xem ${vendors.length} vendor`; subColor = 'var(--kim-700)'; }
 
   return (
-    <div style={{ background: 'var(--card)',
-      border: `1.5px solid ${isConfirmed ? 'var(--sage-300,#a3c9a8)' : 'var(--line-100)'}`,
-      borderRadius: 'var(--r-lg)', overflow: 'hidden',
-      background: isConfirmed ? 'var(--sage-50,#f0f7f0)' : 'var(--card)',
-      marginBottom: 10 }}>
-      {/* cat header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px',
-        borderBottom: vendors.length > 0 ? '1px solid var(--line-100)' : 'none' }}>
-        <span style={{ width: 34, height: 34, borderRadius: 'var(--r-sm)', flexShrink: 0,
-          background: isConfirmed ? 'var(--sage-100,#d0ecd4)' : 'var(--son-50)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={cat.icon} size={17} color={isConfirmed ? 'var(--sage-500)' : cat.color} sw={1.8} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>
-            {cat.name}
-          </div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
-            Budget ~{getCatBudget(cat.id)}tr
-          </div>
-        </div>
-        <StatusBadge status={status} />
-        {/* add / open AI button */}
-        <button type="button" onClick={() => onOpenChat(cat.id)}
-          style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none',
-            background: vendors.length === 0 ? 'var(--son-500)' : 'transparent' }}>
-          <Icon name={vendors.length === 0 ? 'search' : 'sparkles'} size={16}
-            color={vendors.length === 0 ? '#fff' : 'var(--son-500)'} sw={2} />
-        </button>
-      </div>
+    <div>
+      <ListRow
+        icon={cat.icon} done={status === 'confirmed'}
+        title={cat.name}
+        value={<Amount value={getCatBudget(cat.id)} unit="tr" />}
+        sub={sub} subColor={subColor}
+        right={
+          <button type="button" aria-label={`Hỏi Tơ Hồng về ${cat.name}`} onClick={() => onOpenChat(cat.id)}
+            style={{ width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', marginLeft: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--line-200)', background: 'transparent' }}>
+            <Icon name={vendors.length === 0 ? 'search' : 'sparkles'} size={15} color="var(--son-500)" sw={2} />
+          </button>
+        }
+      />
 
-      {/* vendor rows */}
       {vendors.map((v) => (
-        <VVendorRow key={v.id} catId={cat.id} vendor={v} onOpenChat={onOpenChat} />
+        <VVendorRow key={v.id} catId={cat.id} vendor={v} />
       ))}
 
-      {/* empty state */}
       {vendors.length === 0 && (
         <button type="button" onClick={() => onOpenChat(cat.id)}
-          style={{ width: '100%', padding: '14px 14px', background: 'transparent', border: 'none',
-            cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8,
-            borderTop: '1px solid var(--line-100)' }}>
-          <Icon name="sparkles" size={15} color="var(--son-400)" sw={1.8} />
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--son-500)', fontWeight: 600 }}>
+          style={{ width: '100%', padding: '12px 0 12px 44px', background: 'transparent', border: 'none',
+            borderBottom: '1px solid var(--line-100)', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="sparkles" size={15} color="var(--son-500)" sw={1.8} />
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--son-600)', fontWeight: 600 }}>
             Hỏi Tơ Hồng gợi ý {cat.name.toLowerCase()}
           </span>
         </button>
@@ -154,8 +104,9 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--paper)' }}>
       {/* header */}
-      <div style={{ flexShrink: 0, padding: '14px 16px 12px',
-        background: 'var(--paper)', borderBottom: '1px solid var(--line-100)' }}>
+      <div style={{ flexShrink: 0, padding: 'var(--header-pt) 16px 12px',
+        background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--line-100)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button type="button" onClick={onMenuOpen} aria-label="Mở menu" style={{ padding: 4, background: 'transparent',
             border: 'none', cursor: 'pointer', color: 'var(--ink-500)' }}>
@@ -184,10 +135,9 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       </div>
 
       {/* scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 24px' }}>
-        <div style={{ marginBottom: 12 }}>
-          <VFlowOverview onOpen={() => setHelpOpen(true)} />
-        </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+        <VFlowOverview onOpen={() => setHelpOpen(true)} />
+        <SectionHeader label="Hạng mục" />
         {VENDOR_CATEGORIES.map((cat) => (
           <CatCard key={cat.id} cat={cat} onOpenChat={onOpenVendorChat} />
         ))}
