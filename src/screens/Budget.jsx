@@ -569,14 +569,14 @@ export function ScreenBudget({
         </div>
 
         {/* Category list */}
-        <div className="ds-label" style={{ margin: '0 2px 10px' }}>Hạng mục</div>
+        <div className="ds-label" style={{ margin: '0 0 2px' }}>Hạng mục</div>
         {bud.cats.length === 0 ? (
           <div style={{ padding: '22px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
             fontFamily: 'var(--font-body)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-500)' }}>
             Chưa có hạng mục ngân sách. Thêm khoản đầu tiên để bắt đầu phân bổ.
           </div>
         ) : (
-          <div style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-sm)', padding: '4px 16px' }}>
+          <div>
             {bud.cats.map((cat, i) => {
               const isLast = i === bud.cats.length - 1;
               const allocated = cat.allocated_tr || 0;
