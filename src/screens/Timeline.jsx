@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { Avatar } from '../ui/atoms.jsx';
+import { ListRow, SectionHeader, RowIcon, Amount } from '../ui/ListRow.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
 import { buildTemplate } from './checklistTemplates.js';
@@ -10,25 +11,15 @@ const EMPTY_PHASES = [
   { id: 'ph_current', label: 'Việc cần làm', status: 'current', tasks: [] },
 ];
 
-const TAG_S = {
-  'Lễ':        { color: 'var(--kim-700)', bg: 'var(--kim-50)', border: 'var(--kim-200)' },
-  'Tiệc':      { color: 'var(--son-700)', bg: 'var(--son-50)', border: 'var(--son-200)' },
-  'Di chuyển': { color: 'var(--ink-600)', bg: 'var(--sand)',   border: 'var(--line-200)' },
+const PH_LABEL = {
+  done:     { color: 'var(--sage-600)', note: 'Đã xong' },
+  current:  { color: 'var(--kim-700)',  note: 'Đang làm' },
+  upcoming: { color: 'var(--ink-400)',  note: null },
 };
 
-function TlTag({ tag }) {
-  const s = TAG_S[tag] || TAG_S['Di chuyển'];
-  return (
-    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-      color: s.color, background: s.bg, border: `1px solid ${s.border}`, borderRadius: 999, padding: '2px 8px' }}>{tag}</span>
-  );
+function CheckIcon({ done }) {
+  return done ? <RowIcon icon="check" done /> : <RowIcon letter="" />;
 }
-
-const PH_ST = {
-  done:     { dot: 'var(--sage-500)', text: 'var(--ink-400)', line: 'var(--sage-200)' },
-  current:  { dot: 'var(--son-500)',  text: 'var(--son-700)', line: 'var(--son-200)'  },
-  upcoming: { dot: 'var(--line-300)', text: 'var(--ink-600)', line: 'var(--line-200)' },
-};
 
 /* ── Bottom sheet: add milestone to day-of rundown ─────────── */
 function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
@@ -210,61 +201,33 @@ function TlPrepTab({ phases, onToggle, onAdd }) {
   const currentPhase = phases.find((p) => p.status === 'current');
   const pendingCount = currentPhase ? currentPhase.tasks.filter((t) => !t.done).length : 0;
   return (
-    <div style={{ padding: '8px 0 24px' }}>
+    <div style={{ padding: '4px 0 24px' }}>
       {pendingCount > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 13px', background: 'var(--son-50)',
-          border: '1px solid var(--son-200)', borderRadius: 'var(--r-md)', margin: '0 0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', borderBottom: '1px solid var(--line-100)' }}>
           <Avatar size={26} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--son-700)', flex: 1, lineHeight: 1.45 }}>
-            <b>{pendingCount} việc</b> trong giai đoạn hiện tại.
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-700)', flex: 1, lineHeight: 1.45 }}>
+            <b style={{ color: 'var(--kim-700)' }}>{pendingCount} việc</b> trong giai đoạn hiện tại.
           </span>
         </div>
       )}
-      {phases.map((ph, pi) => {
-        const s = PH_ST[ph.status] || PH_ST.upcoming;
+      {phases.map((ph) => {
+        const s = PH_LABEL[ph.status] || PH_LABEL.upcoming;
         const doneN = ph.tasks.filter((t) => t.done).length;
-        const isCurrent = ph.status === 'current';
         return (
-          <div key={ph.id} style={{ display: 'flex', gap: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
-              <div style={{ width: 16, height: 16, borderRadius: '50%', marginTop: 2, flexShrink: 0,
-                background: ph.status === 'done' ? s.dot : 'var(--card)',
-                border: `2.5px solid ${s.dot}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {ph.status === 'done' && <Icon name="check" size={8} color="#fff" sw={3} />}
-                {ph.status === 'current' && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--son-500)' }} />}
-              </div>
-              {pi < phases.length - 1 && <div style={{ flex: 1, width: 2, background: s.line, minHeight: 20, marginBottom: -2 }} />}
-            </div>
-            <div style={{ flex: 1, paddingLeft: 12, paddingBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: s.text, letterSpacing: '0.02em' }}>{ph.label}</span>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>{doneN}/{ph.tasks.length}</span>
-                {isCurrent && (
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', background: 'var(--son-50)', borderRadius: 999, padding: '2px 8px' }}>Đang làm</span>
-                )}
-              </div>
-              <div style={{ background: isCurrent ? 'var(--son-50)' : 'transparent', border: isCurrent ? '1px solid var(--son-100)' : 'none',
-                borderRadius: 'var(--r-md)', padding: isCurrent ? '6px 12px' : 0 }}>
-                {ph.tasks.map((t, ti) => (
-                  <button key={t.id} onClick={() => onToggle(ph.id, t.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '8px 0', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-                    borderBottom: ti < ph.tasks.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
-                    <span style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: t.done ? 'var(--sage-500)' : 'var(--card)',
-                      border: `2px solid ${t.done ? 'var(--sage-500)' : 'var(--line-300)'}` }}>
-                      {t.done && <Icon name="check" size={11} color="#fff" sw={3} />}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4,
-                      color: t.done ? 'var(--ink-400)' : 'var(--ink-900)',
-                      textDecoration: t.done ? 'line-through' : 'none' }}>{t.text}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div key={ph.id}>
+            <SectionHeader label={ph.label} color={s.color}
+              count={`${s.note ? s.note + ' · ' : ''}${doneN}/${ph.tasks.length}`} />
+            {ph.tasks.map((t, ti) => (
+              <ListRow key={t.id} leading={<CheckIcon done={t.done} />}
+                title={t.text} muted={t.done}
+                titleStyle={{ textDecoration: t.done ? 'line-through' : 'none' }}
+                onClick={() => onToggle(ph.id, t.id)} right={null}
+                isLast={ti === ph.tasks.length - 1} />
+            ))}
           </div>
         );
       })}
-      <button onClick={onAdd} style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      <button onClick={onAdd} style={{ width: '100%', marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--son-600)',
         background: 'transparent', border: '1.5px dashed var(--son-200)', borderRadius: 'var(--r-md)', padding: '11px 0', cursor: 'pointer' }}>
         <Icon name="plus" size={16} color="var(--son-600)" /> Thêm việc
@@ -312,44 +275,19 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
   return (
     <div style={{ padding: '12px 0 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: (rundown.length ? (doneN / rundown.length) * 100 : 0) + '%', background: 'var(--son-500)', transition: 'width .25s ease' }} />
+        <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: (rundown.length ? (doneN / rundown.length) * 100 : 0) + '%', background: 'var(--sage-500)', transition: 'width .25s ease' }} />
         </div>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{doneN}/{rundown.length} mốc</span>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--ink-400)', flexShrink: 0, fontVariantNumeric: 'lining-nums tabular-nums' }}>{doneN}/{rundown.length} mốc</span>
       </div>
       {rundown.map((r, i) => (
-        <div key={r.id}>
-          <div style={{ display: 'flex', alignItems: 'stretch' }}>
-            <div style={{ width: 46, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: 10, paddingTop: 2 }}>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1,
-                color: r.done ? 'var(--ink-400)' : 'var(--ink-900)' }}>{r.time}</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20, flexShrink: 0 }}>
-              <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, marginTop: 2,
-                background: r.done ? 'var(--son-500)' : 'var(--card)',
-                border: `2.5px solid ${r.done ? 'var(--son-500)' : i === doneN ? 'var(--son-400)' : 'var(--line-300)'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {r.done && <Icon name="check" size={8} color="#fff" sw={3} />}
-                {i === doneN && !r.done && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--son-400)' }} />}
-              </div>
-              {i < rundown.length - 1 && <div style={{ flex: 1, width: 2, minHeight: 20, background: r.done ? 'var(--son-200)' : 'var(--line-200)' }} />}
-            </div>
-            <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 14 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4, fontWeight: 600, marginBottom: 5,
-                color: r.done ? 'var(--ink-400)' : 'var(--ink-900)', textDecoration: r.done ? 'line-through' : 'none' }}>{r.name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TlTag tag={r.tag} />
-                <span style={{ flex: 1 }} />
-                <button onClick={() => onToggle(r.id)} style={{ width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', padding: 0,
-                  background: r.done ? 'var(--son-500)' : 'var(--card)',
-                  border: `2px solid ${r.done ? 'var(--son-500)' : 'var(--line-300)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {r.done && <Icon name="check" size={13} color="#fff" sw={2.5} />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ListRow key={r.id} leading={<CheckIcon done={r.done} />}
+          title={r.name} muted={r.done}
+          titleStyle={{ textDecoration: r.done ? 'line-through' : 'none' }}
+          value={<Amount value={r.time} color={r.done ? 'var(--ink-400)' : 'var(--ink-900)'} />}
+          sub={r.tag}
+          onClick={() => onToggle(r.id)} right={null}
+          isLast={i === rundown.length - 1} />
       ))}
       {rundown.length === 0 && (
         <div style={{ padding: '24px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
