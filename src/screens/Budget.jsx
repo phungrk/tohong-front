@@ -607,7 +607,7 @@ export function ScreenBudget({
                     cursor: 'pointer', textAlign: 'left', font: 'inherit',
                   }}>
                   <div style={{
-                    width: 32, height: 32, borderRadius: '50%', flexShrink: 0, boxSizing: 'border-box',
+                    width: 32, height: 32, borderRadius: '50%', flexShrink: 0, boxSizing: 'border-box', alignSelf: 'center',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: vendorConfirmed ? 'var(--sage-600)' : 'transparent',
                     border: `1px solid ${vendorConfirmed ? 'var(--sage-600)' : 'var(--line-200)'}`,
