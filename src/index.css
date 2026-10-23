@@ -50,6 +50,7 @@
   --ink-300: #7C6E64; /* darkened from #A99C8D for WCAG AA text contrast (4.7:1 on --paper) */
 
   /* Semantic status (warm-leaning) */
+  --sage-600: #4B7457;
   --sage-500: #5E8C6A;
   --sage-200: #C3DFC7; /* soft success line */
   --sage-50: #E9F1EA;
