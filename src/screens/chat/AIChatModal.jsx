@@ -18,7 +18,7 @@ function UserBubble({ text }) {
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
       <div style={{ maxWidth: '78%', background: 'var(--son-500)', color: '#fff',
         borderRadius: '18px 18px 4px 18px', padding: '9px 13px',
-        fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.45 }}>
+        fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.45 }}>
         {text}
       </div>
     </div>
@@ -69,7 +69,7 @@ function VendorThread({ vendorSeed }) {
 
   return (
     <ChatActionsCtx.Provider value={{ pushUser, pushAI }}>
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 12px 20px' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
         {messages.map((msg) => {
           if (msg.type === 'user') {
             return <UserBubble key={msg.id} text={msg.text} />;
@@ -120,7 +120,7 @@ export function AIChatModal({
           <div style={{ width: 36, height: 4, borderRadius: 999, background: 'var(--line-300)', margin: '0 auto 11px' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <ThreadMark size={24} />
-            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
+            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600,
               color: 'var(--ink-900)', lineHeight: 1.1 }}>Tơ Hồng AI</div>
             <button onClick={onClose} aria-label="Đóng" style={{ width: 44, height: 44, borderRadius: '50%',
               background: 'var(--line-100)', border: 'none', cursor: 'pointer',
@@ -131,7 +131,7 @@ export function AIChatModal({
           {/* context chip */}
           <div style={{ margin: '10px 0 11px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600,
+              fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
               color: 'var(--kim-700)', background: 'var(--kim-50)',
               border: '1px solid var(--kim-200)', borderRadius: 'var(--r-pill)', padding: '5px 11px' }}>
               <Icon name={ctx.icon} size={13} color="var(--kim-600)" />

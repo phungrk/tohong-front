@@ -11,7 +11,7 @@ import { track } from '../../analytics.js';
 function AUserBubble({ children }) {
   return (
     <div style={{ alignSelf: 'flex-end', maxWidth: '82%', background: 'var(--son-500)', color: 'var(--fg-on-primary)',
-      fontFamily: 'var(--font-body)', fontSize: 14.5, lineHeight: 1.45, padding: '10px 14px',
+      fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.45, padding: '10px 14px',
       borderRadius: 'var(--r-lg) var(--r-lg) 4px var(--r-lg)', boxShadow: 'var(--shadow-rose)' }}>
       {children}
     </div>
@@ -31,7 +31,7 @@ function AAssistant({ tag, children }) {
 }
 
 function ASay({ children }) {
-  return <div style={{ fontFamily: 'var(--font-body)', fontSize: 14.5, lineHeight: 1.55, color: 'var(--ink-900)' }}>{children}</div>;
+  return <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.55, color: 'var(--ink-900)' }}>{children}</div>;
 }
 
 function QuickReplies({ items, onSelect, disabled }) {
@@ -86,7 +86,7 @@ function RetryReply({ onRetry, disabled }) {
 // Styled by .md CSS class in index.css.
 function BotMarkdown({ text }) {
   return (
-    <div className="md" style={{ fontFamily: 'var(--font-body)', fontSize: 14.5, lineHeight: 1.55, color: 'var(--ink-900)' }}>
+    <div className="md" style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.55, color: 'var(--ink-900)' }}>
       <Markdown remarkPlugins={[remarkGfm]} components={{ a: (p) => <a {...p} target="_blank" rel="noopener noreferrer" /> }}>
         {text}
       </Markdown>
@@ -430,10 +430,10 @@ export function AppChat({
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9 }}>
           <ThreadMark size={24} />
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Tơ Hồng</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Tơ Hồng</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: streaming ? 'var(--amber-500)' : 'var(--sage-500)', transition: 'background .3s' }} />
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-500)' }}>{streaming ? 'đang trả lời…' : 'trợ lý cưới · đang trực'}</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>{streaming ? 'đang trả lời…' : 'trợ lý cưới · đang trực'}</span>
               {trialInfo && (
                 <span style={{ display: 'flex', gap: 3, marginLeft: 2 }}>
                   {Array.from({ length: trialInfo.total }).map((_, i) => (
@@ -490,7 +490,7 @@ export function AppChat({
               }
             }}
             placeholder={streaming ? 'Đang trả lời…' : 'Nhắn cho Tơ Hồng…'}
-            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 14.5, color: 'var(--ink-900)' }} />
+            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-900)' }} />
           <button
             onClick={() => {
               if (draft.trim() && !streaming) {

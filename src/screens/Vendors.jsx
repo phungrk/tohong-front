@@ -13,7 +13,7 @@ function StatusBadge({ status }) {
   if (status === 'confirmed') {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 700,
+        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
         color: 'var(--sage-700,#2d6b3a)', background: 'var(--sage-50,#edf7ee)',
         border: '1px solid var(--sage-200,#b8d9be)', borderRadius: 999, padding: '3px 8px' }}>
         <VDot /> Đã chốt
@@ -23,7 +23,7 @@ function StatusBadge({ status }) {
   if (status === 'shortlisted') {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 700,
+        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
         color: 'var(--kim-700)', background: 'var(--kim-50)',
         border: '1px solid var(--kim-200)', borderRadius: 999, padding: '3px 8px' }}>
         <Icon name="bookmark" size={11} color="var(--kim-600)" sw={2} /> Đang xem xét
@@ -59,14 +59,14 @@ function VVendorRow({ catId, vendor, onOpenChat }) {
           color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {vendor.name}
         </div>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
           {vendor.priceTotal}tr · {vendor.priceUnit}
         </div>
       </div>
       {/* confirm toggle */}
       <button type="button" onClick={toggleConfirm} style={{ flexShrink: 0,
         display: 'inline-flex', alignItems: 'center', gap: 4,
-        fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+        fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
         padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
         background: isConfirmed ? 'var(--sage-500)' : 'var(--card)',
         color: isConfirmed ? '#fff' : 'var(--ink-500)',
@@ -107,7 +107,7 @@ function CatCard({ cat, onOpenChat }) {
           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>
             {cat.name}
           </div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
             Budget ~{getCatBudget(cat.id)}tr
           </div>
         </div>
@@ -162,7 +162,7 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
             <Icon name="menu" size={22} color="var(--ink-600)" sw={1.8} />
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 600,
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600,
               color: 'var(--ink-900)', lineHeight: 1.1 }}>Vendor đã lưu</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 3 }}>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
@@ -184,7 +184,7 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       </div>
 
       {/* scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 24px' }}>
         <div style={{ marginBottom: 12 }}>
           <VFlowOverview onOpen={() => setHelpOpen(true)} />
         </div>

@@ -141,7 +141,7 @@ export function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
     <div style={{ position:'relative', display:'inline-flex' }}>
       <select value={value} onChange={e => onChange(Number(e.target.value))} style={{
         appearance:'none', WebkitAppearance:'none', MozAppearance:'none',
-        fontFamily:'var(--font-ui)', fontSize:14.5, fontWeight:700, color:'var(--ink-900)',
+        fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700, color:'var(--ink-900)',
         background:'var(--card)', border:'1.5px solid var(--line-200)', borderRadius:'var(--r-md)',
         padding:'7px 30px 7px 13px', cursor:'pointer', outline:'none',
         backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23A08070' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
@@ -175,7 +175,7 @@ export function OBCalendar({ initD, initM, initY, onCancel, onConfirm }) {
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 10px 4px' }}>
         {OB_WEEKDAYS.map((w,i) => (
-          <div key={i} style={{ textAlign:'center', fontFamily:'var(--font-ui)', fontSize:11.5, fontWeight:700,
+          <div key={i} style={{ textAlign:'center', fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700,
             color: i===0?'var(--son-500)':'var(--ink-400)', padding:'4px 0' }}>{w}</div>
         ))}
       </div>
@@ -226,7 +226,7 @@ function OBDatePicker({ weddingD, weddingM, weddingY, set }) {
   return (
     <>
       <button onClick={() => setOpen(true)} style={{ width:'100%', display:'flex', alignItems:'center',
-        justifyContent:'space-between', gap:10, fontFamily:'var(--font-body)', fontSize:15,
+        justifyContent:'space-between', gap:10, fontFamily:'var(--font-body)', fontSize:16,
         color: hasVal ? 'var(--ink-900)' : 'var(--ink-400)', background:'var(--card)',
         border:'1.5px solid var(--line-200)', borderRadius:'var(--r-md)', padding:'12px 14px',
         cursor:'pointer', outline:'none', boxSizing:'border-box', textAlign:'left' }}>
@@ -284,7 +284,7 @@ function OBCityPicker({ city, set }) {
 function OBSection({ label, icon, children }) {
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:6, fontFamily:'var(--font-ui)', fontSize:10.5, fontWeight:700,
+      <div style={{ display:'flex', alignItems:'center', gap:6, fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700,
         letterSpacing:'0.11em', textTransform:'uppercase', color:'var(--ink-400)' }}>
         {icon && <Icon name={icon} size={13} color="var(--son-500)" sw={2}/>}
         {label}
@@ -308,7 +308,7 @@ function OBPerson({ icon, label, name, onName, namePh }) {
         </span>
       </div>
       <input value={name} onChange={e => onName(e.target.value)} placeholder={namePh} autoComplete="off"
-        style={{ width:'100%', fontFamily:'var(--font-body)', fontSize:15, color:'var(--ink-900)',
+        style={{ width:'100%', fontFamily:'var(--font-body)', fontSize:16, color:'var(--ink-900)',
           background:'var(--card)', border:'1.5px solid var(--line-200)',
           borderRadius:'var(--r-md)', padding:'10px 14px', outline:'none', boxSizing:'border-box' }}/>
     </div>
@@ -379,18 +379,18 @@ function OBWelcome({ onStart }) {
           display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Icon name="heart-handshake" size={28} color="var(--son-500)" sw={1.7}/>
         </div>
-        <div style={{ fontFamily:'var(--font-ui)', fontSize:10.5, fontWeight:700, letterSpacing:'.14em',
+        <div style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700, letterSpacing:'.14em',
           textTransform:'uppercase', color:'var(--kim-500)' }}>Chào mừng đến với Tơ Hồng</div>
         <div style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:600, color:'var(--ink-900)',
           lineHeight:1.18, margin:'10px 0 12px' }}>
           Cùng bắt đầu<br/>kế hoạch đám cưới
         </div>
-        <div style={{ fontFamily:'var(--font-body)', fontSize:14.5, lineHeight:1.6, color:'var(--ink-500)' }}>
+        <div style={{ fontFamily:'var(--font-body)', fontSize:16, lineHeight:1.6, color:'var(--ink-500)' }}>
           Mình hỏi vài câu ngắn để hiểu đám cưới của hai bạn — rồi gợi ý vendor thật sự hợp. Chỉ khoảng 2 phút.
         </div>
         <div style={{ margin:'26px 0 0' }}>
           <button onClick={onStart} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:9,
-            fontFamily:'var(--font-ui)', fontSize:15.5, fontWeight:700, color:'#fff', background:'var(--son-500)',
+            fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700, color:'#fff', background:'var(--son-500)',
             border:'none', borderRadius:'var(--r-pill)', padding:'14px 0', cursor:'pointer',
             boxShadow:'0 4px 18px rgba(168,50,70,.35)' }}>
             Bắt đầu
@@ -410,7 +410,7 @@ function OBStep1({ data, set, onNext }) {
   return (
     <>
       <div style={{ flexShrink:0, padding:'2px 20px 14px' }}>
-        <div style={{ fontFamily:'var(--font-ui)', fontSize:10, fontWeight:700,
+        <div style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700,
           letterSpacing:'0.13em', textTransform:'uppercase', color:'var(--ink-400)', marginBottom:4 }}>
           BƯỚC 1 / 3
         </div>
@@ -422,7 +422,7 @@ function OBStep1({ data, set, onNext }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'18px 20px', display:'flex', flexDirection:'column', gap:18 }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'18px 16px', display:'flex', flexDirection:'column', gap:18 }}>
         <OBRoleSelector role={data.userRole} onPick={v => set('userRole',v)}/>
         <div style={{ height:1, background:'var(--line-100)' }}/>
         <OBPerson icon="flower" label="Cô dâu"
@@ -436,14 +436,14 @@ function OBStep1({ data, set, onNext }) {
         {!ready && (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:9 }}>
             <Icon name="info" size={12} color="var(--ink-400)"/>
-            <span style={{ fontFamily:'var(--font-ui)', fontSize:11.5, color:'var(--ink-400)' }}>
+            <span style={{ fontFamily:'var(--font-ui)', fontSize:12, color:'var(--ink-400)' }}>
               Điền tên cô dâu &amp; chú rể để tiếp tục
             </span>
           </div>
         )}
         <button onClick={() => ready && onNext()} disabled={!ready}
           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            fontFamily:'var(--font-ui)', fontSize:15.5, fontWeight:700,
+            fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700,
             color:ready?'#fff':'var(--ink-400)',
             background:ready?'var(--son-500)':'var(--line-200)',
             border:'none', borderRadius:'var(--r-pill)', padding:'14px 0',
@@ -471,7 +471,7 @@ function OBStep2({ data, set, onBack, onNext }) {
           <BackChevron/>
         </button>
         <div>
-          <div style={{ fontFamily:'var(--font-ui)', fontSize:10, fontWeight:700,
+          <div style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700,
             letterSpacing:'0.13em', textTransform:'uppercase', color:'var(--ink-400)', marginBottom:4 }}>
             BƯỚC 2 / 3
           </div>
@@ -484,7 +484,7 @@ function OBStep2({ data, set, onBack, onNext }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'16px 20px', display:'flex', flexDirection:'column', gap:18 }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'16px 16px', display:'flex', flexDirection:'column', gap:18 }}>
         <OBSection label="Ngày cưới dự kiến" icon="calendar-heart">
           <OBDatePicker weddingD={data.weddingD} weddingM={data.weddingM} weddingY={data.weddingY} set={set}/>
         </OBSection>
@@ -505,7 +505,7 @@ function OBStep2({ data, set, onBack, onNext }) {
         display:'flex', flexDirection:'column', gap:8 }}>
         <button onClick={onNext}
           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            fontFamily:'var(--font-ui)', fontSize:15.5, fontWeight:700,
+            fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700,
             color:'#fff', background:'var(--son-500)',
             border:'none', borderRadius:'var(--r-pill)', padding:'14px 0', cursor:'pointer',
             boxShadow:'0 4px 18px rgba(168,50,70,.35)' }}>
@@ -540,7 +540,7 @@ function PCPhoto({ item, selected, onClick }) {
         onError={e => { e.currentTarget.style.display='none'; }}/>
       <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,rgba(43,36,32,0) 40%,rgba(43,36,32,.45) 100%)' }}/>
       <div style={{ position:'relative', padding:'0 9px 8px' }}>
-        <div style={{ fontFamily:'var(--font-display)', fontStyle:'italic', fontWeight:500, fontSize:11.5,
+        <div style={{ fontFamily:'var(--font-display)', fontStyle:'italic', fontWeight:500, fontSize:12,
           lineHeight:1.2, color:'#FFF7F0', textShadow:'0 1px 4px rgba(43,36,32,.4)' }}>{item.label}</div>
       </div>
       <div style={{ position:'absolute', top:7, right:7, width:26, height:26, borderRadius:'50%',
@@ -564,7 +564,7 @@ function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
           <BackChevron/>
         </button>
         <div>
-          <div style={{ fontFamily:'var(--font-ui)', fontSize:10, fontWeight:700,
+          <div style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700,
             letterSpacing:'0.13em', textTransform:'uppercase', color:'var(--kim-500)', marginBottom:4 }}>
             BƯỚC 3 / 3 · Phong cách
           </div>
@@ -577,8 +577,8 @@ function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'14px 20px 8px' }}>
-        <div style={{ fontFamily:'var(--font-body)', fontSize:13, color:'var(--ink-500)', marginBottom:12, lineHeight:1.45 }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'14px 16px 8px' }}>
+        <div style={{ fontFamily:'var(--font-body)', fontSize:14, color:'var(--ink-500)', marginBottom:12, lineHeight:1.45 }}>
           Không cần gọi tên phong cách — Tơ Hồng tự đọc được gu của hai bạn.
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:9 }}>
@@ -590,14 +590,14 @@ function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
         {!ready && (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:9 }}>
             <Icon name="heart" size={12} color="var(--ink-400)"/>
-            <span style={{ fontFamily:'var(--font-ui)', fontSize:11.5, color:'var(--ink-400)' }}>
+            <span style={{ fontFamily:'var(--font-ui)', fontSize:12, color:'var(--ink-400)' }}>
               Chọn ít nhất 4 ảnh · đã chọn {n}
             </span>
           </div>
         )}
         <button onClick={() => ready && onNext()} disabled={!ready} style={{
           width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-          fontFamily:'var(--font-ui)', fontSize:15, fontWeight:700,
+          fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700,
           color:ready?'#fff':'var(--ink-400)',
           background:ready?'var(--son-500)':'var(--line-200)',
           border:'none', borderRadius:'var(--r-pill)', padding:'13px 0',
@@ -627,7 +627,7 @@ function OBStep3Result({ profile, data, onRestart, onFinish }) {
     <>
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'20px 20px 16px' }}>
         <div style={{ textAlign:'center' }}>
-          <div style={{ fontFamily:'var(--font-ui)', fontSize:10, fontWeight:700, letterSpacing:'.14em',
+          <div style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700, letterSpacing:'.14em',
             textTransform:'uppercase', color:'var(--kim-500)', marginBottom:6 }}>Phong cách của bạn</div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:600, color:'var(--ink-900)', lineHeight:1.2 }}>
             Gu của bạn nghiêng về<br/>
@@ -638,7 +638,7 @@ function OBStep3Result({ profile, data, onRestart, onFinish }) {
         <div style={{ background:'var(--card)', border:'1px solid var(--kim-100)', borderRadius:'var(--r-lg)', padding:'14px 15px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:9 }}>
             <Icon name="wand-sparkles" size={14} color="var(--kim-500)" sw={2}/>
-            <span style={{ fontFamily:'var(--font-ui)', fontSize:10, fontWeight:700, letterSpacing:'.12em',
+            <span style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:700, letterSpacing:'.12em',
               textTransform:'uppercase', color:'var(--kim-500)' }}>Tơ Hồng sẽ ưu tiên</span>
           </div>
           {[
@@ -647,7 +647,7 @@ function OBStep3Result({ profile, data, onRestart, onFinish }) {
           ].map(([ic,txt],i) => (
             <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'4px 0' }}>
               <Icon name={ic} size={14} color="var(--son-500)" sw={1.9} style={{ marginTop:2, flexShrink:0 }}/>
-              <span style={{ fontFamily:'var(--font-body)', fontSize:13, color:'var(--ink-700)', lineHeight:1.45 }}>{txt}</span>
+              <span style={{ fontFamily:'var(--font-body)', fontSize:14, color:'var(--ink-700)', lineHeight:1.45 }}>{txt}</span>
             </div>
           ))}
         </div>
@@ -657,14 +657,14 @@ function OBStep3Result({ profile, data, onRestart, onFinish }) {
             <div key={s.key}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:5 }}>
                 <span style={{ fontFamily:'var(--font-ui)', fontSize:13, fontWeight:700, color:'var(--ink-900)' }}>{PC_STYLES[s.key]?.vi}</span>
-                <span style={{ fontFamily:'var(--font-ui)', fontSize:11.5, fontWeight:600, color:'var(--ink-400)', fontVariantNumeric:'tabular-nums' }}>{s.pct}%</span>
+                <span style={{ fontFamily:'var(--font-ui)', fontSize:12, fontWeight:600, color:'var(--ink-400)', fontVariantNumeric:'tabular-nums' }}>{s.pct}%</span>
               </div>
               <div style={{ height:7, borderRadius:999, background:'var(--line-100)', overflow:'hidden' }}>
                 <div style={{ height:'100%', width:`${s.pct}%`, borderRadius:999,
                   background:i===0?'linear-gradient(90deg,var(--son-500),var(--son-600))':'var(--son-300)',
                   transition:'width .7s cubic-bezier(.3,.7,.3,1)' }}/>
               </div>
-              <div style={{ fontFamily:'var(--font-body)', fontSize:11, color:'var(--ink-400)', marginTop:3 }}>{PC_STYLES[s.key]?.desc}</div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:12, color:'var(--ink-400)', marginTop:3 }}>{PC_STYLES[s.key]?.desc}</div>
             </div>
           ))}
         </div>
@@ -674,7 +674,7 @@ function OBStep3Result({ profile, data, onRestart, onFinish }) {
         display:'flex', flexDirection:'column', gap:8 }}>
         <button onClick={onFinish} style={{
           width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-          fontFamily:'var(--font-ui)', fontSize:15, fontWeight:700, color:'#fff',
+          fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700, color:'#fff',
           background:'var(--son-500)', border:'none', borderRadius:'var(--r-pill)', padding:'13px 0',
           cursor:'pointer', boxShadow:'0 4px 16px rgba(168,50,70,.32)' }}>
           <ThreadMark size={17} color="#fff" dot="#fff"/>

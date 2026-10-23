@@ -34,7 +34,7 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
           focusNew={it.isNew}
         />
         {it.vendor && it.status !== 'confirmed' && (
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
         )}
       </div>
       <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
@@ -136,7 +136,7 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
             <Icon name="store" size={22} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>
             {vendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 2 }}>{vendor.spec}</div>}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', flexShrink: 0 }}>
@@ -151,7 +151,7 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
               {price > 0 ? `${price}tr` : 'Chưa có giá'}
             </span>
             {isConfirmed && (
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
             )}
           </div>
 
@@ -173,7 +173,7 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
-              fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--ink-800)',
+              fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-800)',
               background: 'var(--sand)', border: '1px solid var(--line-100)',
               borderRadius: 'var(--r-sm)', padding: '10px 12px', resize: 'none', outline: 'none',
             }}
@@ -255,7 +255,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.name}</span>
         {isVendorCat && vendorStatus && vendorStatus !== 'none' && (
           <span style={{
-            fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, flexShrink: 0,
+            fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, flexShrink: 0,
             color: vendorStatus === 'confirmed' ? 'var(--sage-600)' : 'var(--kim-700)',
             background: vendorStatus === 'confirmed' ? 'var(--sage-100)' : 'var(--kim-50)',
             borderRadius: 999, padding: '3px 10px',
@@ -299,7 +299,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
             disabled={diff === 0}
             style={{
               display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--son-600)',
+              fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-600)',
               background: 'none', border: 'none', cursor: diff === 0 ? 'default' : 'pointer',
               padding: '4px 0', opacity: diff === 0 ? 0.35 : 1,
             }}
@@ -341,7 +341,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                           {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
                         </div>
                         {price > 0 && allocated > 0 && (
-                          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
+                          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
                             {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
                           </div>
                         )}
@@ -541,7 +541,7 @@ export function ScreenBudget({
               <div className="ds-label">Đã phân bổ</div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.05, marginTop: 3, fontVariantNumeric: 'lining-nums tabular-nums' }}>
                 {total}<span style={{ fontSize: 16, fontWeight: 500 }}>tr</span>
-                <span style={{ fontSize: 15, color: 'var(--ink-400)', fontWeight: 500 }}> / {target}<span style={{ fontSize: 12 }}>tr</span></span>
+                <span style={{ fontSize: 16, color: 'var(--ink-400)', fontWeight: 500 }}> / {target}<span style={{ fontSize: 12 }}>tr</span></span>
               </div>
               <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, marginTop: 4,
                 color: over > 0 ? 'var(--danger-500)' : over < 0 ? 'var(--info-500)' : 'var(--sage-500)' }}>
@@ -572,7 +572,7 @@ export function ScreenBudget({
         <div className="ds-label" style={{ margin: '0 0 2px' }}>Hạng mục</div>
         {bud.cats.length === 0 ? (
           <div style={{ padding: '22px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
-            fontFamily: 'var(--font-body)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-500)' }}>
+            fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.5, color: 'var(--ink-500)' }}>
             Chưa có hạng mục ngân sách. Thêm khoản đầu tiên để bắt đầu phân bổ.
           </div>
         ) : (
@@ -617,18 +617,18 @@ export function ScreenBudget({
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 15, fontWeight: 400, color: 'var(--ink-900)', minWidth: 0, textWrap: 'pretty' }}>{cat.name}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4, fontWeight: 400, color: 'var(--ink-900)', minWidth: 0, textWrap: 'pretty' }}>{cat.name}</span>
                       <span style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
                         {allocated}<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-500)' }}>tr</span>
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginTop: 2 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, fontWeight: 400, lineHeight: 1.35, textWrap: 'pretty', color: subColor, minWidth: 0 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, fontWeight: 400, lineHeight: 1.4, textWrap: 'pretty', color: subColor, minWidth: 0 }}>
                         {subText}
                       </span>
                       {vendorConfirmed && vendorPrice > 0 && (
-                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500, color: over ? 'var(--danger-500)' : 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                          {vendorPrice}<span style={{ fontSize: 11 }}>tr</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500, color: over ? 'var(--danger-500)' : 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                          {vendorPrice}<span style={{ fontSize: 12 }}>tr</span>
                         </span>
                       )}
                     </div>

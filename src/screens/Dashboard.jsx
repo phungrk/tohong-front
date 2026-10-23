@@ -57,10 +57,10 @@ function DBCountdown({ data, onDateSave }) {
         <div>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--son-600)',
             lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{data.daysLeft ?? '—'}</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--son-400)', marginTop: 3 }}>ngày nữa</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--son-400)', marginTop: 3 }}>ngày nữa</div>
         </div>
         <div style={{ textAlign: 'right', paddingTop: 4 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>
             {data.bride} &amp; {data.groom}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 5, position: 'relative' }}>
@@ -82,7 +82,7 @@ function DBCountdown({ data, onDateSave }) {
         <div style={{ height: 5, borderRadius: 999, background: 'var(--son-100)', overflow: 'hidden', marginBottom: 5 }}>
           <div style={{ height: '100%', width: pct + '%', background: 'var(--son-400)', borderRadius: 999, transition: 'width .4s ease' }} />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--son-400)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--son-400)' }}>
           <span>Bắt đầu lên kế hoạch</span>
           <span>{pct}% hành trình 💕</span>
         </div>
@@ -115,7 +115,7 @@ function DBDots({ dots }) {
   return (
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', margin: '7px 0 2px' }}>
       {dots.map((d, i) => (
-        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: d.color }}>
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: d.color }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: d.color, display: 'inline-block' }} />{d.n}
         </span>
       ))}
@@ -132,11 +132,11 @@ function DBTile({ icon, color, label, main, sub, children, onClick }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={icon} size={13} color={color} />
         </span>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-500)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-500)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       </div>
       <div style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{main}</div>
       {children}
-      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)', marginTop: 3 }}>{sub}</div>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 3 }}>{sub}</div>
     </button>
   );
 }
@@ -153,10 +153,10 @@ function DBUpcoming({ item, onClick }) {
         <Icon name={item.catIcon} size={14} color={item.catColor} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.task}</div>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 1 }}>{item.cat}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.task}</div>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>{item.cat}</div>
       </div>
-      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 700, color: urgColor, flexShrink: 0 }}>còn {item.weeks} tuần</span>
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: urgColor, flexShrink: 0 }}>còn {item.weeks} tuần</span>
       <Icon name="chevron-right" size={14} color="var(--ink-300)" />
     </button>
   );
@@ -252,7 +252,7 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1 }}>
           <ThreadMark size={22} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)' }}>Tơ Hồng</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>Tơ Hồng</span>
         </div>
         <AIButton onOpen={onOpenAI} />
       </div>

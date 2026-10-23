@@ -47,7 +47,7 @@ export function VFlowOverview({ onOpen }) {
           Cách hoạt động
         </span>
         <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 2,
-          fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--son-500)' }}>
+          fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-500)' }}>
           Chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
         </span>
       </div>
@@ -60,7 +60,7 @@ export function VFlowOverview({ onOpen }) {
                 background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name={s.icon} size={15} color="#fff" sw={2} />
               </span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600,
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
                 color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
                 {s.label}
               </span>
@@ -81,7 +81,7 @@ function FlowChip({ chip }) {
   if (!chip) return null;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4,
-      fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 700,
+      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
       color: chip.color, background: chip.bg,
       border: `1px solid ${chip.border}`, borderRadius: 999, padding: '3px 8px' }}>
       {chip.dot && <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', display: 'inline-block' }} />}
@@ -121,7 +121,7 @@ export function VendorFlowSheet({ open, onClose }) {
               <Icon name="sparkles" size={17} color="var(--son-500)" sw={1.8} />
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.15 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.15 }}>
                 Cách hoạt động
               </div>
               <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
@@ -136,7 +136,7 @@ export function VendorFlowSheet({ open, onClose }) {
         </div>
 
         {/* steps — cuộn được */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px 6px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 6px' }}>
           {FLOW_STEPS.map((s, i) => (
             <div key={s.n} style={{ display: 'flex', gap: 12, marginBottom: i < FLOW_STEPS.length - 1 ? 4 : 0 }}>
               {/* rail: dot + thread nối */}
@@ -155,7 +155,7 @@ export function VendorFlowSheet({ open, onClose }) {
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--ink-900)' }}>
                   {s.title}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--ink-500)', lineHeight: 1.5, marginTop: 3 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-500)', lineHeight: 1.5, marginTop: 3 }}>
                   {s.desc}{s.chip && ' '}
                   {s.chip && <FlowChip chip={s.chip} />}
                   {s.chip && '.'}

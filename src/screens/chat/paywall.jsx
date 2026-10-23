@@ -35,20 +35,20 @@ function PlanRow({ p, selected, onSelect }) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink-900)' }}>{p.months} tháng</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--ink-900)' }}>{p.months} tháng</span>
           {p.tag && (
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.03em',
               color: p.rec ? 'var(--son-700)' : 'var(--kim-700)',
               background: p.rec ? 'var(--son-100)' : 'var(--kim-50)',
               border: `1px solid ${p.rec ? 'var(--son-200)' : 'var(--kim-200)'}`,
               borderRadius: 999, padding: '2px 8px' }}>{p.tag}</span>
           )}
         </div>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 2 }}>{p.frame}</div>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{p.frame}</div>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 16, fontWeight: 700, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>{fmtVnd(p.price)}</div>
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 1 }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
           ~{fmtVnd(p.perMo)}/th{p.save ? ` · ${p.save}` : ''}
         </div>
       </div>
@@ -74,7 +74,7 @@ export function ScreenPaywall({ onConfirm, onTrial, trialUsed, unlocking = false
           </div>
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 600, color: 'var(--ink-900)', textAlign: 'center', lineHeight: 1.15 }}>Mở khóa Tơ Hồng AI</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--ink-500)', textAlign: 'center', marginTop: 6, lineHeight: 1.5, maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-500)', textAlign: 'center', marginTop: 6, lineHeight: 1.5, maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
           Mọi tính năng khác <b style={{ color: 'var(--sage-500)' }}>miễn phí trọn đời</b>. Chỉ trợ lý trò chuyện AI cần mở khóa — trả một lần theo thời gian, không tự động gia hạn.
         </div>
       </div>
@@ -99,7 +99,7 @@ export function ScreenPaywall({ onConfirm, onTrial, trialUsed, unlocking = false
         <div style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '11px 13px', background: 'var(--kim-50)',
           border: '1px solid var(--kim-200)', borderRadius: 'var(--r-md)', marginBottom: 14 }}>
           <Icon name="calendar-heart" size={18} color="var(--kim-600)" />
-          <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-900)', lineHeight: 1.45 }}>
+          <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.45 }}>
             Đám cưới còn <b>{DAYS_LEFT} ngày</b> — gói <b>3 tháng</b> là đủ để Tơ Hồng đồng hành tới tận ngày cưới.
           </span>
         </div>
@@ -124,7 +124,7 @@ export function ScreenPaywall({ onConfirm, onTrial, trialUsed, unlocking = false
             </span>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 700, color: 'var(--sage-500)' }}>Thử thêm 3 lượt · miễn phí</div>
-              <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginTop: 1 }}>1 lần duy nhất · không cần thanh toán</div>
+              <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>1 lần duy nhất · không cần thanh toán</div>
             </div>
             <Icon name="chevron-right" size={15} color="var(--sage-500)" />
           </div>
@@ -136,14 +136,14 @@ export function ScreenPaywall({ onConfirm, onTrial, trialUsed, unlocking = false
           </div>
         )}
         <button disabled={unlocking} onClick={() => onConfirm(plan)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-          fontFamily: 'var(--font-ui)', fontSize: 15.5, fontWeight: 700, color: 'var(--fg-on-primary)', background: 'var(--son-500)',
+          fontFamily: 'var(--font-ui)', fontSize: 16, fontWeight: 700, color: 'var(--fg-on-primary)', background: 'var(--son-500)',
           border: 'none', borderRadius: 'var(--r-pill)', padding: '15px 0', cursor: unlocking ? 'wait' : 'pointer',
           opacity: unlocking ? 0.7 : 1, boxShadow: 'var(--shadow-rose)' }}>
           {unlocking ? 'Đang mở khóa…' : `Mở khóa ${plan.months} tháng · ${fmtVnd(plan.price)}`}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
           <Icon name="shield-check" size={13} color="var(--sage-500)" />
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>Thanh toán an toàn · không tự gia hạn</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>Thanh toán an toàn · không tự gia hạn</span>
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@ export function ScreenUnlocked({ plan, onStart }) {
         </div>
 
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.2 }}>Đã mở khóa! 💕</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink-500)', lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-500)', lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>
           Tơ Hồng sẽ đồng hành cùng bạn trong <b style={{ color: 'var(--son-600)' }}>{p.months} tháng</b> tới.
         </div>
 
@@ -182,7 +182,7 @@ export function ScreenUnlocked({ plan, onStart }) {
         <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginTop: 26, textAlign: 'left', background: 'var(--son-50)',
           border: '1px solid var(--son-100)', borderRadius: 'var(--r-lg)', padding: '12px 14px', maxWidth: 320 }}>
           <Avatar size={30} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--ink-900)', lineHeight: 1.5 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-900)', lineHeight: 1.5 }}>
             Chào bạn! Mình đã xem qua kế hoạch — bắt đầu từ <b>chốt menu tuần này</b> nhé?
           </span>
         </div>
@@ -190,7 +190,7 @@ export function ScreenUnlocked({ plan, onStart }) {
 
       <div style={{ flexShrink: 0, padding: '12px 16px 24px' }}>
         <button onClick={onStart} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          fontFamily: 'var(--font-ui)', fontSize: 15.5, fontWeight: 700, color: 'var(--fg-on-primary)', background: 'var(--son-500)',
+          fontFamily: 'var(--font-ui)', fontSize: 16, fontWeight: 700, color: 'var(--fg-on-primary)', background: 'var(--son-500)',
           border: 'none', borderRadius: 'var(--r-pill)', padding: '15px 0', cursor: 'pointer', boxShadow: 'var(--shadow-rose)' }}>
           <Icon name="message-circle" size={18} color="#fff" sw={2.2} /> Bắt đầu trò chuyện
         </button>

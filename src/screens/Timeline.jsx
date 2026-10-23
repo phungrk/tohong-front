@@ -19,7 +19,7 @@ const TAG_S = {
 function TlTag({ tag }) {
   const s = TAG_S[tag] || TAG_S['Di chuyển'];
   return (
-    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
       color: s.color, background: s.bg, border: `1px solid ${s.border}`, borderRadius: 999, padding: '2px 8px' }}>{tag}</span>
   );
 }
@@ -50,7 +50,7 @@ function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
     onClose();
   };
 
-  const lbl = { fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+  const lbl = { fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em',
     textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: 7 };
 
   return (
@@ -75,10 +75,10 @@ function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
           onChange={(e) => { setName(e.target.value); if (err) setErr(false); }}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder="VD: Cắt bánh cưới"
-          style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink-900)',
+          style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-900)',
             background: 'var(--card)', borderRadius: 'var(--r-md)', padding: '11px 14px', outline: 'none', boxSizing: 'border-box',
             border: `1px solid ${err ? 'var(--danger-500)' : 'var(--line-200)'}` }} />
-        {err && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--danger-500)', marginTop: 5 }}>Nhập tên mốc trước nhé</div>}
+        {err && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--danger-500)', marginTop: 5 }}>Nhập tên mốc trước nhé</div>}
         {!name && !err && (
           <button onClick={() => { setName('Cắt bánh & rót rượu'); setTag('Tiệc'); }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, cursor: 'pointer',
@@ -113,7 +113,7 @@ function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
             );
           })}
         </div>
-        <button onClick={submit} style={{ width: '100%', marginTop: 22, fontFamily: 'var(--font-ui)', fontSize: 14.5, fontWeight: 700,
+        <button onClick={submit} style={{ width: '100%', marginTop: 22, fontFamily: 'var(--font-ui)', fontSize: 16, fontWeight: 700,
           color: 'var(--fg-on-primary)', background: 'var(--son-500)', border: 'none', borderRadius: 'var(--r-pill)',
           padding: '13px 0', cursor: 'pointer', boxShadow: 'var(--shadow-rose)' }}>Thêm vào timeline</button>
       </div>
@@ -135,7 +135,7 @@ function TlAddTaskSheet({ open, onClose, onAdd, phases }) {
     onClose();
   };
 
-  const lbl = { fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+  const lbl = { fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em',
     textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: 7 };
 
   return (
@@ -160,10 +160,10 @@ function TlAddTaskSheet({ open, onClose, onAdd, phases }) {
           onChange={(e) => { setText(e.target.value); if (err) setErr(false); }}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder="VD: Chốt số bàn với nhà hàng"
-          style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink-900)',
+          style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-900)',
             background: 'var(--card)', borderRadius: 'var(--r-md)', padding: '11px 14px', outline: 'none', boxSizing: 'border-box',
             border: `1px solid ${err ? 'var(--danger-500)' : 'var(--line-200)'}` }} />
-        {err && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--danger-500)', marginTop: 5 }}>Nhập tên việc trước nhé</div>}
+        {err && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--danger-500)', marginTop: 5 }}>Nhập tên việc trước nhé</div>}
         {!text && !err && (
           <button onClick={() => setText('Chốt số bàn với nhà hàng')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, cursor: 'pointer',
@@ -191,14 +191,14 @@ function TlAddTaskSheet({ open, onClose, onAdd, phases }) {
                 <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: on ? 700 : 500,
                   color: on ? 'var(--son-700)' : 'var(--ink-700)' }}>{p.label}</span>
                 {isCurrent && (
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--son-600)',
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)',
                     background: 'var(--son-50)', border: '1px solid var(--son-200)', borderRadius: 999, padding: '2px 8px' }}>Đang làm</span>
                 )}
               </button>
             );
           })}
         </div>
-        <button onClick={submit} style={{ width: '100%', marginTop: 22, fontFamily: 'var(--font-ui)', fontSize: 14.5, fontWeight: 700,
+        <button onClick={submit} style={{ width: '100%', marginTop: 22, fontFamily: 'var(--font-ui)', fontSize: 16, fontWeight: 700,
           color: 'var(--fg-on-primary)', background: 'var(--son-500)', border: 'none', borderRadius: 'var(--r-pill)',
           padding: '13px 0', cursor: 'pointer', boxShadow: 'var(--shadow-rose)' }}>Thêm vào kế hoạch</button>
       </div>
@@ -215,7 +215,7 @@ function TlPrepTab({ phases, onToggle, onAdd }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 13px', background: 'var(--son-50)',
           border: '1px solid var(--son-200)', borderRadius: 'var(--r-md)', margin: '0 0 16px' }}>
           <Avatar size={26} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--son-700)', flex: 1, lineHeight: 1.45 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--son-700)', flex: 1, lineHeight: 1.45 }}>
             <b>{pendingCount} việc</b> trong giai đoạn hiện tại.
           </span>
         </div>
@@ -238,9 +238,9 @@ function TlPrepTab({ phases, onToggle, onAdd }) {
             <div style={{ flex: 1, paddingLeft: 12, paddingBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: s.text, letterSpacing: '0.02em' }}>{ph.label}</span>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>{doneN}/{ph.tasks.length}</span>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>{doneN}/{ph.tasks.length}</span>
                 {isCurrent && (
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--son-600)', background: 'var(--son-50)', borderRadius: 999, padding: '2px 8px' }}>Đang làm</span>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', background: 'var(--son-50)', borderRadius: 999, padding: '2px 8px' }}>Đang làm</span>
                 )}
               </div>
               <div style={{ background: isCurrent ? 'var(--son-50)' : 'transparent', border: isCurrent ? '1px solid var(--son-100)' : 'none',
@@ -254,7 +254,7 @@ function TlPrepTab({ phases, onToggle, onAdd }) {
                       border: `2px solid ${t.done ? 'var(--sage-500)' : 'var(--line-300)'}` }}>
                       {t.done && <Icon name="check" size={11} color="#fff" sw={3} />}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13.5,
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4,
                       color: t.done ? 'var(--ink-400)' : 'var(--ink-900)',
                       textDecoration: t.done ? 'line-through' : 'none' }}>{t.text}</span>
                   </button>
@@ -285,11 +285,11 @@ function TlAiSuggestions({ suggestions, onAccept, onDismiss }) {
             <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
               <Icon name="sparkles" size={14} color="var(--kim-600)" />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--kim-700)', marginBottom: 3 }}>Tơ Hồng AI gợi ý</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--kim-700)', marginBottom: 3 }}>Tơ Hồng AI gợi ý</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>
                   {suggestion.time} · {suggestion.label}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--ink-900)', lineHeight: 1.45 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.45 }}>
                   {suggestion.reason}
                 </div>
               </div>
@@ -315,7 +315,7 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
         <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
           <div style={{ height: '100%', width: (rundown.length ? (doneN / rundown.length) * 100 : 0) + '%', background: 'var(--son-500)', transition: 'width .25s ease' }} />
         </div>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{doneN}/{rundown.length} mốc</span>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{doneN}/{rundown.length} mốc</span>
       </div>
       {rundown.map((r, i) => (
         <div key={r.id}>
@@ -335,7 +335,7 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
               {i < rundown.length - 1 && <div style={{ flex: 1, width: 2, minHeight: 20, background: r.done ? 'var(--son-200)' : 'var(--line-200)' }} />}
             </div>
             <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 14 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, marginBottom: 5,
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4, fontWeight: 600, marginBottom: 5,
                 color: r.done ? 'var(--ink-400)' : 'var(--ink-900)', textDecoration: r.done ? 'line-through' : 'none' }}>{r.name}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TlTag tag={r.tag} />
@@ -353,7 +353,7 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
       ))}
       {rundown.length === 0 && (
         <div style={{ padding: '24px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
-          fontFamily: 'var(--font-body)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-500)' }}>
+          fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.5, color: 'var(--ink-500)' }}>
           Chưa có mốc ngày cưới. Thêm mốc đầu tiên để Tơ Hồng có dữ liệu phân tích.
         </div>
       )}
@@ -495,7 +495,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
           </button>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Timeline</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginTop: 1 }}>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>
               {donePrep}/{allTasks.length} việc xong{wedding.daysLeft != null ? ` · còn ${wedding.daysLeft} ngày` : ''}
             </div>
           </div>

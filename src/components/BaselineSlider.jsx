@@ -130,7 +130,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           <div style={{
             position: 'absolute', top: 52, left: rp(base),
             transform: 'translateX(-50%)', whiteSpace: 'nowrap',
-            fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-500)',
+            fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)',
           }}>
             Ban đầu <strong style={{ color: 'var(--ink-700)' }}>{base}tr</strong>
           </div>
@@ -145,7 +145,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
         }}>
           <div style={{
             background: tooltipBg, color: '#fff',
-            fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+            fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
             padding: '2px 8px', borderRadius: 999,
             fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
           }}>
@@ -170,7 +170,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           pointerEvents: 'none', zIndex: 19,
         }}>
           <span style={{
-            fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+            fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
             color: tooltipBg, fontVariantNumeric: 'tabular-nums',
           }}>
             {pct}%

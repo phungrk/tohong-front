@@ -57,7 +57,7 @@ function BottomTabBar({ active, onSelect }) {
           <button key={t.id} onClick={() => onSelect(t.idx)} style={{ flex: 1, display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 2, padding: '9px 2px 5px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
             <Icon name={t.icon} size={23} color={on ? 'var(--son-500)' : 'var(--ink-400)'} sw={on ? 2.2 : 1.7} />
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: on ? 700 : 500,
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: on ? 700 : 500,
               letterSpacing: '0.01em', color: on ? 'var(--son-600)' : 'var(--ink-400)' }}>{t.label}</span>
             <span style={{ width: on ? 16 : 0, height: 2.5, borderRadius: 999,
               background: 'var(--son-500)', transition: 'width .18s ease' }} />

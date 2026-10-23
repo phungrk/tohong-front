@@ -78,7 +78,7 @@ function SaveFlash({ visible, name }) {
 function MatchBadge({ pct }) {
   const color = pct >= 90 ? 'var(--son-500)' : pct >= 80 ? 'var(--kim-500,#c69b2a)' : 'var(--ink-400)';
   return (
-    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
       color, background: 'var(--card)', border: `1.5px solid ${color}`,
       borderRadius: 999, padding: '2px 8px', flexShrink: 0 }}>
       {pct}%
@@ -132,7 +132,7 @@ export function VPickerChatCard() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{getCatBudget(cat.id)}tr</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{getCatBudget(cat.id)}tr</div>
               </span>
               {status === 'confirmed' && (
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', flexShrink: 0 }} />
@@ -177,7 +177,7 @@ function Typewriter({ text, speed = 12, onDone, borderBottom, style: styleProp }
 
   return (
     <div onClick={typing ? finish : undefined}
-      style={{ padding: '11px 14px 12px', fontFamily: 'var(--font-body)', fontSize: 12.5,
+      style={{ padding: '11px 14px 12px', fontFamily: 'var(--font-body)', fontSize: 14,
         lineHeight: 1.6, color: 'var(--ink-700)', cursor: typing ? 'pointer' : 'default',
         borderBottom: borderBottom ? '1px solid var(--line-100)' : 'none',
         ...styleProp }}>
@@ -294,7 +294,7 @@ export function VMatchChatCard({ catId }) {
                     <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
                       borderRadius: 'var(--r-sm)', background: v.grad, position: 'relative', overflow: 'hidden' }}>
                       <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
-                        color: '#fff', fontSize: 10.5, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
+                        color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
                         fontFamily: 'var(--font-ui)' }}>#{rank}</span>
                       <button type="button" onClick={(e) => onSave(e, v)}
                         style={{ position: 'absolute', top: 5, right: 5, width: 28, height: 28, borderRadius: '50%',
@@ -306,7 +306,7 @@ export function VMatchChatCard({ catId }) {
                       </button>
                       {rank === 1 && (
                         <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--son-500)',
-                          color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textAlign: 'center',
+                          color: '#fff', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textAlign: 'center',
                           padding: '3px 0', fontFamily: 'var(--font-ui)' }}>
                           PHÙ HỢP NHẤT
                         </span>
@@ -318,9 +318,9 @@ export function VMatchChatCard({ catId }) {
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                       {/* match pill + nhãn định tính */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: '#fff',
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: '#fff',
                           background: mc, borderRadius: 6, padding: '2px 6px' }}>{v.match}%</span>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: mc }}>
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: mc }}>
                           {vMatchLabel(v.match)}
                         </span>
                       </div>
@@ -328,13 +328,13 @@ export function VMatchChatCard({ catId }) {
                       {v.rating > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
                           <Icon name="star" size={12} color="var(--kim-500,#c69b2a)" fill="var(--kim-500,#c69b2a)" sw={1.5} />
-                          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-700)' }}>{v.rating}</span>
-                          {v.rv > 0 && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>({v.rv})</span>}
+                          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-700)' }}>{v.rating}</span>
+                          {v.rv > 0 && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>({v.rv})</span>}
                         </div>
                       )}
                       {/* vị trí · spec */}
                       {info && (
-                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginTop: 4,
+                        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 4,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info}</div>
                       )}
                       {/* giá trọn gói — đẩy xuống đáy */}
@@ -350,7 +350,7 @@ export function VMatchChatCard({ catId }) {
                       <Icon name="sparkles" size={13} color="var(--son-400)" sw={1.8} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                         {v.reasons.slice(0, 2).map((r) => (
-                          <span key={r} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
+                          <span key={r} style={{ fontSize: 12, fontWeight: 600, color: 'var(--sage-600,#4d7a59)',
                             background: 'var(--sage-50,#edf7ee)', border: '1px solid var(--sage-200,#b8d9be)',
                             borderRadius: 999, padding: '2px 7px' }}>{r}</span>
                         ))}
@@ -361,7 +361,7 @@ export function VMatchChatCard({ catId }) {
               );
             })}
             <div style={{ textAlign: 'center', padding: '8px 14px 2px', fontFamily: 'var(--font-ui)',
-              fontSize: 10.5, color: 'var(--ink-300)' }}>
+              fontSize: 12, color: 'var(--ink-300)' }}>
               Chạm card để xem chi tiết
             </div>
           </div>
@@ -424,15 +424,15 @@ function VReviewsBlock({ vendor }) {
           <div key={i} style={{ padding: '9px 11px', background: 'var(--sand)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--dao-100)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+                alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
                 color: 'var(--son-600)', flexShrink: 0 }}>{r.name.charAt(0)}</span>
-              <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-900)',
+              <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-900)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600, color: 'var(--kim-700)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--kim-700)' }}>
                 <Icon name="star" size={10} color="var(--kim-500,#c69b2a)" sw={2} /> {r.rating}
               </span>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--ink-700)', lineHeight: 1.5 }}>{r.text}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-700)', lineHeight: 1.5 }}>{r.text}</div>
           </div>
         ))}
       </div>
@@ -440,7 +440,7 @@ function VReviewsBlock({ vendor }) {
         <button type="button" onClick={() => setOpen((o) => !o)} style={{ width: '100%', marginTop: 8, background: 'none',
           border: '1px solid var(--line-200)', borderRadius: 999, padding: '7px 0', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-          fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-700)' }}>
+          fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-700)' }}>
           {open ? 'Thu gọn' : `Xem ${reviews.length} đánh giá nổi bật`}
           <Icon name={open ? 'chevron-up' : 'chevron-down'} size={12} color="var(--ink-500)" />
         </button>
@@ -530,34 +530,34 @@ export function VDetailChatCard({ catId, vendor }) {
         <div style={{ padding: '12px 15px', borderBottom: '1px solid var(--line-100)', display: 'flex',
           alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.2 }}>{vendor.name}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.2 }}>{vendor.name}</div>
             {vendor.rating > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
                 <Icon name="star" size={12} color="var(--kim-500,#c69b2a)" sw={2} />
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 700, color: 'var(--kim-700)' }}>{vendor.rating}</span>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>({vendor.rv})</span>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--kim-700)' }}>{vendor.rating}</span>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>({vendor.rv})</span>
               </div>
             )}
             {(vendor.location || vendor.spec) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                 <Icon name="map-pin" size={11} color="var(--ink-400)" />
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)' }}>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
                   {[vendor.location, vendor.spec].filter(Boolean).join(' · ')}
                 </span>
               </div>
             )}
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 19, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 18, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {vendor.priceTotal}tr{vendor.priceMax && vendor.priceMax !== vendor.priceTotal ? `–${vendor.priceMax}tr` : ''}
             </div>
-            {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
+            {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
           </div>
         </div>
 
         {/* 3. Phân tích AI — bars + lý do, gộp trong khối kim-50 */}
         <div style={{ padding: '11px 14px', background: 'var(--kim-50)', borderBottom: '1px solid var(--kim-100)' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
             letterSpacing: '0.07em', marginBottom: 9, fontFamily: 'var(--font-ui)' }}>
             Phân tích AI · {vendor.match}% phù hợp
           </div>
@@ -566,7 +566,7 @@ export function VDetailChatCard({ catId, vendor }) {
             ['Lịch trống', vendor.breakdown.avail, 'var(--son-500)']].map(([label, pct, color]) => (
             <div key={label} style={{ marginBottom: 7 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3,
-                fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-600)' }}>
+                fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-600)' }}>
                 <span>{label}</span>
                 <span style={{ color }}>{pct}%</span>
               </div>
@@ -581,9 +581,9 @@ export function VDetailChatCard({ catId, vendor }) {
               border: '1px solid var(--kim-100)', borderRadius: 'var(--r-md)' }}>
               <Avatar size={20} />
               {typing ? (
-                <Typewriter text={why} speed={14} onDone={() => setTyping(false)} style={{ padding: 0, flex: 1, fontSize: 12.5 }} />
+                <Typewriter text={why} speed={14} onDone={() => setTyping(false)} style={{ padding: 0, flex: 1, fontSize: 14 }} />
               ) : (
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-900)', lineHeight: 1.45, flex: 1,
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.45, flex: 1,
                   opacity: whyLoading ? 0.6 : 1, transition: 'opacity .2s ease' }}>
                   {why}{whyLoading && <span className="vm-caret">▌</span>}
                 </span>
@@ -595,7 +595,7 @@ export function VDetailChatCard({ catId, vendor }) {
         {/* 4. Giới thiệu — mô tả vendor thật, thu gọn 3 dòng + mở rộng inline */}
         {vendor.description && (
           <div style={{ padding: '11px 14px 4px' }}>
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
               letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Giới thiệu</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-700)', lineHeight: 1.55,
               ...(descOpen ? {} : { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }) }}>
@@ -603,7 +603,7 @@ export function VDetailChatCard({ catId, vendor }) {
             </div>
             <button type="button" onClick={() => setDescOpen((o) => !o)} style={{ marginTop: 5, display: 'flex',
               alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              fontFamily: 'var(--font-ui)', fontSize: 11.5, fontWeight: 600, color: 'var(--son-600)' }}>
+              fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-600)' }}>
               {descOpen ? 'Thu gọn' : 'Xem thêm'}
               <Icon name={descOpen ? 'chevron-up' : 'chevron-down'} size={12} color="var(--son-500)" />
             </button>
@@ -613,7 +613,7 @@ export function VDetailChatCard({ catId, vendor }) {
         {/* 5. Dịch vụ bao gồm */}
         {vendor.includes?.length > 0 && (
           <div style={{ padding: '10px 14px 12px' }}>
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
               letterSpacing: '0.07em', marginBottom: 7, fontFamily: 'var(--font-ui)' }}>Đặc điểm</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 10px' }}>
               {vendor.includes.map((item) => (
@@ -700,9 +700,9 @@ export function VPickerMultiChatCard({ catId, anchor }) {
           border: '1px solid var(--son-200)', borderRadius: 'var(--r-md)' }}>
           <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: anchor.grad, flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)',
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{anchor.name}</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--son-600)', marginTop: 2, fontWeight: 600 }}>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--son-600)', marginTop: 2, fontWeight: 600 }}>
               Đang xem — luôn trong bảng so sánh
             </div>
           </div>
@@ -728,11 +728,11 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 opacity: disabled && !on ? 0.45 : 1, transition: 'all .18s ease' }}>
               <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: v.grad, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: 'var(--ink-900)',
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{v.priceTotal}tr</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>· {v.spec}</span>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{v.priceTotal}tr</span>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
                 </div>
               </div>
               <MatchBadge pct={v.match} />
@@ -746,7 +746,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px 12px' }}>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, flexShrink: 0,
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, flexShrink: 0,
           color: full ? 'var(--son-600)' : 'var(--ink-400)' }}>
           {sel.length + 1}/{VCMP_MAX}{full ? ' — tối đa' : ''}
         </span>
@@ -812,7 +812,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
             <div style={{ display: 'flex', borderBottom: '1px solid var(--line-100)' }}>
               <div style={{ width: LABEL_W, flexShrink: 0, position: 'sticky', left: 0, background: 'var(--card)', zIndex: 2,
                 borderRight: '1px solid var(--line-100)', display: 'flex', alignItems: 'flex-end', padding: '0 8px 8px' }}>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 8.5, fontWeight: 700, color: 'var(--ink-300)',
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-300)',
                   textTransform: 'uppercase', letterSpacing: '0.04em' }}>Tiêu chí</span>
               </div>
               {vendors.map((v, i) => (
@@ -820,7 +820,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                   borderRight: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none',
                   background: i === 0 ? 'var(--son-50)' : 'transparent' }}>
                   <div style={{ height: 30, borderRadius: 'var(--r-sm)', background: v.grad, marginBottom: 5 }} />
-                  <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
+                  <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
                   <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>
                 </div>
@@ -831,13 +831,13 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
               <div key={ri} style={{ display: 'flex', borderBottom: '1px solid var(--line-100)' }}>
                 <div style={{ width: LABEL_W, flexShrink: 0, position: 'sticky', left: 0, background: 'var(--card)', zIndex: 2,
                   borderRight: '1px solid var(--line-100)', display: 'flex', alignItems: 'center', padding: '0 8px' }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 8.5, fontWeight: 700, color: 'var(--ink-300)',
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-300)',
                     textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.3 }}>{r.label}</span>
                 </div>
                 {vendors.map((v, i) => (
                   <div key={v.id} style={{ width: COL_W, flexShrink: 0, padding: r.wrap ? '7px 5px' : '8px 5px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, textAlign: 'center',
-                    fontFamily: 'var(--font-ui)', fontSize: r.wrap ? 9.5 : 11, fontWeight: r.win[i] ? 700 : 500, lineHeight: 1.3,
+                    fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: r.win[i] ? 700 : 500, lineHeight: 1.3,
                     color: r.win[i] ? 'var(--sage-500)' : r.wrap ? 'var(--ink-700)' : 'var(--ink-400)',
                     background: r.win[i] ? 'var(--sage-50)' : i === 0 ? 'rgba(158,42,60,0.035)' : 'transparent',
                     borderRight: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
@@ -850,7 +850,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
             <div style={{ display: 'flex' }}>
               <div style={{ width: LABEL_W, flexShrink: 0, position: 'sticky', left: 0, background: 'var(--card)', zIndex: 2,
                 borderRight: '1px solid var(--line-100)', display: 'flex', alignItems: 'center', padding: '0 8px' }}>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 8.5, fontWeight: 700, color: 'var(--ink-300)',
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-300)',
                   textTransform: 'uppercase', letterSpacing: '0.04em' }}>Chọn</span>
               </div>
               {vendors.map((v, i) => {
@@ -860,7 +860,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                     borderRight: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
                     <button type="button" onClick={() => onSave(v)} disabled={sv} style={{ display: 'flex', alignItems: 'center',
                       justifyContent: 'center', gap: 3, width: '100%', padding: '6px 2px', borderRadius: 'var(--r-pill)',
-                      fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+                      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
                       color: sv ? 'var(--sage-600)' : '#fff', background: sv ? 'var(--sage-50)' : 'var(--son-500)',
                       border: sv ? '1px solid var(--sage-500)' : 'none', cursor: sv ? 'default' : 'pointer',
                       boxShadow: sv ? 'none' : 'var(--shadow-rose)' }}>
@@ -877,7 +877,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
         {vendors.length > 3 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '6px 0', borderTop: '1px solid var(--line-100)' }}>
             <Icon name="move-horizontal" size={11} color="var(--ink-300)" />
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--ink-300)' }}>Vuốt ngang để xem đủ {vendors.length} cột</span>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-300)' }}>Vuốt ngang để xem đủ {vendors.length} cột</span>
           </div>
         )}
 
@@ -885,9 +885,9 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
         <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
           <Avatar size={24} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 700, color: 'var(--kim-700)',
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--kim-700)',
               letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 3 }}>Tơ Hồng tư vấn</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--ink-900)', lineHeight: 1.5 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.5 }}>
               Xếp theo độ phù hợp: {ranked.map((v, i) => (
                 <span key={v.id}>{i > 0 && ' › '}<b>{v.name.split(' ')[0]} {v.match}%</b></span>
               ))}.{' '}

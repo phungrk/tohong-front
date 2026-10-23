@@ -28,7 +28,7 @@ export function AgentTag({ name = 'wallet', label = 'budget-agent' }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
-      fontFamily: 'var(--font-ui)', fontSize: 10.5, fontWeight: 600,
+      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
       letterSpacing: '0.06em', textTransform: 'uppercase',
       color: 'var(--kim-700)', background: 'var(--kim-50)',
       border: '1px solid var(--kim-200)', borderRadius: 'var(--r-pill)',
@@ -50,7 +50,7 @@ export function Thread({ w = '100%', mt = 0, mb = 0 }) {
   );
 }
 
-export function EditAmount({ value, onChange, autoFocus = false, size = 15, color = 'var(--ink-900)', align = 'right' }) {
+export function EditAmount({ value, onChange, autoFocus = false, size = 16, color = 'var(--ink-900)', align = 'right' }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
 
@@ -111,7 +111,7 @@ export function EditAmount({ value, onChange, autoFocus = false, size = 15, colo
   );
 }
 
-export function EditName({ value, onChange, onCommit, size = 15, weight = 600, focusNew = false }) {
+export function EditName({ value, onChange, onCommit, size = 16, weight = 600, focusNew = false }) {
   const [editing, setEditing] = useState(focusNew);
   const [draft, setDraft] = useState(value);
 

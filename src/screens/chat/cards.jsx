@@ -17,7 +17,7 @@ export function GhostBtn({ icon, onClick, children, small = false }) {
   return (
     <button type="button" onClick={onClick} style={{
       display: 'inline-flex', alignItems: 'center', gap: small ? 4 : 6,
-      fontFamily: 'var(--font-ui)', fontSize: small ? 11.5 : 12.5, fontWeight: 600,
+      fontFamily: 'var(--font-ui)', fontSize: small ? 12 : 12.5, fontWeight: 600,
       color: 'var(--ink-600)', background: 'transparent',
       border: '1.5px solid var(--line-200)', borderRadius: 'var(--r-pill)',
       padding: small ? '5px 11px' : '7px 14px', cursor: 'pointer', flexShrink: 0,
@@ -37,7 +37,7 @@ export function CardHead({ icon, kicker, title, right }) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="ds-label" style={{ color: 'var(--kim-600)' }}>{kicker}</div>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.15, marginTop: 1 }}>{title}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.15, marginTop: 1 }}>{title}</div>
       </div>
       {right}
     </div>
@@ -98,7 +98,7 @@ export function GuestCard({ coupleId }) {
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {loading ? '…' : total}
           </div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>lời mời</div>
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>lời mời</div>
         </div>} />
       {loading ? (
         <div style={{ padding: '20px 15px', textAlign: 'center', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--ink-400)' }}>
@@ -114,13 +114,13 @@ export function GuestCard({ coupleId }) {
           <div style={{ display: 'flex', padding: '12px 15px 10px', gap: 8 }}>
             {[['Sẽ tới', yes, 'var(--sage-500)'], ['Đang chờ', pend, 'var(--amber-600)'], ['Bận', total - yes - pend, 'var(--ink-400)']].map(([l, n, c]) => (
               <div key={l} style={{ flex: 1, background: 'var(--bg-1)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-sm)', padding: '8px 10px' }}>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 19, fontWeight: 600, color: c, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{n}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)', marginTop: 3 }}>{l}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 20, fontWeight: 600, color: c, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{n}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 3 }}>{l}</div>
               </div>
             ))}
           </div>
           <div style={{ padding: '0 15px 12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)', marginBottom: 5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginBottom: 5 }}>
               <span>Đã xác nhận {yes}/{total}</span><span>{capacity > 0 ? `Sức chứa ~${capacity} khách` : 'Chưa đặt sức chứa'}</span>
             </div>
             <div style={{ height: 6, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden', display: 'flex' }}>
@@ -136,14 +136,14 @@ export function GuestCard({ coupleId }) {
                   background: 'transparent', border: 'none', borderRadius: 'var(--r-sm)', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: g.side === 'trai' ? 'var(--info-50)' : 'var(--son-50)',
-                    fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700,
+                    fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700,
                     color: g.side === 'trai' ? 'var(--info-500)' : 'var(--son-500)' }}>
                     {g.side === 'trai' ? 'T' : 'G'}
                   </span>
-                  <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {g.name}{g.count ? <span style={{ color: 'var(--ink-400)' }}> · {g.count} người</span> : null}
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
                     color: s.color, background: s.bg, borderRadius: 999, padding: '3px 9px' }}>
                     <Icon name={s.icon} size={11} color={s.color} /> {s.label}
                   </span>
@@ -154,7 +154,7 @@ export function GuestCard({ coupleId }) {
         </>
       )}
       <CardAction>
-        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
           <Icon name="hand-pointer" size={12} color="var(--ink-400)" /> Chạm một khách để đổi trạng thái
         </span>
       </CardAction>
@@ -202,7 +202,7 @@ export function TimelineCard({ coupleId }) {
       <CardHead icon="calendar-clock" kicker="Timeline · ngày cưới" title={date ? `Lịch trình ${date}` : 'Lịch trình ngày cưới'}
         right={<div style={{ textAlign: 'right' }}>
           {summary?.days_left != null && <>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>còn</div>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>còn</div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--son-600)', lineHeight: 1 }}>{summary.days_left} ngày</div>
           </>}
         </div>} />
@@ -225,12 +225,12 @@ export function TimelineCard({ coupleId }) {
             <div style={{ flex: 1, paddingBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>{s.time}</span>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 9.5, fontWeight: 600,
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
                   color: s.tag === 'Lễ' ? 'var(--kim-700)' : 'var(--son-600)',
                   background: s.tag === 'Lễ' ? 'var(--kim-50)' : 'var(--son-50)',
                   borderRadius: 999, padding: '1px 7px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.tag}</span>
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5,
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4,
                 color: s.done ? 'var(--ink-400)' : 'var(--ink-900)', marginTop: 2,
                 textDecoration: s.done ? 'line-through' : 'none' }}>{s.name}</div>
             </div>
@@ -238,7 +238,7 @@ export function TimelineCard({ coupleId }) {
         ))}
       </div>
       <CardAction>
-        <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', alignSelf: 'center' }}>
+        <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', alignSelf: 'center' }}>
           {loading ? 'Đang tải timeline…' : `${doneN}/${steps.length} mốc đã xong`}
         </span>
       </CardAction>
@@ -284,7 +284,7 @@ export function ChecklistCard({ coupleId }) {
       <CardHead icon="list-checks" kicker="Checklist" title="Việc cần làm"
         right={<div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--sage-500)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{pct}%</div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>{doneN}/{items.length}</div>
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>{doneN}/{items.length}</div>
         </div>} />
       <div style={{ padding: '12px 15px 4px' }}>
         <div style={{ height: 6, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
@@ -307,7 +307,7 @@ export function ChecklistCard({ coupleId }) {
                 border: `2px solid ${x.done ? 'var(--son-500)' : 'var(--line-300)'}` }}>
                 {x.done && <Icon name="check" size={12} color="#fff" sw={3} />}
               </span>
-              <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13.5,
+              <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4,
                 color: x.done ? 'var(--ink-400)' : 'var(--ink-900)',
                 textDecoration: x.done ? 'line-through' : 'none' }}>{x.text || x.name}</span>
             </button>
@@ -315,7 +315,7 @@ export function ChecklistCard({ coupleId }) {
         </div>
       ))}
       <CardAction>
-        <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', alignSelf: 'center' }}>
+        <span style={{ flex: 1, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', alignSelf: 'center' }}>
           {loading ? 'Đang tải checklist…' : `${doneN}/${items.length} việc đã xong`}
         </span>
       </CardAction>
@@ -330,7 +330,7 @@ export function ChatBudgetMini({ budgetHook }) {
     <CardShell>
       <CardHead icon="wallet" kicker="Ngân sách" title={bud.totalTarget > 0 ? `Phân bổ ${bud.totalTarget}tr` : 'Phân bổ ngân sách'}
         right={bud.mung > 0 ? <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>tiền mừng</div>
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>tiền mừng</div>
           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--sage-500)' }}>+{bud.mung}tr</div>
         </div> : null} />
       <div style={{ padding: '12px 15px' }}>
@@ -354,7 +354,7 @@ export function ChatBudgetMini({ budgetHook }) {
         ))}
       </div>
       <CardAction>
-        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
           <Icon name="pencil" size={12} color="var(--ink-400)" /> Chạm số để chỉnh nhanh
         </span>
       </CardAction>

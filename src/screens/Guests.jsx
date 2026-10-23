@@ -33,7 +33,7 @@ function GkAvatar({ name, side }) {
 function GkBadge({ status, onClick }) {
   const s = GKST[status] || GKST.pending;
   return (
-    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
+    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
       color: s.color, background: s.bg, border: `1px solid ${s.border}`, borderRadius: 999,
       padding: '4px 9px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
       <Icon name={s.icon} size={11} color={s.color} sw={2.5} /> {s.label}
@@ -46,8 +46,8 @@ function GkRow({ g, onCycle, onRename }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: '1px solid var(--line-100)' }}>
       <GkAvatar name={g.name} side={g.side} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <EditName value={g.name} onChange={onRename} size={14} weight={600} focusNew={g.isNew} />
-        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-400)', marginTop: 2 }}>
+        <EditName value={g.name} onChange={onRename} size={16} weight={600} focusNew={g.isNew} />
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>
           {g.role}{g.count > 1 ? ` · ${g.count} người` : ''}
         </div>
       </div>
@@ -151,7 +151,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
           </button>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Khách mời</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, color: 'var(--ink-500)', marginTop: 1 }}>{sums.total} người</div>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>{sums.total} người</div>
           </div>
           <AIButton onOpen={onOpenAI} />
         </div>
@@ -161,7 +161,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
             <div style={{ width: (capacity > 0 ? (sums.yes / capacity) * 100 : 0) + '%', background: 'var(--sage-500)', transition: 'width .25s ease' }} />
             <div style={{ width: (capacity > 0 ? (sums.pending / capacity) * 100 : 0) + '%', background: '#fbbf24' }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 10.5, color: 'var(--ink-400)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
             <span><b style={{ color: 'var(--sage-500)' }}>{sums.yes}</b> xác nhận · <b style={{ color: '#b45309' }}>{sums.pending}</b> chờ</span>
             <span>{capacity > 0 ? `Sức chứa ${capacity} khách` : 'Chưa đặt sức chứa'}</span>
           </div>
@@ -173,7 +173,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
         {gs.length === 0 && (
           <div style={{ marginTop: 18, padding: '24px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
-            fontFamily: 'var(--font-body)', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-500)' }}>
+            fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.5, color: 'var(--ink-500)' }}>
             Chưa có khách mời. Thêm khách đầu tiên để bắt đầu theo dõi RSVP.
           </div>
         )}
@@ -181,10 +181,10 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
           <div key={sec.key}>
             {filter === 'all' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '14px 0 4px' }}>
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
                   color: sec.key === 'trai' ? '#1d4ed8' : 'var(--son-600)' }}>{sec.label}</span>
                 <span style={{ flex: 1, height: 1, background: 'var(--line-100)' }} />
-                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--ink-400)' }}>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
                   {sec.items.reduce((n, x) => n + x.count, 0)} người
                 </span>
               </div>
