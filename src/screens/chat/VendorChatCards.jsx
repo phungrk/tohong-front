@@ -4,6 +4,8 @@ import { Avatar } from '../../ui/atoms.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from '../VendorCtx.jsx';
 import { api } from '../../api.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
+import { ConnectAction } from './ConnectAction.jsx';
+import { PriceTag } from '../../ui/PriceTag.jsx';
 
 const VCMP_MAX = 5; // anchor + tối đa 4 vendor khác trong bảng so sánh
 
@@ -32,6 +34,8 @@ function adaptVendor(bv, catId) {
     name: bv.name,
     priceTotal: bv.priceMin ?? bv.price ?? 0,   // dùng giá "từ" làm ước lượng cho budget
     priceMax: bv.priceMax ?? null,
+    priceSource: bv.price_source || null,       // 'verified' | 'estimated' (backend overlay)
+    hidden: bv.hidden === true,
     priceUnit: spec,
     rating: bv.rating ?? 0,
     rv: bv.reviewCount ?? 0,
@@ -341,6 +345,7 @@ export function VMatchChatCard({ catId }) {
                       <div style={{ marginTop: 'auto', paddingTop: 5, fontFamily: 'var(--font-ui)', fontSize: 13.5,
                         fontWeight: 700, color: 'var(--ink-900)' }}>
                         {v.priceTotal}tr{v.priceMax && v.priceMax !== v.priceTotal ? `–${v.priceMax}tr` : ''}
+                        <PriceTag source={v.priceSource} style={{ marginLeft: 6 }} />
                       </div>
                     </div>
                   </div>
@@ -462,6 +467,7 @@ export function VDetailChatCard({ catId, vendor }) {
   const [typing, setTyping] = useState(false);
   // whyLoading: dimm template + caret trong lúc chờ AI.
   const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
+  const [hidden, setHidden] = useState(false); // admin vừa ẩn vendor này → "không còn nhận đặt"
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
@@ -473,6 +479,7 @@ export function VDetailChatCard({ catId, vendor }) {
     api.getVendorDetail(vendor.id, coupleId)
       .then((res) => {
         if (!alive) return;
+        if (res?.vendor?.hidden) setHidden(true);
         const aiText = res?.match?.whyThisVendor;
         if (aiText) {
           setWhy(aiText);
@@ -551,6 +558,7 @@ export function VDetailChatCard({ catId, vendor }) {
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 18, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {vendor.priceTotal}tr{vendor.priceMax && vendor.priceMax !== vendor.priceTotal ? `–${vendor.priceMax}tr` : ''}
             </div>
+            <PriceTag source={vendor.priceSource} style={{ marginTop: 3 }} />
             {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
           </div>
         </div>
@@ -629,7 +637,12 @@ export function VDetailChatCard({ catId, vendor }) {
         {/* 6. Đánh giá — chỉ hiện khi có dữ liệu thật */}
         <VReviewsBlock vendor={vendor} />
 
-        {/* 7. CTA */}
+        {/* 7. Nhờ Tơ Hồng kết nối (ẩn với viewer; hiện trạng thái khi đã gửi) */}
+        <div style={{ padding: '10px 13px 12px' }}>
+          <ConnectAction vendor={{ ...vendor, hidden: vendor.hidden || hidden }} catId={catId} source="chat" />
+        </div>
+
+        {/* 8. CTA */}
         <CardAction>
           <GhostBtn icon="columns-2" onClick={onCompare}>So sánh</GhostBtn>
           {isSaved ? (
@@ -732,6 +745,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{v.priceTotal}tr</span>
+                  <PriceTag source={v.priceSource} />
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
                 </div>
               </div>
@@ -789,7 +803,12 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   };
   const noWin = vendors.map(() => false);
   const rows = [
-    { label: 'Giá', val: (v) => `${v.priceTotal}tr`, win: bestMask((v) => v.priceTotal, 'min') },
+    { label: 'Giá', val: (v) => (
+        <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+          <span>{v.priceTotal}tr</span>
+          <PriceTag source={v.priceSource} style={{ fontSize: 12, fontWeight: 500 }} />
+        </span>
+      ), win: bestMask((v) => v.priceTotal, 'min') },
     { label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') },
     { label: 'Đánh giá', val: (v) => (v.rating > 0 ? `★${v.rating}` : '—'), win: bestMask((v) => v.rating || 0, 'max') },
     ...(vendors.every((v) => v.capacity) ? [{ label: 'Sức chứa', val: (v) => `${v.capacity} khách`, win: bestMask((v) => v.capacity, 'max') }] : []),

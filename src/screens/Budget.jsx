@@ -6,6 +6,9 @@ import { BaselineSlider } from '../components/BaselineSlider.jsx';
 import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
+import { PriceTag } from '../ui/PriceTag.jsx';
+import { ConnectAction } from './chat/ConnectAction.jsx';
+import { useConnect } from './connectContext.js';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
 function ItemRow({ it, onAmt, onName, onRemove }) {
@@ -66,10 +69,11 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
 }
 
 /* ── VendorDetailSheet ───────────────────────────────────────── */
-function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onUnconfirm, onRemove, onNoteChange }) {
+function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfirm, onUnconfirm, onRemove, onNoteChange }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [note, setNote] = useState(vendor?.note || '');
   const startYRef = useRef(null);
+  const { vendorInfoFor } = useConnect();
 
   useEffect(() => {
     if (vendor) setNote(vendor.note || '');
@@ -92,6 +96,10 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
   const price = vendor.priceTotal ?? vendor.price ?? 0;
   const diff = catAllocated > 0 && price > 0 ? price - catAllocated : null;
   const isConfirmed = vendor.status === 'confirmed';
+  // Trạng thái hiện tại từ backend (giá ghi đè của admin, vendor bị ẩn); vendor lưu từ trước chỉ có bản chụp giá cũ.
+  const info = vendorInfoFor(vendor.id);
+  const liveMin = info?.priceMin;
+  const priceChanged = info && liveMin != null && liveMin !== price;
 
   return (
     <>
@@ -154,6 +162,12 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
             )}
           </div>
+          {price > 0 && !priceChanged && <div style={{ marginTop: -6, marginBottom: 8 }}><PriceTag source={info?.price_source || vendor.priceSource} /></div>}
+          {priceChanged && (
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginBottom: 8, lineHeight: 1.5 }}>
+              Bạn đã lưu lúc {price}tr. Giá hiện tại trên Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr · <PriceTag source={info.price_source} />
+            </div>
+          )}
 
           {/* Rating */}
           {vendor.rating != null && (
@@ -204,6 +218,10 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
             </div>
           ) : (
             <>
+              {/* Nhờ Tơ Hồng kết nối (ẩn với viewer; hiện trạng thái khi đã gửi) */}
+              <div style={{ marginBottom: 10 }}>
+                <ConnectAction vendor={vendor} catId={catId} source="vendor_tab" />
+              </div>
               {/* Primary action */}
               <button
                 onClick={isConfirmed ? onUnconfirm : onConfirm}
@@ -232,6 +250,7 @@ function VendorDetailSheet({ vendor, catAllocated, open, onClose, onConfirm, onU
 /* ── BudgetCatDetail ─────────────────────────────────────────── */
 function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpenAI }) {
   const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const { ensureVendorInfo, vendorInfoFor } = useConnect();
   const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
   const confirmedVendorId = catVendors.confirmed?.id;
@@ -244,6 +263,12 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
     : 0;
   const vendorStatus = isVendorCat ? vendorCtx?.getCatStatus?.(cat.id) : null;
   const items = cat.items || [];
+
+  // Lấy trạng thái mới nhất (ẩn / nhãn giá) của các vendor đã lưu trong hạng mục này.
+  const shortlistedIds = catVendors.shortlisted.map((v) => v.id).join(',');
+  useEffect(() => {
+    if (shortlistedIds) ensureVendorInfo(shortlistedIds.split(','));
+  }, [shortlistedIds, ensureVendorInfo]);
 
   return (
     <div style={{ padding: '0 16px 32px' }}>
@@ -324,6 +349,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                 const isConfirmed = confirmedVendorId === vendor.id;
                 const price = vendor.priceTotal ?? vendor.price ?? 0;
                 const diff = price - allocated;
+                const info = vendorInfoFor(vendor.id);
                 return (
                   <div key={vendor.id} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center' }}>
                     {/* DETAIL_ZONE */}
@@ -339,7 +365,17 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</div>
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
                           {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
+                          {price > 0 && info?.price_source && (
+                            info.priceMin != null && info.priceMin !== price
+                              ? <> · <span style={{ color: 'var(--ink-400)' }}>giá đã cập nhật</span></>
+                              : <> · <PriceTag source={info.price_source} /></>
+                          )}
                         </div>
+                        {info?.hidden && (
+                          <div data-testid="vendor-unavailable" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--danger-500)' }}>
+                            Không còn nhận đặt
+                          </div>
+                        )}
                         {price > 0 && allocated > 0 && (
                           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
                             {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
@@ -424,6 +460,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
         return (
           <VendorDetailSheet
             vendor={vendorForSheet}
+            catId={cat.id}
             catAllocated={allocated}
             open={!!selectedVendorId}
             onClose={() => setSelectedVendorId(null)}
