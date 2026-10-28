@@ -79,3 +79,8 @@
 .adm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .adm-pre { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: var(--sand); border-radius: var(--r-sm); padding: 8px 10px; overflow: auto; max-height: 220px; margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
 .adm-pager { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--ink-500); }
+
+/* index.css có style toàn cục cho label/input: ghi đè cho ô tick */
+.adm-check { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 12px 0; font-size: 14px; font-weight: 500;
+  letter-spacing: 0; text-transform: none; color: var(--ink-900); }
+.adm-check input { width: auto; margin: 0; }

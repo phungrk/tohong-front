@@ -162,10 +162,10 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
             )}
           </div>
-          {price > 0 && <div style={{ marginTop: -6, marginBottom: 8 }}><PriceTag source={info?.price_source || vendor.priceSource} /></div>}
+          {price > 0 && !priceChanged && <div style={{ marginTop: -6, marginBottom: 8 }}><PriceTag source={info?.price_source || vendor.priceSource} /></div>}
           {priceChanged && (
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginBottom: 8 }}>
-              Giá hiện tại tại Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr (bạn đã lưu lúc {price}tr)
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginBottom: 8, lineHeight: 1.5 }}>
+              Bạn đã lưu lúc {price}tr. Giá hiện tại trên Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr · <PriceTag source={info.price_source} />
             </div>
           )}
 
@@ -365,7 +365,11 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</div>
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
                           {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
-                          {price > 0 && info?.price_source && <> · <PriceTag source={info.price_source} /></>}
+                          {price > 0 && info?.price_source && (
+                            info.priceMin != null && info.priceMin !== price
+                              ? <> · <span style={{ color: 'var(--ink-400)' }}>giá đã cập nhật</span></>
+                              : <> · <PriceTag source={info.price_source} /></>
+                          )}
                         </div>
                         {info?.hidden && (
                           <div data-testid="vendor-unavailable" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--danger-500)' }}>

@@ -160,7 +160,7 @@ export function ScreenPaywall({ onConfirm, onTrial, onClose, trialUsed, unlockin
         ) : (
           <>
             <input value={contact} onChange={(e) => setContact(e.target.value)} type="tel" inputMode="tel" maxLength={40}
-              aria-label="Số điện thoại hoặc Zalo (không bắt buộc)" placeholder="Số điện thoại / Zalo để Tơ Hồng liên hệ (không bắt buộc)"
+              aria-label="Số điện thoại hoặc Zalo (không bắt buộc)" placeholder="SĐT hoặc Zalo (không bắt buộc)"
               style={{ width: '100%', boxSizing: 'border-box', marginBottom: 9, fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--ink-900)',
                 background: 'var(--card)', border: '1px solid var(--line-200)', borderRadius: 'var(--r-md)', padding: '10px 13px', outline: 'none' }} />
             <button disabled={unlocking} onClick={() => onConfirm(plan, contact.trim())} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,

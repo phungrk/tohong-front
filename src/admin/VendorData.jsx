@@ -220,17 +220,14 @@ function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
       {base && <div className="adm-muted" style={{ fontSize: 13, marginBottom: 10 }}>Giá gốc: {priceText(base.priceMin, base.priceMax)}</div>}
 
       <div className="adm-grid2">
-        <Field label="Giá thấp nhất (triệu)" hint={fieldErr.priceMin}>
+        <Field label="Giá thấp nhất (triệu)" error={fieldErr.priceMin}>
           <input className={`adm-input ${fieldErr.priceMin ? 'is-invalid' : ''}`} inputMode="decimal" value={form.priceMin} onChange={set('priceMin')} aria-invalid={!!fieldErr.priceMin} />
         </Field>
-        <Field label="Giá cao nhất (triệu)" hint={fieldErr.priceMax}>
+        <Field label="Giá cao nhất (triệu)" error={fieldErr.priceMax}>
           <input className={`adm-input ${fieldErr.priceMax ? 'is-invalid' : ''}`} inputMode="decimal" value={form.priceMax} onChange={set('priceMax')} aria-invalid={!!fieldErr.priceMax} />
         </Field>
       </div>
-      {(fieldErr.priceMin || fieldErr.priceMax) && (
-        <div className="adm-hint is-error" role="alert">{fieldErr.priceMin || fieldErr.priceMax}</div>
-      )}
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '12px 0', fontSize: 14 }}>
+      <label className="adm-check">
         <input type="checkbox" checked={form.price_verified} onChange={set('price_verified')} />
         Giá đã xác minh với vendor
       </label>
@@ -242,12 +239,12 @@ function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
         <input className="adm-input" placeholder="Fanpage / website" aria-label="Fanpage hoặc website" value={form.website} onChange={set('website')} />
       </div>
 
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '14px 0 6px', fontSize: 14 }}>
+      <label className="adm-check">
         <input type="checkbox" checked={form.hidden} onChange={set('hidden')} />
         Ẩn vendor này khỏi cặp đôi và gợi ý AI
       </label>
       {form.hidden && (
-        <Field label="Lý do ẩn" hint={fieldErr.hidden_reason}>
+        <Field label="Lý do ẩn" error={fieldErr.hidden_reason}>
           <input className={`adm-input ${fieldErr.hidden_reason ? 'is-invalid' : ''}`} value={form.hidden_reason} onChange={set('hidden_reason')} maxLength={300} />
         </Field>
       )}

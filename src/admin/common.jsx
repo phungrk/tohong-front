@@ -22,12 +22,13 @@ export function Badge({ tone = 'neutral', children }) {
   return <span className={`adm-badge adm-badge-${tone}`}>{children}</span>;
 }
 
-export function Field({ label, children, hint }) {
+export function Field({ label, children, hint, error }) {
   return (
     <label className="adm-field">
       <span className="adm-field-label">{label}</span>
       {children}
       {hint && <span className="adm-hint">{hint}</span>}
+      {error && <span className="adm-hint is-error" role="alert">{error}</span>}
     </label>
   );
 }
