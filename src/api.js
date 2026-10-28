@@ -45,6 +45,15 @@ async function authHeaders(extra = {}) {
   return { Authorization: `Bearer ${token}`, ...extra };
 }
 
+// Lỗi API: giữ message cũ (data.error || "HTTP n"), thêm err.status và err.code (= data.error).
+async function apiError(res) {
+  const data = await res.json().catch(() => ({}));
+  const err = new Error(data.error || `HTTP ${res.status}`);
+  err.status = res.status;
+  err.code = typeof data.error === 'string' ? data.error : null;
+  return err;
+}
+
 async function req(method, path, body) {
   const res = await fetch(`${BASE}${path}`, {
     method,
@@ -53,10 +62,7 @@ async function req(method, path, body) {
     ),
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   return res.json();
 }
 
@@ -68,10 +74,7 @@ async function reqOrNull(method, path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 404) return null;
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   return res.json();
 }
 
@@ -130,8 +133,19 @@ export const api = {
 
   // ── Subscription ───────────────────────────────────────────────────────────
   getSubscription: (coupleId) => req('GET', `/api/couples/${coupleId}/subscription`),
-  subscribe: (coupleId, plan) => req('POST', `/api/couples/${coupleId}/subscription`, { plan }),
   extendTrial: (coupleId) => req('POST', `/api/couples/${coupleId}/subscription/trial`),
+
+  // ── Nâng cấp gói: chỉ tạo yêu cầu, Tơ Hồng kích hoạt thủ công sau khi nhận chuyển khoản ──
+  requestUpgrade: (coupleId, plan, contact) =>
+    req('POST', `/api/couples/${coupleId}/upgrade-request`, { plan, ...(contact ? { contact } : {}) }),
+  getUpgradeRequest: (coupleId) => req('GET', `/api/couples/${coupleId}/upgrade-request`),
+
+  // ── Nhờ Tơ Hồng kết nối vendor ─────────────────────────────────────────────
+  createConnectRequest: (coupleId, body) =>
+    req('POST', `/api/couples/${coupleId}/connect-requests`, body),
+  listConnectRequests: (coupleId) => req('GET', `/api/couples/${coupleId}/connect-requests`),
+  // ids ≤ 50 → { vendors: { [id]: { hidden, price_source, priceMin, priceMax } | null } }
+  getVendorStatuses: (ids) => req('POST', '/api/vendors/status', { ids }),
 
   // ── AI features ────────────────────────────────────────────────────────────
   getBriefing: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/briefing`),
@@ -165,6 +179,45 @@ export const api = {
 
   getVendorPrefs: (coupleId) =>
     reqOrNull('GET', `/api/couples/${coupleId}/shortlist`),
+
+  // ── Admin (chỉ ADMIN_USER_IDS; còn lại 403 forbidden) ─────────────────────
+  adminMe: () => req('GET', '/api/admin/me'),
+  adminAudit: ({ action, cursor, limit } = {}) => {
+    const q = new URLSearchParams();
+    if (action) q.set('action', action);
+    if (cursor) q.set('cursor', cursor);
+    if (limit) q.set('limit', limit);
+    return req('GET', `/api/admin/audit?${q}`);
+  },
+  adminConnectList: (status = 'open') =>
+    req('GET', `/api/admin/connect-requests?status=${encodeURIComponent(status)}`),
+  adminConnectGet: (id) => req('GET', `/api/admin/connect-requests/${id}`),
+  adminConnectPatch: (id, body) => req('PATCH', `/api/admin/connect-requests/${id}`, body),
+  adminUpgradeList: (status = 'pending') =>
+    req('GET', `/api/admin/upgrade-requests?status=${encodeURIComponent(status)}`),
+  adminUpgradeActivate: (coupleId, note) =>
+    req('POST', `/api/admin/upgrade-requests/${coupleId}/activate`, { note: note || '' }),
+  adminUpgradeReject: (coupleId, note) =>
+    req('POST', `/api/admin/upgrade-requests/${coupleId}/reject`, { note }),
+  adminLegacyList: () => req('GET', '/api/admin/legacy-subscriptions'),
+  adminLegacyRevoke: (coupleId) =>
+    req('POST', `/api/admin/couples/${coupleId}/subscription/revoke`, { note: '' }),
+  adminLegacyKeep: (coupleId) =>
+    req('POST', `/api/admin/couples/${coupleId}/subscription/keep`, { note: '' }),
+  adminVendors: ({ category, label, q, offset, limit } = {}) => {
+    const p = new URLSearchParams();
+    if (category) p.set('category', category);
+    if (label) p.set('label', label);
+    if (q) p.set('q', q);
+    if (offset) p.set('offset', offset);
+    if (limit) p.set('limit', limit);
+    return req('GET', `/api/admin/vendors?${p}`);
+  },
+  adminVendorGet: (id) => req('GET', `/api/admin/vendors/${encodeURIComponent(id)}`),
+  adminVendorPut: (id, body) =>
+    req('PUT', `/api/admin/vendors/${encodeURIComponent(id)}/override`, body),
+  adminVendorClear: (id, expectedVersion) =>
+    req('DELETE', `/api/admin/vendors/${encodeURIComponent(id)}/override`, { expected_version: expectedVersion }),
 
   /**
    * Stream chat (SSE). handlers: { onConversation, onChunk, onMeta, onDone, onError }
