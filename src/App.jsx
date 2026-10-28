@@ -16,6 +16,7 @@ import { ScreenBudget } from './screens/Budget.jsx';
 import { ScreenGuests } from './screens/Guests.jsx';
 import { Onboarding } from './screens/Onboarding.jsx';
 import { VendorProvider } from './screens/VendorCtx.jsx';
+import { ConnectProvider } from './screens/ConnectCtx.jsx';
 import { SaveBanner } from './ui/SaveBanner.jsx';
 
 /* ── shared micro-components ─────────────────────────────── */
@@ -130,6 +131,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const [obOpen, setObOpen] = useState(!hasLocalProfile);
 
   const [coupleId, setCoupleId] = useState(null);
+  const [role, setRole] = useState(null); // vai trò trong couple (owner | member | viewer), từ /api/me
   const [conversations, setConversations] = useState([]);
   const [refreshKeys, setRefreshKeys] = useState({ budget: 0, guests: 0, timeline: 0 });
   const [vendorSeed, setVendorSeed] = useState(null);
@@ -170,6 +172,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
         if (data.couples?.length) {
           const cid = data.couples[0].couple_id;
           setCoupleId(cid);
+          setRole(data.couples[0].role || null);
           track('session_resumed', { couple_id: cid });
           return loadConversations(cid);
         }
@@ -301,6 +304,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
 
   return (
     <VendorProvider coupleId={coupleId} onBudgetSync={() => setRefreshKeys((prev) => ({ ...prev, budget: prev.budget + 1 }))}>
+    <ConnectProvider coupleId={coupleId} role={role} isGuest={isGuest} onShowSignIn={onShowSignIn}>
     <div className="app-page">
       <div className="app-frame">
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -340,6 +344,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
         <Onboarding open={obOpen} onDone={handleObDone} />
       </div>
     </div>
+    </ConnectProvider>
     </VendorProvider>
   );
 }
