@@ -7,6 +7,7 @@ import { useBudget } from '../../budget/useBudget.js';
 import { GuestCard, TimelineCard, ChecklistCard, ChatBudgetMini } from './cards.jsx';
 import { api } from '../../api.js';
 import { track } from '../../analytics.js';
+import { detectPlan, onceFlag, planFlagKey, safeIntentLabel, safeDomains } from '../../journey.js';
 
 function AUserBubble({ children }) {
   return (
@@ -288,6 +289,14 @@ export function AppChat({
   const scrollRef = useRef(null);
   const convIdRef = useRef(chatSession?.conversationId ?? null);
   const msgIdRef  = useRef(0);
+  const intentRef = useRef(null); // { label, domains } từ SSE `intent` của lượt chat hiện tại (không có văn bản)
+
+  // plan_generated: một lần mỗi loại kế hoạch cho mỗi cặp đôi (cờ localStorage). Không gửi văn bản đi.
+  const trackPlan = (plan) => {
+    if (!plan || !coupleId) return;
+    if (!onceFlag(planFlagKey(coupleId, plan.plan_type))) return;
+    track('plan_generated', { journey: 'planning', plan_type: plan.plan_type, source: plan.source });
+  };
 
   useEffect(() => { const el = scrollRef.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, streaming]);
 
@@ -352,6 +361,8 @@ export function AppChat({
     }
 
     let replyFailed = false;
+    let replyText = ''; // chỉ để nhận biết bảng/danh sách cho plan_generated, không bao giờ gửi đi
+    intentRef.current = null;
     api.streamChat(
       coupleId,
       { conversationId: convIdRef.current, message: text, context },
@@ -360,16 +371,25 @@ export function AppChat({
           convIdRef.current = conv.id;
           onConversationChange?.(conv.id);
         },
+        onIntent: (d) => {
+          // Backend cũ không gửi sự kiện này: app vẫn chạy bình thường, chỉ thiếu chat_intent.
+          const label = safeIntentLabel(d?.label);
+          intentRef.current = { label, domains: safeDomains(d?.domains) };
+          track('chat_intent', { journey, label, is_topic_chip: showCard });
+        },
         onChunk: (chunk) => {
+          replyText += chunk;
           setMsgs((m) => m.map((msg) =>
             msg._id === msgId ? { ...msg, intro: msg.intro + chunk } : msg
           ));
         },
         onAction: (actionResult) => {
+          trackPlan(detectPlan({ action: actionResult }));
           onAction?.(actionResult);
         },
         onDone: () => {
           setStreaming(false);
+          if (!replyFailed) trackPlan(detectPlan({ replyText, domains: intentRef.current?.domains }));
           track('chat_reply_received', { journey, topic_id: topic?.id ?? null });
           setMsgs((m) => m.map((msg) =>
             msg._id === msgId

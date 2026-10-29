@@ -110,6 +110,12 @@ export const api = {
     return { conversation, messages, next_cursor: null };
   },
 
+  // ── Thành viên / lời mời (API có sẵn, không đổi) ──────────────────────────
+  // GET → { members, invites (pending) }; POST body { email, role: member|viewer|owner } → { ok: true }
+  listMembers: (coupleId) => req('GET', `/api/couples/${coupleId}/members`),
+  inviteMember: (coupleId, { email, role }) =>
+    req('POST', `/api/couples/${coupleId}/members`, { email, role }),
+
   // ── Summary ────────────────────────────────────────────────────────────────
   getSummary: (coupleId) => req('GET', `/api/couples/${coupleId}/summary`),
 
@@ -220,7 +226,7 @@ export const api = {
     req('DELETE', `/api/admin/vendors/${encodeURIComponent(id)}/override`, { expected_version: expectedVersion }),
 
   /**
-   * Stream chat (SSE). handlers: { onConversation, onChunk, onMeta, onDone, onError }
+   * Stream chat (SSE). handlers: { onConversation, onChunk, onMeta, onIntent, onAction, onDone, onError }
    * Trả về Promise resolve khi stream kết thúc.
    */
   async streamChat(coupleId, { conversationId, message, context }, handlers = {}) {
@@ -250,6 +256,7 @@ export const api = {
       }
       if (eventName === 'conversation') handlers.onConversation?.(data);
       else if (eventName === 'chunk') handlers.onChunk?.(data.text || '');
+      else if (eventName === 'intent') handlers.onIntent?.(data);
       else if (eventName === 'meta') handlers.onMeta?.(data);
       else if (eventName === 'action') handlers.onAction?.(data);
       else if (eventName === 'done') handlers.onDone?.();

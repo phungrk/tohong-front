@@ -3,6 +3,8 @@ import { Icon } from '../../ui/Icon.jsx';
 import { Avatar } from '../../ui/atoms.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from '../VendorCtx.jsx';
 import { api } from '../../api.js';
+import { track } from '../../analytics.js';
+import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
 import { PriceTag } from '../../ui/PriceTag.jsx';
@@ -203,6 +205,8 @@ export function VMatchChatCard({ catId }) {
   const [error, setError] = useState(false);
   const [whyThoseVendors, setWhyThoseVendors] = useState('');
   const [phase, setPhase] = useState('loading');  // loading → cards
+  const pageRef = useRef(0);          // số trang danh sách đã hiện (đo vendor_list_viewed)
+  const listTrackedRef = useRef(false);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
@@ -212,6 +216,12 @@ export function VMatchChatCard({ catId }) {
       .then((res) => {
         if (!alive) return;
         const list = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        // Một lần mỗi lần hiện thẻ (kể cả 0 kết quả); fetch lại do đổi coupleId không bắn lại.
+        if (!listTrackedRef.current) {
+          listTrackedRef.current = true;
+          pageRef.current = 1;
+          track('vendor_list_viewed', { journey: 'vendor', category: catId, page: 1, result_count: list.length });
+        }
         setVendors(list);
         setTotal(res?.total ?? list.length);
         setWhyThoseVendors(res?.whyThoseVendors || '');
@@ -229,6 +239,8 @@ export function VMatchChatCard({ catId }) {
     api.matchVendors(coupleId, { category: catId, limit: 5, offset: vendors.length })
       .then((res) => {
         const more = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        pageRef.current += 1;
+        track('vendor_list_viewed', { journey: 'vendor', category: catId, page: pageRef.current, result_count: more.length });
         setVendors((prev) => [...prev, ...more]);
         setTotal(res?.total ?? total);
         setExpanded(true);
@@ -250,7 +262,7 @@ export function VMatchChatCard({ catId }) {
   const onSave = (e, v) => {
     e.preventDefault();
     e.stopPropagation();
-    saveVendor(catId, v);
+    saveVendor(catId, v, 'list');
     setFlash(v.name);
     setTimeout(() => setFlash(null), 1900);
   };
@@ -456,7 +468,7 @@ function VReviewsBlock({ vendor }) {
 
 /* ── VDetailChatCard ─────────────────────────────────────────── */
 export function VDetailChatCard({ catId, vendor }) {
-  const { coupleId, saved, saveVendor } = useVendorCtx();
+  const { coupleId, saved, saveVendor, getCatBudget, guests, budgetReady } = useVendorCtx();
   const { pushUser, pushAI } = useChatActions();
   const [flash, setFlash] = useState(false);
   const [galIdx, setGalIdx] = useState(0);
@@ -471,6 +483,22 @@ export function VDetailChatCard({ catId, vendor }) {
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
+
+  // vendor_viewed: một lần mỗi lần mở chi tiết. Chờ ngân sách tải xong để nhóm giá không bị 'unknown' oan.
+  const viewTrackedRef = useRef(false);
+  const budgetForCat = getCatBudget(catId); // MỘT SỐ (triệu); 0 = thiếu
+  useEffect(() => {
+    if (viewTrackedRef.current || !vendor?.id || (coupleId && !budgetReady)) return;
+    viewTrackedRef.current = true;
+    track('vendor_viewed', {
+      journey: 'vendor',
+      vendor_id: vendor.id,
+      category: catId,
+      price_band: priceBand({ catId, vendor, allocatedTr: budgetForCat, guestCount: guests }),
+      price_verified: vendor.priceSource === 'verified',
+      source: 'chat',
+    });
+  }, [vendor, catId, coupleId, budgetReady, budgetForCat, guests]);
 
   // Lazy: bấm xem chi tiết mới gọi AI (backend cache theo profile-hash).
   useEffect(() => {
@@ -497,7 +525,7 @@ export function VDetailChatCard({ catId, vendor }) {
   const gallery = vendor.gallery?.length ? vendor.gallery : [vendor.grad];
 
   const onSave = () => {
-    saveVendor(catId, vendor);
+    saveVendor(catId, vendor, 'detail');
     setFlash(true);
     setTimeout(() => setFlash(false), 1900);
   };
@@ -786,12 +814,23 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   const { saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(null);
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
+
+  // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
+  const compareTrackedRef = useRef(false);
+  const compareCount = vendors.length;
+  const compareValid = !!cat && compareCount >= 2;
+  useEffect(() => {
+    if (!compareValid || compareTrackedRef.current) return;
+    compareTrackedRef.current = true;
+    track('vendor_compared', { journey: 'vendor', category: catId, vendor_count: Math.min(compareCount, VCMP_MAX) });
+  }, [compareValid, catId, compareCount]);
+
   if (!cat || vendors.length < 2) return null;
 
   const savedIds = (saved[catId]?.shortlisted || []).map((v) => v.id);
   const onSave = (v) => {
     if (savedIds.includes(v.id)) return;
-    saveVendor(catId, v);
+    saveVendor(catId, v, 'compare');
     setFlash(v.name);
     setTimeout(() => setFlash(null), 1900);
   };
