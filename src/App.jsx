@@ -260,6 +260,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
           wedding_role: data.userRole,   // 'bride' | 'groom' — stored in member record
         });
         cid = couple.couple_id;
+        // Người vừa tạo couple là owner; getMe chỉ chạy lúc mount nên phải đặt role ngay
+        setRole(couple.role || 'owner');
       }
       await api.updateProfile(cid, {
         couple: { bride_name: data.brideName, groom_name: data.groomName, wedding_date: weddingDate, city: data.city },
