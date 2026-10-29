@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../api.js';
+import { track } from '../analytics.js';
+import { confirmedAmount } from '../journey.js';
 
 // Cùng danh sách + thứ tự với BUDGET_TEMPLATE (edge/lib/budgetCategories.js), trừ "reserve"
 // (dự phòng phát sinh — không có vendor tương ứng). icon/color đồng bộ với CAT_META (useBudget.js).
@@ -18,17 +20,8 @@ export const VENDOR_CATEGORIES = [
 
 const VendorCtx = createContext(null);
 
-// Venue báo giá theo bàn (thường 10 khách/bàn) — quy đổi ra tổng chi phí thật
-// theo số khách, thay vì trừ ngân sách bằng đúng đơn giá 1 bàn.
-const GUESTS_PER_TABLE = 10;
-
-function confirmedAmount(catId, vendor, guests) {
-  const min = vendor.priceTotal ?? vendor.price ?? 0;
-  const avg = vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
-  if (catId !== 'venue') return avg;
-  const g = Number(guests) || 0;
-  return g > 0 ? Math.round((avg / GUESTS_PER_TABLE) * g) : avg;
-}
+// confirmedAmount (quy đổi giá venue theo bàn → tổng chi phí) nằm ở ../journey.js
+// để dùng chung với priceBand của sự kiện vendor_viewed. Kết quả không đổi.
 
 const storageKey = (id) => (id ? `th_vendors_${id}` : null);
 
@@ -45,6 +38,7 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
   const [saved, setSaved] = useState({});
   const [budgetCats, setBudgetCats] = useState({}); // catId → allocated_tr, từ ngân sách thật
   const [guests, setGuests] = useState(0);
+  const [budgetReady, setBudgetReady] = useState(false); // true khi đã thử tải ngân sách (xong hoặc lỗi)
 
   // Load persisted state when coupleId becomes available
   useEffect(() => {
@@ -60,7 +54,7 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
       (data?.categories || []).forEach((c) => { map[c.id] = Number(c.allocated_tr) || 0; });
       setBudgetCats(map);
       setGuests(Number(data?.guests) || 0);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setBudgetReady(true));
   }, [coupleId]);
 
   // Persist whenever saved or coupleId changes
@@ -96,12 +90,16 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
     } catch { /* silent — local state is source of truth for UI */ }
   };
 
-  const saveVendor = (catId, vendor) => {
+  // source: 'list' | 'detail' | 'compare' (chỉ để đo). Kiểm trùng trên `saved` hiện tại TRƯỚC setSaved,
+  // không track trong updater (StrictMode gọi updater hai lần).
+  const saveVendor = (catId, vendor, source) => {
+    const isNew = !(saved[catId]?.shortlisted || []).some((v) => v.id === vendor.id);
     setSaved((prev) => {
       const cat = prev[catId] || { shortlisted: [], confirmed: null };
       if (cat.shortlisted.some((v) => v.id === vendor.id)) return prev;
       return { ...prev, [catId]: { ...cat, shortlisted: [...cat.shortlisted, vendor] } };
     });
+    if (isNew) track('vendor_saved', { journey: 'vendor', vendor_id: vendor.id, category: catId, source });
   };
 
   const unsaveVendor = (catId, vendorId) => {
@@ -165,7 +163,7 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
   };
 
   return (
-    <VendorCtx.Provider value={{ coupleId, saved, saveVendor, unsaveVendor, confirmVendor, unconfirmVendor, getCatStatus, getBudgetConfirmed, getCatBudget, getSaved, updateVendorNote }}>
+    <VendorCtx.Provider value={{ coupleId, saved, saveVendor, unsaveVendor, confirmVendor, unconfirmVendor, getCatStatus, getBudgetConfirmed, getCatBudget, getSaved, updateVendorNote, guests, budgetReady }}>
       {children}
     </VendorCtx.Provider>
   );

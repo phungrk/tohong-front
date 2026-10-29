@@ -6,6 +6,7 @@ import { BaselineSlider } from '../components/BaselineSlider.jsx';
 import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
+import { priceBand } from '../journey.js';
 import { PriceTag } from '../ui/PriceTag.jsx';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
@@ -74,10 +75,31 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   const [note, setNote] = useState(vendor?.note || '');
   const startYRef = useRef(null);
   const { vendorInfoFor } = useConnect();
+  const { guests, budgetReady } = useVendorCtx();
 
   useEffect(() => {
     if (vendor) setNote(vendor.note || '');
   }, [vendor?.id]);
+
+  // vendor_viewed (source 'budget'): một lần mỗi lần sheet mở (open false → true).
+  // Ngân sách hạng mục lấy từ catAllocated (một số, triệu); 0 = thiếu → price_band 'unknown'.
+  const viewedRef = useRef(null);
+  const viewId = open && vendor ? vendor.id : null;
+  const liveSource = vendorInfoFor(vendor?.id)?.price_source;
+  useEffect(() => {
+    if (!viewId) { viewedRef.current = null; return; }
+    if (viewedRef.current === viewId) return;
+    if (catId === 'venue' && !budgetReady) return; // chờ số khách để quy đổi giá theo bàn
+    viewedRef.current = viewId;
+    track('vendor_viewed', {
+      journey: 'vendor',
+      vendor_id: viewId,
+      category: catId,
+      price_band: priceBand({ catId, vendor, allocatedTr: catAllocated, guestCount: guests }),
+      price_verified: (liveSource || vendor.priceSource) === 'verified',
+      source: 'budget',
+    });
+  }, [viewId, vendor, catId, catAllocated, guests, budgetReady, liveSource]);
 
   useEffect(() => {
     if (!open) setConfirmDelete(false);

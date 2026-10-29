@@ -2,6 +2,8 @@
 // Set VITE_POSTHOG_KEY to enable. Falls back to console.debug in dev when unset.
 // All calls are fire-and-forget; nothing throws or blocks the UI.
 
+import { buildCommonProps } from './journey.js';
+
 const KEY     = import.meta.env.VITE_POSTHOG_KEY;
 const HOST    = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com';
 const VARIANT = import.meta.env.VITE_EXPERIMENT_VARIANT ?? null;
@@ -49,9 +51,31 @@ export function endJourney(journey) {
   return d;
 }
 
+// ── Journey context (spec 003) ─────────────────────────────────────────────
+// Giá trị thô chỉ nằm trong bộ nhớ để tính NHÓM; payload chỉ nhận nhóm (buildCommonProps).
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
+let _journeyCtx = {};
+
+// Gộp từng phần: khoá nào undefined thì giữ giá trị cũ.
+export function setJourneyContext(partial = {}) {
+  const next = { ..._journeyCtx };
+  for (const k of ['coupleId', 'weddingDate', 'budgetTr', 'guestCount']) {
+    if (partial[k] !== undefined) next[k] = partial[k];
+  }
+  _journeyCtx = next;
+}
+
+function commonProps() {
+  try {
+    return buildCommonProps(_journeyCtx, APP_VERSION);
+  } catch {
+    return {}; // lỗi tính nhóm không được chặn sự kiện
+  }
+}
+
 function post(event, props = {}) {
   if (!KEY) {
-    if (import.meta.env.DEV) console.debug('[analytics]', event, props);
+    if (import.meta.env.DEV) console.debug('[analytics]', event, { ...commonProps(), ...props });
     return;
   }
   const payload = {
@@ -59,6 +83,7 @@ function post(event, props = {}) {
     event,
     distinct_id: _distinctId,
     properties: {
+      ...commonProps(),
       ...props,
       device_type: getDeviceType(),
       ...(VARIANT != null ? { variant: VARIANT } : {}),

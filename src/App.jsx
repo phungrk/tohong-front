@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ChevronRight,
   MessageCircle,
@@ -6,7 +6,11 @@ import {
   Plus,
 } from 'lucide-react';
 import { api } from './api.js';
-import { track, endJourney } from './analytics.js';
+import { track, endJourney, setJourneyContext } from './analytics.js';
+import {
+  isProfileComplete, missingProfileFields, profileEventDecision,
+  hasFlag, setFlag, onceFlag, profileFlagKey,
+} from './journey.js';
 import { Icon } from './ui/Icon.jsx';
 import { ThreadMark } from './ui/atoms.jsx';
 import { ScreenDashboard } from './screens/Dashboard.jsx';
@@ -159,6 +163,46 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const loadConversations = (cid) =>
     api.listConversations(cid).then((r) => setConversations(r.conversations || [])).catch(() => {});
 
+  // ── Đo hành trình (spec 003) ─────────────────────────────────────────────
+  // Đồng bộ ngữ cảnh (chỉ để tính NHÓM ở analytics.js) và bắn profile_completed một lần (research R5).
+  // prevCompleteRef: true/false = lần quan sát gần nhất; null = chưa quan sát trong phiên này.
+  const prevCompleteRef = useRef(null);
+
+  // profile: { wedding_date, budget (triệu), guest_count, city, style? }
+  const applyProfile = useCallback((cid, profile, trigger) => {
+    setJourneyContext({
+      coupleId: cid,
+      weddingDate: profile.wedding_date ?? null,
+      budgetTr: profile.budget ?? null,
+      guestCount: profile.guest_count ?? null,
+    });
+    const complete = isProfileComplete(profile);
+    const key = profileFlagKey(cid);
+    const decision = profileEventDecision({ complete, flagSet: hasFlag(key), trigger, prevComplete: prevCompleteRef.current });
+    prevCompleteRef.current = complete;
+    if (decision === 'fire') {
+      if (onceFlag(key)) {
+        track('profile_completed', { journey: 'onboarding', missing_fields: missingProfileFields(profile), trigger });
+      }
+    } else if (decision === 'silent') {
+      setFlag(key); // cặp đôi cũ đã đủ hồ sơ: không bắn sự kiện giả
+    }
+  }, []);
+
+  // Lấy hồ sơ từ summary (App không có sẵn). Lỗi → giữ ngữ cảnh cũ (nhóm 'unknown'), không báo lỗi.
+  const syncJourney = useCallback(async (cid, trigger) => {
+    if (!cid) return;
+    try {
+      const s = await api.getSummary(cid);
+      applyProfile(cid, {
+        wedding_date: s?.profile?.wedding_date,
+        budget: s?.budget?.total_tr,
+        guest_count: s?.guests?.capacity,
+        city: s?.profile?.city,
+      }, trigger);
+    } catch { /* context rỗng = unknown */ }
+  }, [applyProfile]);
+
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('ob') === '1') {
       setObOpen(true);
@@ -173,12 +217,15 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
           const cid = data.couples[0].couple_id;
           setCoupleId(cid);
           setRole(data.couples[0].role || null);
-          track('session_resumed', { couple_id: cid });
+          setJourneyContext({ coupleId: cid });
+          // session_resumed chờ summary tối đa 3 giây để mang đủ nhóm (hết hạn thì bắn với 'unknown').
+          const synced = Promise.race([syncJourney(cid, 'initial'), new Promise((r) => setTimeout(r, 3000))]);
+          synced.then(() => track('session_resumed', { couple_id: cid }));
           return loadConversations(cid);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [syncJourney]);
 
   const handleObDone = async (data, styleProfile) => {
     setObOpen(false);
@@ -213,6 +260,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
           wedding_role: data.userRole,   // 'bride' | 'groom' — stored in member record
         });
         cid = couple.couple_id;
+        // Người vừa tạo couple là owner; getMe chỉ chạy lúc mount nên phải đặt role ngay
+        setRole(couple.role || 'owner');
       }
       await api.updateProfile(cid, {
         couple: { bride_name: data.brideName, groom_name: data.groomName, wedding_date: weddingDate, city: data.city },
@@ -224,6 +273,9 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
       });
       setCoupleId(cid);
       loadConversations(cid);
+      applyProfile(cid, {
+        wedding_date: weddingDate, budget: data.budget, guest_count: data.guests, city: data.city, style: styleTags,
+      }, 'onboarding');
     } catch {
       // API unavailable — local profile in localStorage đủ để vào app
     }
@@ -292,10 +344,13 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const handleAction = (actionResult) => {
     const key = ACTION_REFRESH_MAP[actionResult?.type];
     if (key) setRefreshKeys((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+    if (actionResult?.type === 'update_profile' && actionResult.success) syncJourney(coupleId, 'chat_action');
   };
 
+  const handleProfileEdited = useCallback(() => syncJourney(coupleId, 'profile_edit'), [syncJourney, coupleId]);
+
   const screens = [
-    <ScreenDashboard coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenDashboard coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={setBudgetOpenCatId} onOpenVendorChat={openAIVendor} />,

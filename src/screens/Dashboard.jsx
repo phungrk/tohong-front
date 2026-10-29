@@ -5,6 +5,7 @@ import { ThreadMark, Thread } from '../ui/atoms.jsx';
 import { OBCalendar } from './Onboarding.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { InviteSheet } from './InviteSheet.jsx';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -179,8 +180,9 @@ function DBSkeleton() {
   );
 }
 
-export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
+export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
   const [data, setData] = useState(EMPTY);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -231,7 +233,8 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
       doneDays: Math.max(0, (prev.totalDays || 365) - daysLeft),
     }));
     await api.updateProfile(coupleId, { couple: { wedding_date: iso } });
-  }, [coupleId]);
+    onProfileChanged?.(); // cập nhật ngữ cảnh đo (nhóm tháng tới cưới) sau khi lưu thành công
+  }, [coupleId, onProfileChanged]);
 
   const bPct = data.budget.total_tr > 0
     ? Math.round((data.budget.spent_tr / data.budget.total_tr) * 100)
@@ -254,8 +257,18 @@ export function ScreenDashboard({ coupleId = null, navigate = () => {}, onMenuOp
           <ThreadMark size={22} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>Tơ Hồng</span>
         </div>
+        {/* Chỉ owner mời được (POST /members yêu cầu quyền admin) */}
+        {role === 'owner' && coupleId && (
+          <button type="button" onClick={() => setInviteOpen(true)} aria-label="Mời người ấy / gia đình cùng xem" title="Mời người ấy / gia đình cùng xem"
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--son-50)', border: '1px solid var(--son-200)',
+              borderRadius: 'var(--r-pill)', padding: '7px 10px', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-700)' }}>
+            <Icon name="user-plus" size={15} color="var(--son-600)" />
+            Mời cùng xem
+          </button>
+        )}
         <AIButton onOpen={onOpenAI} />
       </div>
+      {inviteOpen && coupleId && <InviteSheet coupleId={coupleId} onClose={() => setInviteOpen(false)} />}
 
       {coupleId && !loaded ? <DBSkeleton /> : (
       /* scrollable content */
