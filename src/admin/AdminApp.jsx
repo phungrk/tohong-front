@@ -17,6 +17,7 @@ import { UpgradeQueue } from './UpgradeQueue.jsx';
 import { LegacyPlans } from './LegacyPlans.jsx';
 import { VendorData } from './VendorData.jsx';
 import { AuditLog } from './AuditLog.jsx';
+import { Members } from './Members.jsx';
 
 // Trang admin đợt 1 (spec 002). Mở bằng /?admin.
 // Không có guest, không gọi `track` ở bất kỳ file nào trong src/admin/ (research R8).
@@ -26,6 +27,7 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const DEV_ADMIN_TOKEN = import.meta.env.VITE_ADMIN_DEV_TOKEN;
 
 const TABS = [
+  { id: 'members', label: 'Thành viên' },
   { id: 'connect', label: 'Hộp kết nối', count: 'connect_new' },
   { id: 'upgrade', label: 'Nâng cấp gói', count: 'upgrade_pending' },
   { id: 'legacy', label: 'Gói tự kích hoạt', count: 'legacy_active' },
@@ -102,7 +104,7 @@ function Frame({ children, right }) {
 }
 
 function AdminShell({ onSignOut }) {
-  const [tab, setTab] = useState('connect');
+  const [tab, setTab] = useState('members');
   // Mở "Dữ liệu vendor" thẳng vào một vendor (nút "Sửa vendor này" ở hộp kết nối)
   const [focusVendor, setFocusVendor] = useState(null);
   const fetchMe = useCallback(() => api.adminMe(), []);
@@ -149,6 +151,7 @@ function AdminShell({ onSignOut }) {
           );
         })}
       </nav>
+      {tab === 'members' && <Members />}
       {tab === 'connect' && <ConnectInbox onChanged={loadMe} onEditVendor={openVendor} />}
       {tab === 'upgrade' && <UpgradeQueue onChanged={loadMe} />}
       {tab === 'legacy' && <LegacyPlans onChanged={loadMe} />}

@@ -188,6 +188,8 @@ export const api = {
 
   // ── Admin (chỉ ADMIN_USER_IDS; còn lại 403 forbidden) ─────────────────────
   adminMe: () => req('GET', '/api/admin/me'),
+  adminMembersSummary: ({ refresh } = {}) =>
+    req('GET', `/api/admin/members-summary${refresh ? '?refresh=1' : ''}`),
   adminAudit: ({ action, cursor, limit } = {}) => {
     const q = new URLSearchParams();
     if (action) q.set('action', action);
