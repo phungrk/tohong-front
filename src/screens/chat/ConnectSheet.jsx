@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
+import { useOutsideFrameDismiss } from '../../ui/useOutsideFrameDismiss.js';
 import { VENDOR_CATEGORIES } from '../VendorCtx.jsx';
 import { loadSavedContact } from '../connectContext.js';
 
@@ -43,6 +44,7 @@ export function ConnectSheet({ vendor, catId, isGuest, onSignIn, onCancel, onClo
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const dismiss = sent ? onClose : onCancel;
+  useOutsideFrameDismiss(() => { if (!busy) dismiss(); });
 
   const submit = async () => {
     const contact = {};

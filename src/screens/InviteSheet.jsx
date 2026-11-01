@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { INVITE_ROLES, isValidEmail } from '../journey.js';
 
 // Màn "Mời người ấy / gia đình cùng xem" (spec 003, US4). Chỉ owner mở được (Dashboard kiểm).
@@ -82,6 +83,8 @@ export function InviteSheet({ coupleId, onClose }) {
   };
 
   const dismiss = () => { if (!busy) onClose(); }; // "Thôi": không gọi API, không sự kiện
+
+  useOutsideFrameDismiss(dismiss);
 
   return (
     <>

@@ -10,6 +10,7 @@ import { priceBand } from '../journey.js';
 import { PriceTag } from '../ui/PriceTag.jsx';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
+import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
 function ItemRow({ it, onAmt, onName, onRemove }) {
@@ -104,6 +105,8 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   useEffect(() => {
     if (!open) setConfirmDelete(false);
   }, [open]);
+
+  useOutsideFrameDismiss(onClose, open);
 
   const handleTouchStart = (e) => { startYRef.current = e.touches[0].clientY; };
   const handleTouchEnd = (e) => {
