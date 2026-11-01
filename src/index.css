@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 
 :root {
+  --app-max: 768px;
   /* Son — lacquer rose (PRIMARY) */
   --son-50: #FBEDEF;
   --son-100: #F6D9DE;
@@ -177,21 +178,17 @@ textarea:focus-visible {
 }
 
 .app-frame {
-  width: 100%;
-  max-width: 440px;
+  --edge: clamp(0px, calc(100vw - var(--app-max)), 1px); /* 1 khi viewport rộng hơn khung, 0 khi không */
+  width: min(100%, var(--app-max));
   height: 100vh;
   height: 100dvh;
   position: relative;
   overflow: hidden;
+  contain: layout; /* khung là containing block của position: fixed (sheet, scrim, toast) */
   background: var(--paper);
-}
-
-@media (min-width: 461px) {
-  .app-frame {
-    border-left: 1px solid var(--line-200);
-    border-right: 1px solid var(--line-200);
-    box-shadow: var(--shadow-lg);
-  }
+  border-left: var(--edge) solid var(--line-200);
+  border-right: var(--edge) solid var(--line-200);
+  box-shadow: 0 0 calc(var(--edge) * 40px) rgba(43, 36, 32, 0.12);
 }
 
 .ds-label {

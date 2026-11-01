@@ -359,9 +359,9 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
 
   return (
     <VendorProvider coupleId={coupleId} onBudgetSync={() => setRefreshKeys((prev) => ({ ...prev, budget: prev.budget + 1 }))}>
-    <ConnectProvider coupleId={coupleId} role={role} isGuest={isGuest} onShowSignIn={onShowSignIn}>
     <div className="app-page">
       <div className="app-frame">
+      <ConnectProvider coupleId={coupleId} role={role} isGuest={isGuest} onShowSignIn={onShowSignIn}>
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           {isGuest && <SaveBanner onSignIn={onShowSignIn} />}
           {/* screen stack — all mounted, shown/hidden via opacity */}
@@ -397,9 +397,9 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
         />
 
         <Onboarding open={obOpen} onDone={handleObDone} />
+      </ConnectProvider>
       </div>
     </div>
-    </ConnectProvider>
     </VendorProvider>
   );
 }

@@ -88,9 +88,9 @@ export function InviteSheet({ coupleId, onClose }) {
       <div onClick={dismiss} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(43,36,32,0.38)',
         opacity: shown ? 1 : 0, transition: 'opacity .22s' }} />
       <div role="dialog" aria-modal="true" aria-label="Mời người ấy hoặc gia đình cùng xem"
-        style={{ position: 'fixed', left: '50%', bottom: 0, zIndex: 1001, width: '100%', maxWidth: 440, maxHeight: '88vh', overflowY: 'auto',
+        style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1001, maxHeight: '88vh', overflowY: 'auto',
           background: 'var(--paper)', borderRadius: '22px 22px 0 0', paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          transform: `translateX(-50%) translateY(${shown ? '0' : '105%'})`, transition: 'transform .3s cubic-bezier(.2,.7,.3,1)' }}>
+          transform: `translateY(${shown ? '0' : '105%'})`, transition: 'transform .3s cubic-bezier(.2,.7,.3,1)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--line-300)' }} />
         </div>
