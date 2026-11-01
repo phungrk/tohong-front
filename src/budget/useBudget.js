@@ -51,6 +51,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
     totalVarianceTr: 0,
     budgetUsedPct: 0,
   });
+  const [loaded, setLoaded] = useState(false); // đã nhận danh mục từ backend
   const saveTimer = useRef(null);
   // Keep a ref to latest meta so scheduleSave closure always has current values
   const metaRef = useRef(meta);
@@ -61,6 +62,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
     api.getBudget(coupleId)
       .then((data) => {
         if (data?.categories) {
+          setLoaded(true);
           setCats(data.categories.map(withMeta));
           setMeta({
             totalTr: Number(data.total_tr) || 0,
@@ -155,7 +157,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const itemsTotal = (c) => (c.items || []).reduce((s, it) => s + (it.amt || 0), 0);
 
   return {
-    cats, setCats, total, over,
+    cats, setCats, loaded, total, over,
     totalTarget: meta.totalTr,
     guests: meta.guests,
     mung: meta.mungTr,

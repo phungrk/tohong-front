@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { useHistoryLayer } from '../nav.js';
 import { ConnectContext, saveContact } from './connectContext.js';
 import { ConnectSheet } from './chat/ConnectSheet.jsx';
 
@@ -60,6 +61,7 @@ export function ConnectProvider({ coupleId, role, isGuest = false, onShowSignIn,
     track('vendor_connect_cancelled', connectProps(target));
     setTarget(null);
   };
+  useHistoryLayer(!!target, cancel);
 
   const submit = async ({ contact, note }) => {
     const res = await api.createConnectRequest(coupleId, {

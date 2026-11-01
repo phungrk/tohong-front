@@ -4,6 +4,7 @@ import { useConnect } from '../connectContext.js';
 import { AppChat } from './AppChat.jsx';
 import { api } from '../../api.js';
 import { track, startJourney, journeyDuration } from '../../analytics.js';
+import { useHistoryLayer } from '../../nav.js';
 
 export function ChatTabWrapper({
   coupleId = null,
@@ -14,6 +15,7 @@ export function ChatTabWrapper({
   onConversationChange,
   onConversationUpdated,
   hideHeader = false,
+  chatOpen = true,
 }) {
   const [overlay, setOverlay] = useState(null); // null | 'paywall' (kèm trạng thái chờ nếu đã có yêu cầu nâng cấp)
   const [upgrade, setUpgrade] = useState(null); // yêu cầu nâng cấp đang chờ: { plan, price_k, status }
@@ -22,6 +24,8 @@ export function ChatTabWrapper({
   const [trialExtended, setTrialExtended] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState('');
+  // Paywall là lớp trong chat: Back đóng paywall trước, chat còn mở. Chỉ tính khi chat đang mở.
+  useHistoryLayer(overlay === 'paywall' && chatOpen, () => setOverlay(null), { defer: true });
 
   useEffect(() => {
     if (overlay === 'paywall') {

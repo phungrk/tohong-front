@@ -11,6 +11,7 @@ import { PriceTag } from '../ui/PriceTag.jsx';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
 import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
+import { useHistoryLayer } from '../nav.js';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
 function ItemRow({ it, onAmt, onName, onRemove }) {
@@ -275,6 +276,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
 /* ── BudgetCatDetail ─────────────────────────────────────────── */
 function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpenAI }) {
   const [selectedVendorId, setSelectedVendorId] = useState(null);
+  useHistoryLayer(!!selectedVendorId, () => setSelectedVendorId(null));
   const { ensureVendorInfo, vendorInfoFor } = useConnect();
   const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
@@ -507,6 +509,7 @@ export function ScreenBudget({
   onOpenAI = () => {},
   openCatId = null,
   onOpenCat = () => {},
+  onCatMissing = () => {},
   onOpenVendorChat = () => {},
   refreshKey = 0,
 }) {
@@ -520,10 +523,11 @@ export function ScreenBudget({
     track('budget_viewed', { journey: 'budget' });
   }, []);
 
-  // Auto-back if cat was deleted
+  // Danh mục không còn (đã xoá, hoặc link sâu tới id không có). Chỉ xét khi dữ liệu đã về:
+  // lúc chưa tải xong cats rỗng, đóng ở đây sẽ làm hỏng link sâu.
   useEffect(() => {
-    if (openCatId && !bud.cats.find(c => c.id === openCatId)) onOpenCat(null);
-  }, [bud.cats, openCatId]);
+    if (bud.loaded && openCatId && !bud.cats.find(c => c.id === openCatId)) onCatMissing();
+  }, [bud.loaded, bud.cats, openCatId]);
 
   // IntersectionObserver for compact header
   useEffect(() => {
