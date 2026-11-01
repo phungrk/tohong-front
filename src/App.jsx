@@ -22,6 +22,11 @@ import { Onboarding } from './screens/Onboarding.jsx';
 import { VendorProvider } from './screens/VendorCtx.jsx';
 import { ConnectProvider } from './screens/ConnectCtx.jsx';
 import { SaveBanner } from './ui/SaveBanner.jsx';
+import { InstallHint } from './ui/InstallHint.jsx';
+import {
+  useRoute, useHistoryLayer, goTab, openCategory, closeSubpage,
+  dropMissingCategory, afterLayersClosed,
+} from './nav.js';
 
 /* ── shared micro-components ─────────────────────────────── */
 function IconButton({ label, children, onClick }) {
@@ -59,7 +64,7 @@ function BottomTabBar({ active, onSelect }) {
       {TAB_CONF.map((t) => {
         const on = active === t.idx;
         return (
-          <button key={t.id} onClick={() => onSelect(t.idx)} style={{ flex: 1, display: 'flex', flexDirection: 'column',
+          <button key={t.id} onClick={() => onSelect(t.idx)} aria-current={on ? 'page' : undefined} style={{ flex: 1, display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 2, padding: '9px 2px 5px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
             <Icon name={t.icon} size={23} color={on ? 'var(--son-500)' : 'var(--ink-400)'} sw={on ? 2.2 : 1.7} />
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: on ? 700 : 500,
@@ -126,7 +131,7 @@ function Drawer({ open, onClose, onNav, onNewChat, conversations, onOpenConversa
 
 /* ── root app ────────────────────────────────────────────── */
 export default function App({ isGuest = false, onShowSignIn } = {}) {
-  const [tab, setTab] = useState(0);
+  const { tab, catId: budgetOpenCatId } = useRoute();
   const [drawer, setDrawer] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiCtx, setAiCtx] = useState('home');
@@ -139,7 +144,6 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const [conversations, setConversations] = useState([]);
   const [refreshKeys, setRefreshKeys] = useState({ budget: 0, guests: 0, timeline: 0 });
   const [vendorSeed, setVendorSeed] = useState(null);
-  const [budgetOpenCatId, setBudgetOpenCatId] = useState(null);
   const [chatSession, setChatSession] = useState({
     conversationId: null,
     messages: null,
@@ -147,6 +151,9 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     error: '',
     version: 0,
   });
+
+  useHistoryLayer(drawer, () => setDrawer(false));
+  useHistoryLayer(aiOpen, () => setAiOpen(false));
 
   const openAI = useCallback((ctx) => {
     setAiCtx(ctx || CTX_BY_TAB[tab] || 'home');
@@ -282,7 +289,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   };
 
   const openConversation = async (convId) => {
-    setAiOpen(true);
+    // Lớp đang mở (ngăn kéo) đóng trước, rồi chat mở: tổng một bước, Back về trang trước lúc mở lớp.
+    afterLayersClosed(() => setAiOpen(true));
     setChatSession((current) => ({
       conversationId: convId,
       messages: null,
@@ -331,7 +339,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const navigate = (i) => {
     if (i === 1) { openAI(CTX_BY_TAB[tab] || 'home'); return; }
     track('tab_selected', { tab_index: i });
-    setTab(i);
+    goTab(i);
   };
 
   const ACTION_REFRESH_MAP = {
@@ -353,7 +361,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     <ScreenDashboard coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={setBudgetOpenCatId} onOpenVendorChat={openAIVendor} />,
+    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => (id ? openCategory(id) : closeSubpage())} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
   ];
 
@@ -373,6 +381,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
               </div>
             ))}
           </div>
+          <InstallHint suppressed={obOpen} />
           <BottomTabBar active={tab} onSelect={navigate} />
           <AIChatModal
             open={aiOpen}

@@ -699,3 +699,21 @@ textarea {
   color: var(--son-500);
   animation: vmCaret 0.9s steps(1) infinite;
 }
+
+/* Gợi ý cài app (T-030): nằm trong luồng, trên thanh tab */
+.install-hint {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--son-50);
+  border-top: 1px solid var(--son-200);
+  font-family: var(--font-ui);
+}
+.install-hint-title { display: block; font-size: 14px; font-weight: 700; color: var(--son-700); }
+.install-hint-text { margin: 4px 0 0; font-size: 13px; color: var(--ink-700); }
+.install-hint-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.install-hint-actions button {
+  min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font: 600 13px var(--font-ui);
+}
+.install-hint-primary { background: var(--son-500); color: #fff; border: none; }
+.install-hint-quiet { background: transparent; color: var(--ink-700); border: 1px solid var(--line-300); }

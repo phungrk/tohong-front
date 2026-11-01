@@ -5,6 +5,7 @@ import { Avatar } from '../ui/atoms.jsx';
 import { ListRow, SectionHeader, RowIcon, Amount } from '../ui/ListRow.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { useHistoryLayer } from '../nav.js';
 import { buildTemplate } from './checklistTemplates.js';
 
 const EMPTY_PHASES = [
@@ -313,6 +314,8 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
   const [wedding, setWedding] = useState({ date: null, daysLeft: null });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [taskSheetOpen, setTaskSheetOpen] = useState(false);
+  useHistoryLayer(sheetOpen, () => setSheetOpen(false));
+  useHistoryLayer(taskSheetOpen, () => setTaskSheetOpen(false));
   const saveTimer = useRef(null);
 
   const lastTime = rundown.length ? (rundown[rundown.length - 1].time ?? '13:30') : '13:30';

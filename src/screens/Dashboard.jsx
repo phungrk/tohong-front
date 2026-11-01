@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { useHistoryLayer } from '../nav.js';
 import { AIButton } from '../ui/AIButton.jsx';
 import { ThreadMark, Thread } from '../ui/atoms.jsx';
 import { OBCalendar } from './Onboarding.jsx';
@@ -30,6 +31,7 @@ function fmtDate(iso) {
 
 function DBCountdown({ data, onDateSave }) {
   const [editing, setEditing] = useState(false);
+  useHistoryLayer(editing, () => setEditing(false));
   const [saving, setSaving] = useState(false);
   const pct = data.totalDays > 0 ? Math.round((data.doneDays / data.totalDays) * 100) : 0;
   const canEdit = !!onDateSave;
@@ -183,6 +185,7 @@ function DBSkeleton() {
 export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
   const [data, setData] = useState(EMPTY);
   const [inviteOpen, setInviteOpen] = useState(false);
+  useHistoryLayer(inviteOpen, () => setInviteOpen(false));
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {

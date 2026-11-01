@@ -155,6 +155,7 @@ export function AIChatModal({
               onConversationChange={onConversationChange}
               onConversationUpdated={onConversationUpdated}
               hideHeader
+              chatOpen={open}
             />
           )}
         </div>
