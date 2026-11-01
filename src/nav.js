@@ -89,6 +89,7 @@ function onPop(e) {
     const layer = stack.pop();
     if (!layer.dead) { layer.dead = true; layer.close(); }
   }
+  emit();
   if (pending > 0) pending -= 1;
   if (pending === 0) { depth = stack.length; closingSub = false; }
   syncRoute();
@@ -129,6 +130,13 @@ function subscribe(fn) {
 function getRoute() {
   start();
   return route;
+}
+
+const getLayerCount = () => stack.length;
+
+/** Số lớp đang mở (để ẩn khối gợi ý cài khi có lớp phủ). */
+export function useLayerCount() {
+  return useSyncExternalStore(subscribe, getLayerCount, () => 0);
 }
 
 /** Trang hiện tại theo địa chỉ: { tab, catId }. */
@@ -198,6 +206,7 @@ function openLayer(close) {
     window.history.pushState({ th: 1, layers: stack.length + 1, idx: curIdx }, '', window.location.href);
     stack.push(layer);
     depth = stack.length;
+    emit();
   });
   return layer;
 }

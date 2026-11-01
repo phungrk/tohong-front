@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useLayerCount } from '../nav.js';
 import { track } from '../analytics.js';
 import {
   useInstallMode, installPlatform, turnOffInstallHint, promptInstall,
@@ -9,10 +10,16 @@ const TITLE = 'Thêm Tơ Hồng vào màn hình chính';
 // Khối nằm trong luồng bố cục, ngay trên thanh tab (không phủ lên màn nào).
 export function InstallHint({ suppressed = false }) {
   const mode = useInstallMode();
-  const visible = !suppressed && mode !== '';
+  const layers = useLayerCount();
+  // Có lớp phủ đang mở thì ẩn (ADR-011): khối trong luồng đẩy sheet lên, mất nút đóng ở màn thấp.
+  const visible = !suppressed && mode !== '' && layers === 0;
+  const shownRef = useRef(false);
 
   useEffect(() => {
-    if (visible) track('install_hint_shown', { platform: installPlatform() });
+    if (visible && !shownRef.current) {
+      shownRef.current = true;
+      track('install_hint_shown', { platform: installPlatform() });
+    }
   }, [visible]);
 
   if (!visible) return null;
