@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
+import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { INVITE_ROLES, isValidEmail } from '../journey.js';
 
 // Màn "Mời người ấy / gia đình cùng xem" (spec 003, US4). Chỉ owner mở được (Dashboard kiểm).
@@ -83,14 +84,16 @@ export function InviteSheet({ coupleId, onClose }) {
 
   const dismiss = () => { if (!busy) onClose(); }; // "Thôi": không gọi API, không sự kiện
 
+  useOutsideFrameDismiss(dismiss);
+
   return (
     <>
       <div onClick={dismiss} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(43,36,32,0.38)',
         opacity: shown ? 1 : 0, transition: 'opacity .22s' }} />
       <div role="dialog" aria-modal="true" aria-label="Mời người ấy hoặc gia đình cùng xem"
-        style={{ position: 'fixed', left: '50%', bottom: 0, zIndex: 1001, width: '100%', maxWidth: 440, maxHeight: '88vh', overflowY: 'auto',
+        style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1001, maxHeight: '88vh', overflowY: 'auto',
           background: 'var(--paper)', borderRadius: '22px 22px 0 0', paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          transform: `translateX(-50%) translateY(${shown ? '0' : '105%'})`, transition: 'transform .3s cubic-bezier(.2,.7,.3,1)' }}>
+          transform: `translateY(${shown ? '0' : '105%'})`, transition: 'transform .3s cubic-bezier(.2,.7,.3,1)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--line-300)' }} />
         </div>
