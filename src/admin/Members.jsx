@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { api } from '../api.js';
 import { Loading, ErrorNote } from './common.jsx';
 import { useLoad } from './useLoad.js';
+import { MemberList } from './MemberList.jsx';
 
 const REASON = {
   not_configured: 'Chưa cấu hình dịch vụ đăng nhập.',
@@ -90,6 +91,7 @@ export function Members() {
           </div>
         </>
       )}
+      <MemberList />
     </section>
   );
 }

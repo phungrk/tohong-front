@@ -190,6 +190,9 @@ export const api = {
   adminMe: () => req('GET', '/api/admin/me'),
   adminMembersSummary: ({ refresh } = {}) =>
     req('GET', `/api/admin/members-summary${refresh ? '?refresh=1' : ''}`),
+  // Danh sách thành viên (T-043): POST để từ khoá nằm trong thân, không vào URL. Vẫn là thao tác chỉ đọc.
+  adminMembersList: ({ page, size, q }) =>
+    req('POST', '/api/admin/members-list', { page, size, q }),
   adminAudit: ({ action, cursor, limit } = {}) => {
     const q = new URLSearchParams();
     if (action) q.set('action', action);
