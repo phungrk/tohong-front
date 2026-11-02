@@ -109,6 +109,8 @@ test('confirmedAmount/venueCost (T-045): nhà hàng = làm tròn lên số bàn 
   assert.equal(confirmedAmount('venue', { priceTotal: 3.9 }, 205), 82);     // 81.9
   assert.equal(confirmedAmount('venue', { priceTotal: 5, priceMax: 15 }, 100), 100); // điểm giữa 10
   assert.equal(confirmedAmount('venue', { priceTotal: 6 }, 230), 138);
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1 }, 150), 62);    // 61,5 đúng nửa: làm tròn lên
+  assert.equal(confirmedAmount('venue', { priceTotal: 2.3 }, 250), 58);    // 57,5
   assert.equal(venueCost({ priceTotal: 6 }, 205).tablesNote, 'Số bàn: 21');
   assert.equal(venueCost({ priceTotal: 6 }, 7).tables, 1);
 });

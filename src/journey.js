@@ -72,6 +72,11 @@ export function scaleToCategoryTotal(catId, amount, guests) {
 export const VENUE_NO_GUESTS = 'Chưa tính được: thiếu số khách';
 export const VENUE_NO_PRICE = 'Chưa tính được: vendor chưa có giá';
 
+// Làm tròn 0,5 lên trên SỐ NGUYÊN (giá quy ra phần nghìn triệu) để tránh sai số dấu phẩy động (150 x 4.1 = 61,5 không được ra 61).
+function roundTrFromMilli(tables, price) {
+  return Math.floor((tables * Math.round(price * 1000) + 500) / 1000);
+}
+
 export function venueCost(vendor, guests) {
   const g = Number(guests);
   if (!(Number.isInteger(g) && g > 0)) {
@@ -85,7 +90,7 @@ export function venueCost(vendor, guests) {
   if (!Number.isFinite(price) || price <= 0) {
     return { status: 'no-price', tables, amt: 0, reason: VENUE_NO_PRICE, tablesNote };
   }
-  return { status: 'ok', tables, amt: Math.round(tables * price), reason: null, tablesNote };
+  return { status: 'ok', tables, amt: roundTrFromMilli(tables, price), reason: null, tablesNote };
 }
 
 // Tiền chi lúc chốt vendor: venue theo số bàn (venueCost); hạng mục khác giữ nguyên (trung bình min/max).
