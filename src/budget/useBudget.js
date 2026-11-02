@@ -83,11 +83,11 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
     saveTimer.current = setTimeout(() => {
       const m = metaRef.current;
       // estimated_tr, variance_tr, state are read-only — backend computes them
-      const payload = newCats.map(({ id, name, allocated_tr, pct, priority, items }) => ({
-        id, name, allocated_tr, pct, priority,
-        items: (items || []).map(({ id: iid, name: iname, amt, status, vendor }) => ({
-          id: iid, name: iname, amt, status, vendor,
-        })),
+      // Giữ thứ tự trường như máy chủ trả về (chỉ lọc bỏ trường chỉ đọc), để lần lưu không làm đổi dữ liệu dùng chung ngoài phần người dùng sửa.
+      const pick = (o, keys) => Object.fromEntries(Object.keys(o).filter((k) => keys.includes(k)).map((k) => [k, o[k]]));
+      const payload = newCats.map((c) => ({
+        ...pick(c, ['id', 'name', 'allocated_tr', 'pct', 'priority']),
+        items: (c.items || []).map((it) => pick(it, ['id', 'name', 'amt', 'status', 'vendor'])),
       }));
       api.putBudget(coupleId, {
         categories: payload,

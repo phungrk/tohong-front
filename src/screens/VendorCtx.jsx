@@ -138,10 +138,11 @@ export function VendorProvider({ coupleId, onBudgetSync, children }) {
     return 'shortlisted';
   };
 
-  const getBudgetConfirmed = () =>
+  // guestsOverride: màn Ngân sách truyền số khách mới nhất của tài liệu ngân sách (guests của ctx chỉ tải một lần).
+  const getBudgetConfirmed = (guestsOverride) =>
     VENDOR_CATEGORIES.reduce((sum, cat) => {
       const vendor = saved[cat.id]?.confirmed;
-      return sum + (vendor ? confirmedAmount(cat.id, vendor, guests) : 0);
+      return sum + (vendor ? confirmedAmount(cat.id, vendor, guestsOverride ?? guests) : 0);
     }, 0);
 
   const getCatBudget = (catId) => budgetCats[catId] || 0;

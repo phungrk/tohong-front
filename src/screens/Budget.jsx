@@ -6,7 +6,7 @@ import { BaselineSlider } from '../components/BaselineSlider.jsx';
 import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
-import { priceBand } from '../journey.js';
+import { priceBand, venueCost } from '../journey.js';
 import { PriceTag } from '../ui/PriceTag.jsx';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
@@ -14,7 +14,7 @@ import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { useHistoryLayer } from '../nav.js';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
-function ItemRow({ it, onAmt, onName, onRemove }) {
+function ItemRow({ it, onAmt, onName, onRemove, venueItem = false, venueCalc = null }) {
   const [amtStr, setAmtStr] = useState(String(it.amt || 0));
   const amtRef = useRef(null);
   useEffect(() => { setAmtStr(String(it.amt || 0)); }, [it.amt]);
@@ -42,7 +42,23 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
         {it.vendor && it.status !== 'confirmed' && (
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--kim-600)', marginLeft: 7 }}>đang xem</span>
         )}
+        {venueItem && (
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>tính theo số bàn</div>
+        )}
       </div>
+      {venueItem ? (
+        // Khoản vendor nhà hàng: tiền chi do công thức số bàn quyết định, chỉ đọc.
+        venueCalc && venueCalc.status !== 'ok' ? (
+          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 12, color: 'var(--ink-500)', textAlign: 'right', maxWidth: '45%', flexShrink: 1 }}>{venueCalc.reason}</span>
+        ) : (
+          <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 12, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums' }}>
+              {venueCalc ? venueCalc.amt : (it.amt || 0)}
+            </span>
+            <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--ink-500)' }}>tr</span>
+          </span>
+        )
+      ) : (
       <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
         <input
           ref={amtRef}
@@ -63,6 +79,7 @@ function ItemRow({ it, onAmt, onName, onRemove }) {
         />
         <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--ink-500)' }}>tr</span>
       </span>
+      )}
       <button onClick={onRemove} title="Bỏ" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer',
         background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.55 }}>
         <Icon name="x" size={13} color="var(--ink-400)" />
@@ -285,9 +302,9 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
   const { basePct, base } = getCategoryBaseline(cat.id, bud.totalTarget || 0);
   const pct = bud.totalTarget > 0 ? Math.round(allocated / bud.totalTarget * 100) : 0;
   const diff = allocated - base;
-  const confirmedVendorAmt = catVendors.confirmed
-    ? (catVendors.confirmed.priceTotal ?? catVendors.confirmed.price ?? 0)
-    : 0;
+  // Nhà hàng tiệc cưới (mã `venue`): tiền chi theo số bàn của vendor đang chốt trên máy này.
+  const isVenue = cat.id === 'venue';
+  const venueCalc = isVenue && catVendors.confirmed ? venueCost(catVendors.confirmed, bud.guests) : null;
   const vendorStatus = isVendorCat ? vendorCtx?.getCatStatus?.(cat.id) : null;
   const items = cat.items || [];
 
@@ -366,6 +383,9 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
       {isVendorCat && (
         <div style={{ marginBottom: 14 }}>
           <div className="ds-label" style={{ margin: '0 2px 10px' }}>Vendor đã lưu · {catVendors.shortlisted.length}</div>
+          {venueCalc && (
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', margin: '-4px 2px 10px' }}>{venueCalc.tablesNote}</div>
+          )}
           {catVendors.shortlisted.length === 0 ? (
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--ink-400)', padding: '10px 0' }}>
               Chưa lưu vendor nào cho hạng mục này.
@@ -375,7 +395,10 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
               {catVendors.shortlisted.map((vendor) => {
                 const isConfirmed = confirmedVendorId === vendor.id;
                 const price = vendor.priceTotal ?? vendor.price ?? 0;
-                const diff = price - allocated;
+                // Vendor nhà hàng: so dự toán bằng tiền chi theo số bàn, không phải giá một bàn.
+                const vCalc = isVenue ? venueCost(vendor, bud.guests) : null;
+                const spend = vCalc ? (vCalc.status === 'ok' ? vCalc.amt : 0) : price;
+                const diff = spend - allocated;
                 const info = vendorInfoFor(vendor.id);
                 return (
                   <div key={vendor.id} style={{ background: 'var(--card)', border: '1px solid var(--line-100)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center' }}>
@@ -403,7 +426,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                             Không còn nhận đặt
                           </div>
                         )}
-                        {price > 0 && allocated > 0 && (
+                        {spend > 0 && allocated > 0 && (
                           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
                             {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
                           </div>
@@ -452,6 +475,8 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
             <div key={it.id} style={{ borderBottom: i === items.length - 1 ? 'none' : '1px solid var(--line-100)' }}>
               <ItemRow
                 it={it}
+                venueItem={isVenue && !!it.vendor}
+                venueCalc={isVenue && it.vendor && catVendors.confirmed && it.id === `vendor_${catVendors.confirmed.id}` ? venueCalc : null}
                 onAmt={(v) => bud.setItemAmt(cat.id, it.id, v)}
                 onName={(n) => bud.renameItem(cat.id, it.id, n)}
                 onRemove={() => bud.removeItem(cat.id, it.id)}
@@ -515,9 +540,22 @@ export function ScreenBudget({
 }) {
   const bud = useBudget(coupleId, [], refreshKey);
   const vendorCtx = useVendorCtx();
-  const confirmedTotal = vendorCtx?.getBudgetConfirmed?.() ?? 0;
+  const confirmedTotal = vendorCtx?.getBudgetConfirmed?.(bud.loaded ? bud.guests : undefined) ?? 0;
   const [compact, setCompact] = useState(false);
   const totalCardRef = useRef(null);
+
+  // Đổi số khách sau khi chốt nhà hàng: chỉ sửa `amt` của MỘT khoản đã có (id vendor_<id vendor đang chốt trên máy này>),
+  // không thêm, không xoá, không đụng khoản khác. Đi qua setItemAmt nên bản trong bộ nhớ có amt mới trước lần tự lưu 800ms đầu tiên.
+  // Thiếu số khách/giá (không có số tính được) thì không ghi gì.
+  const venueConfirmed = vendorCtx?.saved?.venue?.confirmed || null;
+  const { loaded: budLoaded, guests: budGuests, cats: budCats, setItemAmt } = bud;
+  useEffect(() => {
+    if (!budLoaded || !venueConfirmed) return;
+    const calc = venueCost(venueConfirmed, budGuests);
+    if (calc.status !== 'ok') return;
+    const it = budCats.find((c) => c.id === 'venue')?.items?.find((i) => i.id === `vendor_${venueConfirmed.id}`);
+    if (it && it.amt !== calc.amt) setItemAmt('venue', it.id, calc.amt);
+  }, [budLoaded, budGuests, budCats, venueConfirmed, setItemAmt]);
 
   useEffect(() => {
     track('budget_viewed', { journey: 'budget' });
@@ -653,7 +691,9 @@ export function ScreenBudget({
               const confirmedVendor = catSaved?.confirmed || null;
               const shortlistCount = catSaved?.shortlisted?.length || 0;
               const vendorConfirmed = !!confirmedVendor;
-              const vendorPrice = confirmedVendor ? (confirmedVendor.priceTotal ?? confirmedVendor.price ?? 0) : 0;
+              // Nhà hàng (mã `venue`): tiền chi theo số bàn; thiếu dữ liệu thì không hiện số.
+              const venueCalc = cat.id === 'venue' && confirmedVendor ? venueCost(confirmedVendor, bud.guests) : null;
+              const vendorPrice = venueCalc ? venueCalc.amt : (confirmedVendor ? (confirmedVendor.priceTotal ?? confirmedVendor.price ?? 0) : 0);
               const over = vendorConfirmed && vendorPrice > allocated;
 
               let subText;
@@ -694,12 +734,18 @@ export function ScreenBudget({
                       <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, fontWeight: 400, lineHeight: 1.4, textWrap: 'pretty', color: subColor, minWidth: 0 }}>
                         {subText}
                       </span>
+                      {venueCalc && venueCalc.status !== 'ok' && (
+                        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-500)', textAlign: 'right', maxWidth: '55%' }}>{venueCalc.reason}</span>
+                      )}
                       {vendorConfirmed && vendorPrice > 0 && (
                         <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500, color: over ? 'var(--danger-500)' : 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
                           {vendorPrice}<span style={{ fontSize: 12 }}>tr</span>
                         </span>
                       )}
                     </div>
+                    {venueCalc && (
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 2 }}>{venueCalc.tablesNote}</div>
+                    )}
                   </div>
 
                   <div style={{ alignSelf: 'center', display: 'flex', flexShrink: 0 }}>
