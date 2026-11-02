@@ -72,9 +72,28 @@ export function scaleToCategoryTotal(catId, amount, guests) {
 export const VENUE_NO_GUESTS = 'Chưa tính được: thiếu số khách';
 export const VENUE_NO_PRICE = 'Chưa tính được: vendor chưa có giá';
 
-// Làm tròn 0,5 lên trên SỐ NGUYÊN (giá quy ra phần nghìn triệu) để tránh sai số dấu phẩy động (150 x 4.1 = 61,5 không được ra 61).
-function roundTrFromMilli(tables, price) {
-  return Math.floor((tables * Math.round(price * 1000) + 500) / 1000);
+// Số thập phân chính xác theo chữ số thật của giá (từ chuỗi), dạng { n, d } = n / d với BigInt. Không dùng dấu phẩy động.
+function toDecimal(x) {
+  let str = String(x);
+  if (/e/i.test(str)) str = Number(x).toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+  const neg = str.startsWith('-');
+  const [i, f = ''] = str.replace('-', '').split('.');
+  const n = BigInt(i + f);
+  return { n: neg ? -n : n, d: 10n ** BigInt(f.length) };
+}
+
+// tables x giá, giá = min hoặc điểm giữa (min+max)/2 tính chính xác; làm tròn 0,5 lên đúng MỘT lần ở cuối, trên số nguyên.
+function roundTr(tables, min, max) {
+  const a = toDecimal(min);
+  let num = a.n, den = a.d;
+  if (max != null) {
+    const b = toDecimal(max);
+    const d = a.d * b.d;
+    num = a.n * b.d + b.n * a.d;   // tổng chính xác
+    den = 2n * d;                   // rồi chia đôi
+  }
+  const total = BigInt(tables) * num;
+  return Number((2n * total + den) / (2n * den));
 }
 
 export function venueCost(vendor, guests) {
@@ -90,7 +109,7 @@ export function venueCost(vendor, guests) {
   if (!Number.isFinite(price) || price <= 0) {
     return { status: 'no-price', tables, amt: 0, reason: VENUE_NO_PRICE, tablesNote };
   }
-  return { status: 'ok', tables, amt: roundTrFromMilli(tables, price), reason: null, tablesNote };
+  return { status: 'ok', tables, amt: roundTr(tables, min, hasMax ? vendor.priceMax : null), reason: null, tablesNote };
 }
 
 // Tiền chi lúc chốt vendor: venue theo số bàn (venueCost); hạng mục khác giữ nguyên (trung bình min/max).

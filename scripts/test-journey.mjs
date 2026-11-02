@@ -111,6 +111,11 @@ test('confirmedAmount/venueCost (T-045): nhà hàng = làm tròn lên số bàn 
   assert.equal(confirmedAmount('venue', { priceTotal: 6 }, 230), 138);
   assert.equal(confirmedAmount('venue', { priceTotal: 4.1 }, 150), 62);    // 61,5 đúng nửa: làm tròn lên
   assert.equal(confirmedAmount('venue', { priceTotal: 2.3 }, 250), 58);    // 57,5
+  // adv-02: không làm tròn giá trung gian, điểm giữa chính xác
+  assert.equal(confirmedAmount('venue', { priceTotal: 3, priceMax: 3.025 }, 390), 117); // 117,4875
+  assert.equal(confirmedAmount('venue', { priceTotal: 3.0125 }, 390), 117);              // 117,4875
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1666 }, 30), 12);                // 12,4998
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1 }, 150), 62);
   assert.equal(venueCost({ priceTotal: 6 }, 205).tablesNote, 'Số bàn: 21');
   assert.equal(venueCost({ priceTotal: 6 }, 7).tables, 1);
 });
