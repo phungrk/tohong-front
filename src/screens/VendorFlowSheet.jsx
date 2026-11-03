@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { useHistoryLayer } from '../nav.js';
+import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 
 /* ── Steps config ─────────────────────────────────────────────
    Lưu → Chốt → Vào ngân sách */
@@ -34,45 +36,73 @@ const FLOW_STEPS = [
   },
 ];
 
+/* Bản dùng ở chi tiết hạng mục ngân sách (T-050): chữ đúng spec T-048, không chip, không số minh hoạ. */
+const BUDGET_STEP_DESC = {
+  2: 'Lưu những vendor ưng ý vào từng hạng mục. Vendor đã lưu nằm trong mục Vendor đã lưu của hạng mục đó.',
+  3: 'Khi đã quyết định, bấm Chốt trên vendor đó. Mỗi hạng mục chỉ chốt một vendor.',
+  4: 'Vendor vừa chốt được tính vào chi phí của hạng mục này và vào tổng Đã chốt của ngân sách.',
+};
+
 /* ── VFlowOverview — compact 1-row card at top of vendor list ── */
-export function VFlowOverview({ onOpen }) {
+export function VFlowOverview({ onOpen, buttonOnly = false, triggerRef }) {
+  const Root = buttonOnly ? 'div' : 'button';
+  const rootProps = buttonOnly ? {} : { type: 'button', onClick: onOpen };
+  const Title = buttonOnly ? 'h2' : 'span';
+  const Steps = buttonOnly ? 'ul' : 'div';
   return (
-    <button type="button" onClick={onOpen}
-      style={{ width: '100%', textAlign: 'left', cursor: 'pointer',
+    <Root {...rootProps}
+      style={{ display: 'block', width: '100%', boxSizing: 'border-box', textAlign: 'left', cursor: buttonOnly ? 'default' : 'pointer',
         background: 'var(--card)', border: '1px solid var(--line-100)',
         borderRadius: 'var(--r-lg)', padding: '13px 14px 12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-        <Icon name="info" size={14} color="var(--son-400)" sw={1.8} />
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-600)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: buttonOnly ? 6 : 12 }}>
+        <Icon name="info" size={14} color="var(--son-400)" sw={1.8} aria-hidden="true" />
+        <Title style={{ margin: 0, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-600)' }}>
           Cách hoạt động
-        </span>
-        <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 2,
-          fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-500)' }}>
-          Chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
-        </span>
+        </Title>
+        {buttonOnly ? (
+          <button type="button" ref={triggerRef} onClick={onOpen}
+            style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 2,
+              minWidth: 32, minHeight: 32, padding: '0 0 0 8px', background: 'transparent', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-500)' }}>
+            Chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} aria-hidden="true" />
+          </button>
+        ) : (
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 2,
+            fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--son-500)' }}>
+            Chi tiết <Icon name="chevron-right" size={13} color="var(--son-500)" sw={2} />
+          </span>
+        )}
       </div>
-      {/* 3 steps: icon tròn trên, text xuống hàng dưới; nối bằng thread nét đứt */}
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-        {FLOW_STEPS.map((s, i) => (
-          <div key={s.n} style={{ display: 'contents' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 58 }}>
-              <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name={s.icon} size={15} color="#fff" sw={2} />
-              </span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-                color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
-                {s.label}
-              </span>
-            </div>
-            {i < FLOW_STEPS.length - 1 && (
-              <span style={{ flex: 1, height: 0, margin: '14px 3px 0',
-                borderTop: '1.5px dashed var(--son-300)' }} />
-            )}
-          </div>
-        ))}
-      </div>
-    </button>
+      {/* 4 steps: icon tròn trên, text xuống hàng dưới; nối bằng thread nét đứt */}
+      <Steps style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', margin: 0, padding: 0 }}>
+        {FLOW_STEPS.map((s, i) => {
+          const last = i === FLOW_STEPS.length - 1;
+          const body = (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 58 }}>
+                <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                  background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name={s.icon} size={15} color={buttonOnly ? 'var(--white)' : '#fff'} sw={2} aria-hidden="true" />
+                </span>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+                  color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
+                  {s.label}
+                </span>
+              </div>
+              {!last && (
+                <span aria-hidden="true" style={{ flex: 1, height: 0, margin: '14px 3px 0',
+                  borderTop: '1.5px dashed var(--son-300)' }} />
+              )}
+            </>
+          );
+          return buttonOnly ? (
+            <li key={s.n} style={{ display: 'flex', flex: last ? '0 0 58px' : '1 1 0', minWidth: 0 }}>{body}</li>
+          ) : (
+            <div key={s.n} style={{ display: 'contents' }}>{body}</div>
+          );
+        })}
+      </Steps>
+    </Root>
   );
 }
 
@@ -92,7 +122,25 @@ function FlowChip({ chip }) {
 }
 
 /* ── VendorFlowSheet — bottom-sheet chi tiết ──────────────────── */
-export function VendorFlowSheet({ open, onClose }) {
+export function VendorFlowSheet({ open, onClose, dialog = false, returnFocusRef }) {
+  // Chế độ dialog (chi tiết hạng mục ngân sách): role dialog, Escape, Back, chạm ngoài khung, trả focus.
+  useHistoryLayer(dialog && open, onClose);
+  useOutsideFrameDismiss(onClose, dialog && open);
+  const dialogRef = useRef(null);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (!dialog) return undefined;
+    if (open) {
+      wasOpen.current = true;
+      dialogRef.current?.focus();
+      const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
+      document.addEventListener('keydown', onKey);
+      return () => document.removeEventListener('keydown', onKey);
+    }
+    if (wasOpen.current) { wasOpen.current = false; returnFocusRef?.current?.focus(); }
+    return undefined;
+  }, [open, dialog]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // animate budget bar khi open (chỉ minh hoạ)
   const [anim, setAnim] = useState(false);
   useEffect(() => {
@@ -103,11 +151,14 @@ export function VendorFlowSheet({ open, onClose }) {
   const confirmedTr = 235, totalTr = 500;
   const pct = anim ? (confirmedTr / totalTr) * 100 : 0;
 
+  if (dialog && !open) return null;
+
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 320, pointerEvents: open ? 'all' : 'none' }}>
+    <div style={{ position: dialog ? 'fixed' : 'absolute', inset: 0, zIndex: 320, pointerEvents: open ? 'all' : 'none' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.42)',
         opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
+      <div ref={dialogRef} {...(dialog ? { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Cách hoạt động', tabIndex: -1 } : {})}
+        style={{ outline: 'none', position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
         borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 40px rgba(80,50,40,0.18)',
         transform: open ? 'translateY(0)' : 'translateY(104%)', opacity: open ? 1 : 0,
         transition: 'transform .28s cubic-bezier(.2,.7,.3,1), opacity .28s ease',
@@ -125,12 +176,12 @@ export function VendorFlowSheet({ open, onClose }) {
                 Cách hoạt động
               </div>
               <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
-                Lưu → Chốt → Vào ngân sách
+                {dialog ? 'Tìm → Lưu → Chốt → Vào ngân sách' : 'Lưu → Chốt → Vào ngân sách'}
               </div>
             </div>
-            <button type="button" onClick={onClose} style={{ flexShrink: 0, padding: 6, background: 'transparent',
+            <button type="button" onClick={onClose} aria-label="Đóng" style={{ flexShrink: 0, padding: 6, background: 'transparent',
               border: 'none', cursor: 'pointer', color: 'var(--ink-300)' }}>
-              <Icon name="x" size={20} color="var(--ink-400)" sw={2} />
+              <Icon name="x" size={20} color="var(--ink-400)" sw={2} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -156,12 +207,12 @@ export function VendorFlowSheet({ open, onClose }) {
                   {s.title}
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-500)', lineHeight: 1.5, marginTop: 3 }}>
-                  {s.desc}{s.chip && ' '}
-                  {s.chip && <FlowChip chip={s.chip} />}
-                  {s.chip && '.'}
+                  {dialog ? (BUDGET_STEP_DESC[s.n] || s.desc) : s.desc}{!dialog && s.chip && ' '}
+                  {!dialog && s.chip && <FlowChip chip={s.chip} />}
+                  {!dialog && s.chip && '.'}
                 </div>
                 {/* budget bar minh hoạ ở bước cuối */}
-                {s.n === 4 && (
+                {s.n === 4 && !dialog && (
                   <div style={{ marginTop: 10, background: 'var(--card)', border: '1px solid var(--line-100)',
                     borderRadius: 'var(--r-md,10px)', padding: '11px 13px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>

@@ -12,6 +12,7 @@ import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
 import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { useHistoryLayer } from '../nav.js';
+import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
 function ItemRow({ it, onAmt, onName, onRemove, venueItem = false, venueCalc = null }) {
@@ -294,6 +295,8 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
 function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpenAI }) {
   const [selectedVendorId, setSelectedVendorId] = useState(null);
   useHistoryLayer(!!selectedVendorId, () => setSelectedVendorId(null));
+  const [flowOpen, setFlowOpen] = useState(false);
+  const flowBtnRef = useRef(null);
   const { ensureVendorInfo, vendorInfoFor } = useConnect();
   const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
@@ -378,6 +381,14 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           </button>
         </div>
       </div>
+
+      {/* Cách hoạt động (T-048): chỉ hạng mục có mục Vendor đã lưu */}
+      {isVendorCat && (
+        <div style={{ marginBottom: 14 }}>
+          <VFlowOverview buttonOnly triggerRef={flowBtnRef} onOpen={() => setFlowOpen(true)} />
+          <VendorFlowSheet dialog open={flowOpen} onClose={() => setFlowOpen(false)} returnFocusRef={flowBtnRef} />
+        </div>
+      )}
 
       {/* Vendor section */}
       {isVendorCat && (
