@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   monthsToWeddingBucket, budgetBucket, guestsBucket, buildCommonProps,
-  GUESTS_PER_TABLE, scaleToCategoryTotal, confirmedAmount, priceBand,
+  GUESTS_PER_TABLE, scaleToCategoryTotal, confirmedAmount, priceBand, venueCost,
   isProfileComplete, missingProfileFields, profileEventDecision,
   hasGfmTable, detectPlan, onceFlag, hasFlag, setFlag, profileFlagKey, planFlagKey,
   safeIntentLabel, safeDomains, isValidEmail, INVITE_ROLES,
@@ -81,28 +81,62 @@ test('buildCommonProps: thiếu context → unknown, không ném lỗi', () => {
 
 /* ── quy đổi giá + priceBand ─────────────────────────────── */
 
-test('confirmedAmount: kết quả giống công thức cũ của VendorCtx', () => {
-  const legacy = (catId, vendor, guests) => {
+test('confirmedAmount: hạng mục khác nhà hàng giữ công thức cũ (trung bình min/max, không nhân bàn)', () => {
+  const legacy = (vendor) => {
     const min = vendor.priceTotal ?? vendor.price ?? 0;
-    const avg = vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
-    if (catId !== 'venue') return avg;
-    const g = Number(guests) || 0;
-    return g > 0 ? Math.round((avg / 10) * g) : avg;
+    return vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
   };
   const vendors = [
     { priceTotal: 6 }, { priceTotal: 6, priceMax: 9 }, { price: 12 }, { priceTotal: 0 }, {},
     { priceTotal: 7.3, priceMax: 8.1 }, { priceTotal: 5, priceMax: null },
   ];
-  for (const catId of ['venue', 'photography', 'decor']) {
+  for (const catId of ['photography', 'decor']) {
     for (const v of vendors) {
-      for (const g of [0, undefined, null, '', 'x', 50, 123, '200']) {
-        assert.equal(confirmedAmount(catId, v, g), legacy(catId, v, g), `${catId} ${JSON.stringify(v)} ${g}`);
+      for (const g of [0, undefined, 50, 123, '200']) {
+        assert.equal(confirmedAmount(catId, v, g), legacy(v), `${catId} ${JSON.stringify(v)} ${g}`);
       }
     }
   }
   assert.equal(GUESTS_PER_TABLE, 10);
   assert.equal(scaleToCategoryTotal('venue', 6, 200), 120);
   assert.equal(scaleToCategoryTotal('photography', 6, 200), 6);
+});
+
+test('confirmedAmount/venueCost (T-045): nhà hàng = làm tròn lên số bàn x giá, làm tròn một lần', () => {
+  assert.equal(confirmedAmount('venue', { priceTotal: 6 }, 205), 126);      // 21 bàn
+  assert.equal(confirmedAmount('venue', { priceTotal: 6 }, 201), 126);      // 21 bàn
+  assert.equal(confirmedAmount('venue', { priceTotal: 3.9 }, 200), 78);     // 20 bàn
+  assert.equal(confirmedAmount('venue', { priceTotal: 3.9 }, 205), 82);     // 81.9
+  assert.equal(confirmedAmount('venue', { priceTotal: 5, priceMax: 15 }, 100), 100); // điểm giữa 10
+  assert.equal(confirmedAmount('venue', { priceTotal: 6 }, 230), 138);
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1 }, 150), 62);    // 61,5 đúng nửa: làm tròn lên
+  assert.equal(confirmedAmount('venue', { priceTotal: 2.3 }, 250), 58);    // 57,5
+  // adv-02: không làm tròn giá trung gian, điểm giữa chính xác
+  assert.equal(confirmedAmount('venue', { priceTotal: 3, priceMax: 3.025 }, 390), 117); // 117,4875
+  assert.equal(confirmedAmount('venue', { priceTotal: 3.0125 }, 390), 117);              // 117,4875
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1666 }, 30), 12);                // 12,4998
+  assert.equal(confirmedAmount('venue', { priceTotal: 4.1 }, 150), 62);
+  assert.equal(venueCost({ priceTotal: 6 }, 205).tablesNote, 'Số bàn: 21');
+  assert.equal(venueCost({ priceTotal: 6 }, 7).tables, 1);
+});
+
+test('venueCost (T-045): thiếu số khách hoặc giá thì không đoán, amt = 0, có lý do', () => {
+  for (const g of [0, undefined, null, '', 'x', -5, 20.5, NaN]) {
+    const c = venueCost({ priceTotal: 6 }, g);
+    assert.equal(c.status, 'no-guests', String(g));
+    assert.equal(c.amt, 0);
+    assert.equal(c.reason, 'Chưa tính được: thiếu số khách');
+    assert.equal(c.tablesNote, 'Số bàn: chưa có số khách');
+    assert.equal(confirmedAmount('venue', { priceTotal: 6 }, g), 0);
+  }
+  for (const v of [{ priceTotal: 0 }, {}, { priceTotal: 'x' }]) {
+    const c = venueCost(v, 205);
+    assert.equal(c.status, 'no-price');
+    assert.equal(c.amt, 0);
+    assert.equal(c.reason, 'Chưa tính được: vendor chưa có giá');
+    assert.equal(c.tablesNote, 'Số bàn: 21');
+  }
+  assert.equal(venueCost({}, 0).status, 'no-guests'); // thiếu cả hai: lý do thiếu số khách
 });
 
 test('priceBand: thiếu ngân sách hoặc giá → unknown', () => {

@@ -66,11 +66,57 @@ export function scaleToCategoryTotal(catId, amount, guests) {
   return g > 0 ? Math.round((amount / GUESTS_PER_TABLE) * g) : amount;
 }
 
-// Giữ nguyên hành vi cũ của confirmedAmount (VendorCtx): trung bình min/max rồi quy đổi.
+// Nhà hàng tiệc cưới (hạng mục `venue`): tiền chi = số bàn x giá một bàn.
+// Số bàn = làm tròn LÊN (số khách / 10). Giá là khoảng thì lấy điểm giữa. Chỉ làm tròn MỘT lần ở bước cuối.
+// Thiếu số khách (không phải số nguyên dương) hoặc thiếu giá: không đoán, amt = 0 và có lý do.
+export const VENUE_NO_GUESTS = 'Chưa tính được: thiếu số khách';
+export const VENUE_NO_PRICE = 'Chưa tính được: vendor chưa có giá';
+
+// Số thập phân chính xác theo chữ số thật của giá (từ chuỗi), dạng { n, d } = n / d với BigInt. Không dùng dấu phẩy động.
+function toDecimal(x) {
+  let str = String(x);
+  if (/e/i.test(str)) str = Number(x).toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+  const neg = str.startsWith('-');
+  const [i, f = ''] = str.replace('-', '').split('.');
+  const n = BigInt(i + f);
+  return { n: neg ? -n : n, d: 10n ** BigInt(f.length) };
+}
+
+// tables x giá, giá = min hoặc điểm giữa (min+max)/2 tính chính xác; làm tròn 0,5 lên đúng MỘT lần ở cuối, trên số nguyên.
+function roundTr(tables, min, max) {
+  const a = toDecimal(min);
+  let num = a.n, den = a.d;
+  if (max != null) {
+    const b = toDecimal(max);
+    const d = a.d * b.d;
+    num = a.n * b.d + b.n * a.d;   // tổng chính xác
+    den = 2n * d;                   // rồi chia đôi
+  }
+  const total = BigInt(tables) * num;
+  return Number((2n * total + den) / (2n * den));
+}
+
+export function venueCost(vendor, guests) {
+  const g = Number(guests);
+  if (!(Number.isInteger(g) && g > 0)) {
+    return { status: 'no-guests', tables: null, amt: 0, reason: VENUE_NO_GUESTS, tablesNote: 'Số bàn: chưa có số khách' };
+  }
+  const tables = Math.ceil(g / GUESTS_PER_TABLE);
+  const tablesNote = `Số bàn: ${tables}`;
+  const min = Number(vendor?.priceTotal ?? vendor?.price ?? 0);
+  const hasMax = vendor?.priceMax != null;
+  const price = hasMax ? (min + Number(vendor.priceMax)) / 2 : min;
+  if (!Number.isFinite(price) || price <= 0) {
+    return { status: 'no-price', tables, amt: 0, reason: VENUE_NO_PRICE, tablesNote };
+  }
+  return { status: 'ok', tables, amt: roundTr(tables, min, hasMax ? vendor.priceMax : null), reason: null, tablesNote };
+}
+
+// Tiền chi lúc chốt vendor: venue theo số bàn (venueCost); hạng mục khác giữ nguyên (trung bình min/max).
 export function confirmedAmount(catId, vendor, guests) {
+  if (catId === 'venue') return venueCost(vendor, guests).amt;
   const min = vendor.priceTotal ?? vendor.price ?? 0;
-  const avg = vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
-  return scaleToCategoryTotal(catId, avg, guests);
+  return vendor.priceMax != null ? (min + vendor.priceMax) / 2 : min;
 }
 
 // Nhóm giá vendor so với ngân sách hạng mục (R9). allocatedTr là MỘT SỐ (triệu); 0/thiếu → unknown.
