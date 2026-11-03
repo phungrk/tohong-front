@@ -79,13 +79,14 @@ export function VFlowOverview({ onOpen, buttonOnly = false, triggerRef }) {
           const last = i === FLOW_STEPS.length - 1;
           const body = (
             <>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: 58 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0, width: buttonOnly ? 28 : 58 }}>
                 <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                   background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon name={s.icon} size={15} color={buttonOnly ? 'var(--white)' : '#fff'} sw={2} aria-hidden="true" />
                 </span>
                 <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-                  color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25 }}>
+                  color: 'var(--ink-700)', textAlign: 'center', lineHeight: 1.25,
+                  ...(buttonOnly ? { flexShrink: 0, width: 58 } : {}) }}>
                   {s.label}
                 </span>
               </div>
@@ -96,7 +97,7 @@ export function VFlowOverview({ onOpen, buttonOnly = false, triggerRef }) {
             </>
           );
           return buttonOnly ? (
-            <li key={s.n} style={{ display: 'flex', flex: last ? '0 0 58px' : '1 1 0', minWidth: 0 }}>{body}</li>
+            <li key={s.n} style={{ display: 'flex', flex: last ? '0 0 28px' : '1 1 0', minWidth: 0 }}>{body}</li>
           ) : (
             <div key={s.n} style={{ display: 'contents' }}>{body}</div>
           );
