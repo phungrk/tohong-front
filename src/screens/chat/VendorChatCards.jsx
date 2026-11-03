@@ -8,27 +8,21 @@ import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
 import { PriceTag } from '../../ui/PriceTag.jsx';
+import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg } from '../../vendorImageUrls.js';
+import { useVendorBackgrounds } from '../../vendorImages.js';
 
 const VCMP_MAX = 5; // anchor + tối đa 4 vendor khác trong bảng so sánh
 
 export const ChatActionsCtx = createContext({ pushUser: () => {}, pushAI: () => {} });
 export const useChatActions = () => useContext(ChatActionsCtx);
 
-/* Gradient fallback theo danh mục khi vendor không có ảnh. */
-const CAT_FALLBACK_GRAD = {
-  venue: 'linear-gradient(135deg,#c9907a,#9a5b4a)',
-  photography: 'linear-gradient(135deg,#7a9ab5,#4a6a85)',
-  decor: 'linear-gradient(135deg,#e0b0a0,#c08070)',
-  attire: 'linear-gradient(135deg,#e0c0b0,#c09070)',
-};
-
 /* Map vendor từ API (/api/vendors/match) → shape mà các card + luồng save/budget dùng. */
 function adaptVendor(bv, catId) {
   const bk = bv.match?.scoreBreakdown || {};
   const photoUrls = (bv.photos || []).map((p) => p.url).filter(Boolean);
-  const fallbackGrad = CAT_FALLBACK_GRAD[catId] || 'linear-gradient(135deg,#d4a0a0,#a06060)';
+  const fallbackGrad = CAT_FALLBACK_GRAD[catId] || GENERIC_FALLBACK_GRAD;
   const gallery = photoUrls.length
-    ? photoUrls.map((url) => `center/cover no-repeat url("${url}")`)
+    ? photoUrls.map(cssBg)
     : [fallbackGrad];
   const spec = bv.spec || (bv.tags || []).slice(0, 2).join(' · ');
   return {
@@ -209,6 +203,7 @@ export function VMatchChatCard({ catId }) {
   const listTrackedRef = useRef(false);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
+  const { bgOf } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
 
   useEffect(() => {
     let alive = true;
@@ -308,7 +303,7 @@ export function VMatchChatCard({ catId }) {
                   <div style={{ display: 'flex', gap: 11, alignItems: 'stretch' }}>
                     {/* thumbnail — tim nổi góc phải-trên, thứ hạng góc trái-trên */}
                     <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
-                      borderRadius: 'var(--r-sm)', background: v.grad, position: 'relative', overflow: 'hidden' }}>
+                      borderRadius: 'var(--r-sm)', background: bgOf(v), position: 'relative', overflow: 'hidden' }}>
                       <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
                         color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
                         fontFamily: 'var(--font-ui)' }}>#{rank}</span>
@@ -480,6 +475,7 @@ export function VDetailChatCard({ catId, vendor }) {
   // whyLoading: dimm template + caret trong lúc chờ AI.
   const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
   const [hidden, setHidden] = useState(false); // admin vừa ẩn vendor này → "không còn nhận đặt"
+  const { galleryOf } = useVendorBackgrounds([vendor], catId);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
@@ -522,7 +518,8 @@ export function VDetailChatCard({ catId, vendor }) {
 
   if (!cat || !vendor) return null;
 
-  const gallery = vendor.gallery?.length ? vendor.gallery : [vendor.grad];
+  const gallery = galleryOf(vendor); // chỉ ảnh tải được; hết ảnh thì 1 ảnh mặc định (không chấm chuyển ảnh)
+  const galShow = Math.min(galIdx, gallery.length - 1);
 
   const onSave = () => {
     saveVendor(catId, vendor, 'detail');
@@ -543,7 +540,7 @@ export function VDetailChatCard({ catId, vendor }) {
 
         {/* 1. Gallery — ảnh thật (1–4 ảnh tuỳ vendor) hoặc gradient fallback */}
         <div style={{ height: 150, position: 'relative', flexShrink: 0, overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, background: gallery[galIdx], transition: 'background .25s ease' }} />
+          <div style={{ position: 'absolute', inset: 0, background: gallery[galShow], transition: 'background .25s ease' }} />
           <button type="button" onClick={onSave} disabled={isSaved} style={{ position: 'absolute', top: 9, right: 9,
             width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: isSaved ? 'default' : 'pointer',
             background: isSaved ? 'var(--son-500)' : 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
@@ -554,8 +551,8 @@ export function VDetailChatCard({ catId, vendor }) {
             <div style={{ position: 'absolute', bottom: 9, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 5 }}>
               {gallery.map((_, i) => (
                 <button key={i} type="button" onClick={() => setGalIdx(i)} style={{ height: 6, borderRadius: 999, border: 'none',
-                  cursor: 'pointer', padding: 0, width: i === galIdx ? 20 : 6,
-                  background: i === galIdx ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'width .2s ease' }} />
+                  cursor: 'pointer', padding: 0, width: i === galShow ? 20 : 6,
+                  background: i === galShow ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'width .2s ease' }} />
               ))}
             </div>
           )}
@@ -702,6 +699,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
   const [error, setError] = useState(false);
   const [sel, setSel] = useState([]);
   const [done, setDone] = useState(false);
+  const { bgOf } = useVendorBackgrounds([anchor, ...(others || [])], catId);
 
   useEffect(() => {
     let alive = true;
@@ -739,7 +737,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
         {/* anchor ghim sẵn */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', background: 'var(--son-50)',
           border: '1px solid var(--son-200)', borderRadius: 'var(--r-md)' }}>
-          <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: anchor.grad, flexShrink: 0 }} />
+          <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: bgOf(anchor), flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{anchor.name}</div>
@@ -767,7 +765,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 border: `1px solid ${on ? 'var(--son-200)' : 'var(--line-100)'}`,
                 borderRadius: 'var(--r-md)', cursor: disabled ? 'default' : 'pointer',
                 opacity: disabled && !on ? 0.45 : 1, transition: 'all .18s ease' }}>
-              <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: v.grad, flexShrink: 0 }} />
+              <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: bgOf(v), flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
@@ -816,6 +814,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
   // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
+  const { bgOf } = useVendorBackgrounds(vendors, catId);
   const compareTrackedRef = useRef(false);
   const compareCount = vendors.length;
   const compareValid = !!cat && compareCount >= 2;
@@ -877,7 +876,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                 <div key={v.id} style={{ width: COL_W, flexShrink: 0, padding: '9px 6px 8px', textAlign: 'center',
                   borderRight: i < vendors.length - 1 ? '1px solid var(--line-100)' : 'none',
                   background: i === 0 ? 'var(--son-50)' : 'transparent' }}>
-                  <div style={{ height: 30, borderRadius: 'var(--r-sm)', background: v.grad, marginBottom: 5 }} />
+                  <div style={{ height: 30, borderRadius: 'var(--r-sm)', background: bgOf(v), marginBottom: 5 }} />
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
                   <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>

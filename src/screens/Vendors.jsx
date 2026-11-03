@@ -3,12 +3,15 @@ import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
+import { fallbackGradFor, useSavedVendorPhotoBg } from '../vendorImages.js';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
 function VVendorRow({ catId, vendor }) {
   const { saved, confirmVendor, unconfirmVendor, unsaveVendor } = useVendorCtx();
   const confirmedId = saved[catId]?.confirmed?.id;
   const isConfirmed = confirmedId === vendor.id;
+  // Ảnh theo pool hiện tại (tra theo id); chưa tra xong, ảnh hỏng hoặc hết ảnh thì gradient danh mục. Dữ liệu đã lưu không bị sửa.
+  const thumbBg = useSavedVendorPhotoBg(vendor) || fallbackGradFor(catId);
 
   const toggleConfirm = () => {
     if (isConfirmed) {
@@ -21,7 +24,7 @@ function VVendorRow({ catId, vendor }) {
   return (
     <div style={{ paddingLeft: 44 }}>
       <ListRow
-        leading={<div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'center', background: vendor.grad }} />}
+        leading={<div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'center', background: thumbBg }} />}
         title={vendor.name}
         sub={`${vendor.priceTotal}tr · ${vendor.priceUnit}`}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}

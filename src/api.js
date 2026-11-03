@@ -174,6 +174,11 @@ export const api = {
   getVendorDetail: (vendorId, coupleId) =>
     req('GET', `/api/vendors/${vendorId}?coupleId=${coupleId || ''}`),
 
+  // Tra một vendor trong pool hiện tại để lấy ảnh (vendor đã lưu từ trước). KHÔNG gửi coupleId:
+  // có coupleId thì backend tính lại phần ghép và gọi LLM trả phí cho từng vendor.
+  getVendorPhotos: (vendorId) =>
+    req('GET', `/api/vendors/${encodeURIComponent(vendorId)}`),
+
   addToShortlist: (coupleId, vendorId) =>
     req('POST', `/api/couples/${coupleId}/shortlist`, { vendorId }),
 
