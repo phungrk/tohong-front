@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { useShowAfter, SkelRegion, SkelHold, Bar, LoadError } from '../ui/Skel.jsx';
 import { AIButton } from '../ui/AIButton.jsx';
 import { EditName, AllocSlider } from '../ui/atoms.jsx';
 import { BaselineSlider } from '../components/BaselineSlider.jsx';
@@ -543,6 +544,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
 
 /* ── ScreenBudget ────────────────────────────────────────────── */
 export function ScreenBudget({
+  me = { status: 'ok' },
   coupleId = null,
   onMenuOpen = () => {},
   onOpenAI = () => {},
@@ -553,6 +555,12 @@ export function ScreenBudget({
   refreshKey = 0,
 }) {
   const bud = useBudget(coupleId, [], refreshKey);
+  // Đang chờ = còn chờ /api/me, hoặc đã có coupleId mà ngân sách chưa có phản hồi (404 tính là đã có phản hồi: trạng thái rỗng như cũ). Tải lại khi còn dữ liệu thì phase vẫn 'ready' nên không chèn skeleton (T-061).
+  const failed = me.status !== 'error' && !!coupleId && bud.phase === 'error';
+  const waiting = me.status !== 'error' && !failed && (me.status === 'loading' || (!!coupleId && bud.phase === 'loading'));
+  const ready = me.status !== 'error' && !failed && !waiting;
+  const showSk = useShowAfter(waiting);
+  const retry = me.status === 'error' ? me.retry : bud.retry;
   const vendorCtx = useVendorCtx();
   const confirmedTotal = vendorCtx?.getBudgetConfirmed?.(bud.loaded ? bud.guests : undefined) ?? 0;
   const [compact, setCompact] = useState(false);
@@ -581,17 +589,17 @@ export function ScreenBudget({
     if (bud.loaded && openCatId && !bud.cats.find(c => c.id === openCatId)) onCatMissing();
   }, [bud.loaded, bud.cats, openCatId]);
 
-  // IntersectionObserver for compact header
+  // IntersectionObserver for compact header (gắn lại khi thẻ tổng xuất hiện sau skeleton)
   useEffect(() => {
     const el = totalCardRef.current;
-    if (!el) return;
+    if (!el) return undefined;
     const obs = new IntersectionObserver(
       ([entry]) => setCompact(!entry.isIntersecting),
       { threshold: 0.1 },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [ready]); // chỉ đổi khi chuyển giữa chờ/lỗi và nội dung; đổi trang con không gắn lại (như trước T-061)
 
   const total = bud.total;
   const target = bud.totalTarget;
@@ -601,6 +609,26 @@ export function ScreenBudget({
   const statusText = target <= 0 ? 'Chưa đặt mục tiêu' : over === 0 ? 'Cân đối' : over > 0 ? `Vượt ${over}tr` : `Còn ${-over}tr`;
 
   const openCat = openCatId ? bud.cats.find(c => c.id === openCatId) : null;
+
+  if (openCatId && !openCat && !ready) {
+    // Link sâu tới trang con khi ngân sách chưa tải xong (hoặc lỗi): giữ nút Quay lại thật, phần còn lại là skeleton / thông báo lỗi.
+    return (
+      <div style={{ flex: 1, background: 'var(--paper)' }}>
+        <div style={{ padding: '0 16px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 16px 12px', margin: '0 -16px', position: 'sticky', top: 0, zIndex: 30, background: 'rgba(252,248,243,0.97)' }}>
+            <button onClick={() => onOpenCat(null)} aria-label="Quay lại" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+              <Icon name="chevron-left" size={24} color="var(--ink-700)" />
+            </button>
+            {waiting && showSk ? <Bar h={26} w={160} /> : <span style={{ height: 26 }} />}
+          </div>
+          {me.status === 'error' || failed ? <LoadError what="hạng mục ngân sách" onRetry={retry} style={{ margin: '8px 0' }} />
+          : showSk
+            ? <SkelRegion><Bar h={118} r="var(--r-lg)" /><Bar h={14} w={110} mt={22} /><Bar h={56} mt={12} /><Bar h={56} mt={10} /><Bar h={56} mt={10} /></SkelRegion>
+            : <SkelHold />}
+        </div>
+      </div>
+    );
+  }
 
   if (openCat) {
     return (
@@ -631,7 +659,7 @@ export function ScreenBudget({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-400)' }}>
-              {bud.guests > 0 ? `${bud.guests} khách` : 'Chưa có số khách'}
+              {!ready ? '' : bud.guests > 0 ? `${bud.guests} khách` : 'Chưa có số khách'}
             </span>
             <AIButton onOpen={onOpenAI} />
           </div>
@@ -653,6 +681,14 @@ export function ScreenBudget({
       </div>
 
       {/* Scrollable content */}
+      {me.status === 'error' || failed ? <LoadError what="ngân sách" onRetry={retry} />
+      : waiting ? (showSk
+        ? <SkelRegion style={{ flex: '1 0 auto', padding: '16px 16px 24px' }}>
+            <Bar h={15} w={90} /><Bar h={30} w={160} mt={6} /><Bar h={14} w={80} mt={6} /><Bar h={8} mt={14} r={999} />
+            <Bar h={14} w={70} mt={30} /><Bar h={74} mt={12} /><Bar h={74} mt={10} /><Bar h={74} mt={10} /><Bar h={74} mt={10} />
+          </SkelRegion>
+        : <SkelHold style={{ flex: '1 0 auto' }} />)
+      : (
       <div style={{ flex: '1 0 auto', padding: '16px 16px 24px' }}>
         {/* Total card — observed for compact trigger */}
         <div ref={totalCardRef} style={{ paddingBottom: 16, borderBottom: '1px solid var(--line-100)', marginBottom: 18 }}>
@@ -778,6 +814,7 @@ export function ScreenBudget({
           <Icon name="plus" size={16} color="var(--son-600)" /> Thêm hạng mục
         </button>
       </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
+import { useShowAfter, SkelRegion, Bar } from '../../ui/Skel.jsx';
 import { Avatar } from '../../ui/atoms.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from '../VendorCtx.jsx';
 import { api } from '../../api.js';
@@ -201,6 +202,7 @@ export function VMatchChatCard({ catId }) {
   const [phase, setPhase] = useState('loading');  // loading → cards
   const pageRef = useRef(0);          // số trang danh sách đã hiện (đo vendor_list_viewed)
   const listTrackedRef = useRef(false);
+  const showSk = useShowAfter(vendors === null && !error); // skeleton sau ~150ms (T-061)
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const { bgOf } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
@@ -275,8 +277,18 @@ export function VMatchChatCard({ catId }) {
           kicker={vendors ? 'Gợi ý phù hợp' : 'Tơ Hồng đang tìm…'}
           title={cat.name} />
 
-        {vendors === null && !error && (
-          <CardNote icon="loader">Đang tìm vendor phù hợp với hồ sơ của bạn…</CardNote>
+        {vendors === null && !error && showSk && (
+          // Khớp hàng thật: ảnh bìa 100x100 + 3 dòng chữ, padding hàng 11px 14px
+          <SkelRegion style={{ padding: '4px 0 2px' }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ display: 'flex', gap: 11, padding: '11px 14px', borderBottom: i < 2 ? '1px solid var(--line-100)' : 'none' }}>
+                <Bar h={100} w={100} />
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 2 }}>
+                  <Bar h={14} w="80%" /><Bar h={12} w="50%" /><Bar h={12} w="65%" />
+                </div>
+              </div>
+            ))}
+          </SkelRegion>
         )}
         {error && (
           <CardNote icon="triangle-alert">Không tải được gợi ý. Thử lại sau giúp Tơ Hồng nhé.</CardNote>
@@ -700,6 +712,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
   const [sel, setSel] = useState([]);
   const [done, setDone] = useState(false);
   const { bgOf } = useVendorBackgrounds([anchor, ...(others || [])], catId);
+  const showSk = useShowAfter(others === null && !error);
 
   useEffect(() => {
     let alive = true;
@@ -751,7 +764,16 @@ export function VPickerMultiChatCard({ catId, anchor }) {
           </span>
         </div>
 
-        {others === null && !error && <CardNote icon="loader">Đang tải các vendor khác…</CardNote>}
+        {others === null && !error && showSk && (
+          <SkelRegion style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px' }}>
+                <Bar h={40} w={40} />
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}><Bar h={14} w="70%" /><Bar h={12} w="45%" /></div>
+              </div>
+            ))}
+          </SkelRegion>
+        )}
         {error && <CardNote icon="triangle-alert">Không tải được danh sách. Thử lại sau giúp Tơ Hồng nhé.</CardNote>}
         {others?.length === 0 && <CardNote icon="search-x">Chưa có vendor khác trong danh mục này để so sánh.</CardNote>}
 

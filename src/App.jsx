@@ -223,23 +223,33 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     }
   }, []);
 
-  useEffect(() => {
-    track('app_loaded');
-    api.getMe()
+  // Trạng thái /api/me cho bốn màn tab: 'loading' (đang chờ, kể cả lúc chưa có coupleId) | 'ok' | 'error' (T-061).
+  const [meStatus, setMeStatus] = useState('loading');
+  const loadMe = useCallback(() => {
+    setMeStatus('loading');
+    return api.getMe()
       .then((data) => {
         if (data.couples?.length) {
           const cid = data.couples[0].couple_id;
           setCoupleId(cid);
           setRole(data.couples[0].role || null);
           setJourneyContext({ coupleId: cid });
+          setMeStatus('ok');
           // session_resumed chờ summary tối đa 3 giây để mang đủ nhóm (hết hạn thì bắn với 'unknown').
           const synced = Promise.race([syncJourney(cid, 'initial'), new Promise((r) => setTimeout(r, 3000))]);
           synced.then(() => track('session_resumed', { couple_id: cid }));
           return loadConversations(cid);
         }
+        setMeStatus('ok');
       })
-      .catch(() => {});
+      .catch(() => { setMeStatus('error'); });
   }, [syncJourney]);
+
+  useEffect(() => {
+    track('app_loaded');
+    loadMe();
+  }, [loadMe]);
+  const me = { status: meStatus, retry: loadMe };
 
   const handleObDone = async (data, styleProfile) => {
     setObOpen(false);
@@ -368,11 +378,11 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const handleProfileEdited = useCallback(() => syncJourney(coupleId, 'profile_edit'), [syncJourney, coupleId]);
 
   const screens = [
-    <ScreenDashboard coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenDashboard me={me} coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
-    <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => { remember(); if (!id) { closeSubpage(); return; } startFresh(buildHash(3, id)); openCategory(id); }} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
-    <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} me={me} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
+    <ScreenBudget me={me} coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => { remember(); if (!id) { closeSubpage(); return; } startFresh(buildHash(3, id)); openCategory(id); }} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
+    <ScreenGuests key={`guests-${refreshKeys.guests}`} me={me} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
   ];
 
   return (

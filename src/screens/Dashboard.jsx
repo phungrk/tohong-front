@@ -5,6 +5,7 @@ import { AIButton } from '../ui/AIButton.jsx';
 import { ThreadMark, Thread } from '../ui/atoms.jsx';
 import { OBCalendar } from './Onboarding.jsx';
 import { api } from '../api.js';
+import { useShowAfter, SkelRegion, SkelHold, LoadError } from '../ui/Skel.jsx';
 import { track } from '../analytics.js';
 import { InviteSheet } from './InviteSheet.jsx';
 
@@ -166,31 +167,37 @@ function DBUpcoming({ item, onClick }) {
 }
 
 function DBSkeleton() {
+  // Khớp bố cục thật (đo trên main): thẻ đếm ngược 164, nhãn "Tổng quan" 12, ô tổng quan 117. "Sắp tới" không dựng (số mục chưa biết).
   return (
-    <div style={{ flex: 1, overflow: 'hidden', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}
-      aria-live="polite" aria-busy="true" aria-label="Đang tải bảng điều khiển">
-      <div className="db-skel" style={{ height: 132, borderRadius: 'var(--r-lg)' }} />
+    <SkelRegion style={{ flex: 1, overflow: 'hidden', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="db-skel" style={{ height: 164, borderRadius: 'var(--r-lg)' }} />
       <div>
         <div className="db-skel" style={{ height: 12, width: 90, marginBottom: 10 }} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="db-skel" style={{ height: 92, borderRadius: 'var(--r-lg)' }} />
+            <div key={i} className="db-skel" style={{ height: 117, borderRadius: 'var(--r-lg)' }} />
           ))}
         </div>
       </div>
-    </div>
+    </SkelRegion>
   );
 }
 
-export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
+export function ScreenDashboard({ me = { status: 'ok' }, coupleId = null, role = null, onProfileChanged, navigate = () => {}, onMenuOpen, onOpenAI = () => {} }) {
   const [data, setData] = useState(EMPTY);
   const [inviteOpen, setInviteOpen] = useState(false);
   useHistoryLayer(inviteOpen, () => setInviteOpen(false));
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  // Đang chờ = còn chờ /api/me, hoặc đã có coupleId mà summary chưa về (T-061).
+  const waiting = !failed && me.status !== 'error' && (me.status === 'loading' || (!!coupleId && !loaded));
+  const showSk = useShowAfter(waiting);
 
   useEffect(() => {
     if (!coupleId) return;
     setLoaded(false);
+    setFailed(false);
     const loadStart = Date.now();
     // Load summary (profile + budget + timeline + guests)
     api.getSummary(coupleId)
@@ -218,9 +225,9 @@ export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged
           budget_pct: s.budget?.total_tr > 0 ? Math.round((s.budget.spent_tr / s.budget.total_tr) * 100) : null,
         });
       })
-      .catch(() => {})
+      .catch(() => { setFailed(true); })
       .finally(() => setLoaded(true));
-  }, [coupleId]);
+  }, [coupleId, tries]);
 
   const handleDateSave = useCallback(async (iso) => {
     // Optimistic update
@@ -273,7 +280,9 @@ export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged
       </div>
       {inviteOpen && coupleId && <InviteSheet coupleId={coupleId} onClose={() => setInviteOpen(false)} />}
 
-      {coupleId && !loaded ? <DBSkeleton /> : (
+      {me.status === 'error' ? <LoadError what="trang chủ" onRetry={me.retry} />
+      : failed ? <LoadError what="trang chủ" onRetry={() => setTries((n) => n + 1)} />
+      : waiting ? (showSk ? <DBSkeleton /> : <SkelHold style={{ flex: 1 }} />) : (
       /* scrollable content */
       <div style={{ flex: '1 0 auto', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <DBCountdown data={data} onDateSave={coupleId ? handleDateSave : null} />

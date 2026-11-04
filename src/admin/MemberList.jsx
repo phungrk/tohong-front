@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api.js';
-import { Loading, ErrorNote } from './common.jsx';
+import { ErrorNote } from './common.jsx';
+import { useShowAfter, SkelRegion, Bar } from '../ui/Skel.jsx';
 import { useLoad } from './useLoad.js';
 
 // Danh sách thành viên kèm tên cô dâu, chú rể (T-043, ADR-018). Chỉ đọc, chỉ admin.
@@ -61,10 +62,11 @@ export function MemberList() {
   const items = Array.isArray(data?.items) ? data.items : [];
   const totalPages = Math.max(1, data?.total_pages || 0);
   const counts = data?.counts || {};
+  const showSk = useShowAfter(loading && !error);
   const go = (p) => setQuery((cur) => ({ ...cur, page: p }));
 
   return (
-    <section aria-label="Danh sách thành viên" aria-busy={loading && !error ? 'true' : 'false'} style={{ marginTop: 28 }}>
+    <section aria-label="Danh sách thành viên" style={{ marginTop: 28 }}>
       <h3 className="adm-h2">Danh sách thành viên</h3>
       <input
         type="search"
@@ -82,7 +84,13 @@ export function MemberList() {
         </div>
       )}
       <ErrorNote error={error} onRetry={reload} />
-      {loading && !error && <Loading>Đang tải danh sách…</Loading>}
+      {loading && !error && showSk && (
+        <SkelRegion>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="adm-member"><Bar h={18} w="60%" /><Bar h={14} w="85%" mt={8} /><Bar h={13} w="45%" mt={6} /></div>
+          ))}
+        </SkelRegion>
+      )}
       {data && (
         <>
           {items.length === 0 ? (

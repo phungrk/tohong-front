@@ -52,6 +52,9 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
     budgetUsedPct: 0,
   });
   const [loaded, setLoaded] = useState(false); // đã nhận danh mục từ backend
+  // Trạng thái tải (T-061): 'loading' → 'ready' (đã có phản hồi, kể cả 404 = chưa có dữ liệu) | 'error' (lỗi lần tải đầu, chưa có dữ liệu để giữ).
+  const [phase, setPhase] = useState('loading');
+  const [tries, setTries] = useState(0);
   const saveTimer = useRef(null);
   // Keep a ref to latest meta so scheduleSave closure always has current values
   const metaRef = useRef(meta);
@@ -61,6 +64,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
     if (!coupleId) return;
     api.getBudget(coupleId)
       .then((data) => {
+        setPhase('ready');
         if (data?.categories) {
           setLoaded(true);
           setCats(data.categories.map(withMeta));
@@ -74,8 +78,10 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
           });
         }
       })
-      .catch(() => {});
-  }, [coupleId, refreshKey]);
+      .catch(() => { setPhase((p) => (p === 'ready' ? p : 'error')); }); // đã có dữ liệu thì tải lại hỏng vẫn giữ bản cũ
+  }, [coupleId, refreshKey, tries]);
+
+  const retry = () => { setPhase('loading'); setTries((n) => n + 1); };
 
   const scheduleSave = (newCats) => {
     if (!coupleId) return;
@@ -157,7 +163,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const itemsTotal = (c) => (c.items || []).reduce((s, it) => s + (it.amt || 0), 0);
 
   return {
-    cats, setCats, loaded, total, over,
+    cats, setCats, loaded, phase, retry, total, over,
     totalTarget: meta.totalTr,
     guests: meta.guests,
     mung: meta.mungTr,
