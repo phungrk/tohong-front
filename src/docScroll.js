@@ -7,7 +7,7 @@
 //  - quyết định khối gợi ý cài ẩn khi kéo nội dung lên, hiện khi kéo xuống (ngưỡng 8px).
 // Không đụng tới history.state hay bước lịch sử của nav.js.
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 const HINT_THRESHOLD = 8;
 const LOCK_CLASS = 'doc-locked';
@@ -19,7 +19,8 @@ const isLocked = () => document.documentElement.classList.contains(LOCK_CLASS);
 /**
  * @param {string} pageKey  địa chỉ hash của trang đang xem (thay đổi = đổi trang)
  * @param {boolean} locked  có lớp mở: khoá cuộn nền
- * @returns {{ hintHidden: boolean, startFresh: (hash: string) => void }}
+ * @returns {{ hintHidden: boolean, remember: () => void, startFresh: (hash: string) => void }}
+ *   remember(): gọi ngay trước goTab/openCategory/closeSubpage để nhớ vị trí lúc rời.
  *   startFresh(hash): lần tới vào trang `hash` bắt đầu ở 0 (mở trang con bằng cách chạm hạng mục).
  */
 export function useDocScroll(pageKey, locked) {
@@ -52,6 +53,16 @@ export function useDocScroll(pageKey, locked) {
     setHintHidden(false);
   }, [pageKey]);
 
+  // Vị trí LÚC RỜI (spec 4.1): đọc scrollY ngay trước khi DOM đổi, không đợi sự kiện scroll (có thể chưa bắn
+  // trong cùng khung hình) và không đọc trong useLayoutEffect (màn mới ngắn hơn đã kẹp scrollY).
+  const remember = useCallback(() => { if (keyRef.current) posRef.current[keyRef.current] = window.scrollY; }, []);
+  const startFresh = useCallback((hash) => { freshRef.current = hash; }, []);
+  useEffect(() => {
+    // Back/Forward: listener capture chạy trước listener của nav.js, trước khi React vẽ trang mới.
+    window.addEventListener('popstate', remember, true);
+    return () => window.removeEventListener('popstate', remember, true);
+  }, [remember]);
+
   useEffect(() => {
     const onScroll = () => {
       if (isLocked()) return;
@@ -72,5 +83,5 @@ export function useDocScroll(pageKey, locked) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  return { hintHidden, startFresh: (hash) => { freshRef.current = hash; } };
+  return { hintHidden, remember, startFresh };
 }

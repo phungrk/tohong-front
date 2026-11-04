@@ -142,7 +142,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
 
   // Cuộn cấp document (T-054): nhớ vị trí theo trang, khoá nền khi có lớp (Onboarding cũng là lớp), khối gợi ý ẩn/hiện theo hướng cuộn.
   const layerCount = useLayerCount();
-  const { hintHidden, startFresh } = useDocScroll(buildHash(tab, budgetOpenCatId), layerCount > 0 || obOpen);
+  const { hintHidden, remember, startFresh } = useDocScroll(buildHash(tab, budgetOpenCatId), layerCount > 0 || obOpen);
 
   const [coupleId, setCoupleId] = useState(null);
   const [role, setRole] = useState(null); // vai trò trong couple (owner | member | viewer), từ /api/me
@@ -344,6 +344,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const navigate = (i) => {
     if (i === 1) { openAI(CTX_BY_TAB[tab] || 'home'); return; }
     track('tab_selected', { tab_index: i });
+    remember();
     goTab(i);
   };
 
@@ -366,7 +367,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     <ScreenDashboard coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => { if (!id) { closeSubpage(); return; } startFresh(buildHash(3, id)); openCategory(id); }} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
+    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => { remember(); if (!id) { closeSubpage(); return; } startFresh(buildHash(3, id)); openCategory(id); }} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
   ];
 

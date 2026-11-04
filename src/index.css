@@ -724,3 +724,4 @@ textarea {
 :root { --ov-l: max(0px, calc((100vw - var(--app-max)) / 2)); }
 .ov-fixed { overflow: hidden; position: fixed !important; top: 0 !important; bottom: 0 !important; left: var(--ov-l) !important; right: var(--ov-l) !important; }
 html.doc-locked { overflow: hidden; }
+html { scrollbar-gutter: stable; } /* Firefox thanh cuộn cổ điển: khoá nền không làm khung dịch ngang */
