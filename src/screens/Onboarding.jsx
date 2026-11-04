@@ -733,7 +733,7 @@ export function Onboarding({ open, onDone }) {
   };
 
   return (
-    <div style={{ position:'absolute', inset:0, zIndex:900, pointerEvents:open?'all':'none' }}>
+    <div className="ov-fixed" style={{ position:'absolute', inset:0, zIndex:900, pointerEvents:open?'all':'none' }}>
       <div style={{ position:'absolute', inset:0, background:'rgba(43,36,32,0.52)',
         opacity:shown?1:0, transition:'opacity .26s ease' }}/>
 

@@ -72,10 +72,10 @@ export function ConnectSheet({ vendor, catId, isGuest, onSignIn, onCancel, onClo
 
   return (
     <>
-      <div onClick={busy ? undefined : dismiss} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(43,36,32,0.38)',
+      <div onClick={busy ? undefined : dismiss} style={{ position: 'fixed', top: 0, bottom: 0, left: 'var(--ov-l)', right: 'var(--ov-l)', zIndex: 1000, background: 'rgba(43,36,32,0.38)',
         opacity: shown ? 1 : 0, transition: 'opacity .22s' }} />
       <div role="dialog" aria-modal="true" aria-label="Nhờ Tơ Hồng kết nối vendor"
-        style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1001, maxHeight: '88vh', overflowY: 'auto',
+        style={{ position: 'fixed', left: 'var(--ov-l)', right: 'var(--ov-l)', bottom: 0, zIndex: 1001, maxHeight: '88vh', overflowY: 'auto',
           background: 'var(--paper)', borderRadius: '22px 22px 0 0', paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           transform: `translateY(${shown ? '0' : '105%'})`, transition: 'transform .3s cubic-bezier(.2,.7,.3,1)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>

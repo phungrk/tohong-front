@@ -248,9 +248,9 @@ export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged
   const totalVendors = (data.vendors.confirmed || 0) + (data.vendors.shortlisted || 0) + (data.vendors.empty || 0);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
       {/* top bar */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: 'var(--header-pt) 16px 11px',
+      <div style={{ position: 'sticky', top: 0, zIndex: 30, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, padding: 'var(--header-pt) 16px 11px',
         background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--line-100)' }}>
         <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
@@ -275,7 +275,7 @@ export function ScreenDashboard({ coupleId = null, role = null, onProfileChanged
 
       {coupleId && !loaded ? <DBSkeleton /> : (
       /* scrollable content */
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: '1 0 auto', padding: '14px 16px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <DBCountdown data={data} onDateSave={coupleId ? handleDateSave : null} />
 
         {/* summary grid */}

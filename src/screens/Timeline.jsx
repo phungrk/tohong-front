@@ -46,7 +46,7 @@ function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
     textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: 7 };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
+    <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
         opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
@@ -131,7 +131,7 @@ function TlAddTaskSheet({ open, onClose, onAdd, phases }) {
     textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: 7 };
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
+    <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
         opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
@@ -426,9 +426,9 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
     : null;
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--paper)', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--paper)', position: 'relative' }}>
       {/* header */}
-      <div style={{ flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      <div style={{ position: 'sticky', top: 0, zIndex: 30, flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--line-100)', padding: 'var(--header-pt) 16px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
           <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
@@ -456,7 +456,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+      <div style={{ flex: '1 0 auto', padding: '0 16px' }}>
         {tab === 'prep'
           ? <TlPrepTab phases={phases} onToggle={togglePrep} onAdd={() => setTaskSheetOpen(true)} />
           : <TlDayTab

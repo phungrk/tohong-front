@@ -128,9 +128,9 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
     : [{ key: filter, label: filter === 'trai' ? 'Nhà trai' : 'Nhà gái', items: list }];
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
       {/* sticky header */}
-      <div style={{ flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      <div style={{ position: 'sticky', top: 0, zIndex: 30, flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--line-100)', padding: 'var(--header-pt) 16px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 13 }}>
           <button onClick={onMenuOpen} aria-label="Mở menu" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
@@ -157,7 +157,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
         <GkSeg value={filter} onChange={setFilter} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
+      <div style={{ flex: '1 0 auto', padding: '0 16px 8px' }}>
         {gs.length === 0 && (
           <div style={{ marginTop: 18, padding: '24px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
             fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.5, color: 'var(--ink-500)' }}>

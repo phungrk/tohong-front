@@ -180,11 +180,10 @@ textarea:focus-visible {
 .app-frame {
   --edge: clamp(0px, calc(100vw - var(--app-max)), 1px); /* 1 khi viewport rộng hơn khung, 0 khi không */
   width: min(100%, var(--app-max));
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
-  overflow: hidden;
-  contain: layout; /* khung là containing block của position: fixed (sheet, scrim, toast) */
+  overflow-x: clip;
   background: var(--paper);
   border-left: var(--edge) solid var(--line-200);
   border-right: var(--edge) solid var(--line-200);
@@ -313,8 +312,8 @@ textarea:focus-visible {
 
 /* ===== Drawer ===== */
 .drawer-scrim {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0; bottom: 0; left: var(--ov-l); right: var(--ov-l);
   z-index: 50;
   pointer-events: none;
   background: rgba(43, 36, 32, 0);
@@ -327,8 +326,8 @@ textarea:focus-visible {
 }
 
 .drawer {
-  position: absolute;
-  inset: 0 auto 0 0;
+  position: fixed;
+  top: 0; bottom: 0; left: var(--ov-l);
   z-index: 60;
   width: min(290px, 82vw);
   display: flex;
@@ -340,6 +339,7 @@ textarea:focus-visible {
   transition: transform 280ms cubic-bezier(.4, 0, .2, 1);
 }
 
+.drawer:not(.is-open) { visibility: hidden; transition: transform 280ms cubic-bezier(.4, 0, .2, 1), visibility 0s 280ms; }
 .drawer.is-open {
   transform: translateX(0);
 }
@@ -715,5 +715,12 @@ textarea {
   min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
   font: 600 13px var(--font-ui);
 }
+.install-hint.is-concealed { opacity: 0; pointer-events: none; }
+.install-hint { transition: opacity .18s ease; }
 .install-hint-primary { background: var(--son-500); color: #fff; border: none; }
 .install-hint-quiet { background: transparent; color: var(--ink-700); border: 1px solid var(--line-300); }
+
+/* Lớp phủ neo theo vùng nhìn thấy, rộng đúng bằng khung (thay cho contain: layout của khung cũ) */
+:root { --ov-l: max(0px, calc((100vw - var(--app-max)) / 2)); }
+.ov-fixed { overflow: hidden; position: fixed !important; top: 0 !important; bottom: 0 !important; left: var(--ov-l) !important; right: var(--ov-l) !important; }
+html.doc-locked { overflow: hidden; }
