@@ -8,11 +8,14 @@ import {
 const TITLE = 'Thêm Tơ Hồng vào màn hình chính';
 
 // Khối nằm trong luồng bố cục, ngay trên thanh tab (không phủ lên màn nào).
-export function InstallHint({ suppressed = false }) {
+export function InstallHint({ suppressed = false, scrollHidden = false }) {
   const mode = useInstallMode();
   const layers = useLayerCount();
-  // Có lớp phủ đang mở thì ẩn (ADR-011): khối trong luồng đẩy sheet lên, mất nút đóng ở màn thấp.
-  const visible = !suppressed && mode !== '' && layers === 0;
+  // Có lớp phủ đang mở thì ẩn (ADR-011); kéo nội dung lên thì ẩn, kéo xuống thì hiện (T-054 mục 8).
+  // Ẩn bằng opacity + không nhận chạm/focus nhưng GIỮ CHỖ: gỡ khỏi luồng sẽ làm khoảng cuộn co lại,
+  // scrollY bị kẹp và nội dung nhảy (spec 5.1, 8.5). Lớp phủ nay là position: fixed nên không bị khối đẩy.
+  const present = !suppressed && mode !== '';
+  const visible = present && layers === 0 && !scrollHidden;
   const shownRef = useRef(false);
 
   useEffect(() => {
@@ -22,7 +25,7 @@ export function InstallHint({ suppressed = false }) {
     }
   }, [visible]);
 
-  if (!visible) return null;
+  if (!present) return null;
 
   const dismiss = () => {
     track('install_hint_dismissed', { platform: installPlatform() });
@@ -35,7 +38,7 @@ export function InstallHint({ suppressed = false }) {
   };
 
   return (
-    <div className="install-hint" role="region" aria-label={TITLE}>
+    <div className={`install-hint${visible ? '' : ' is-concealed'}`} role="region" aria-label={TITLE} inert={visible ? undefined : true}>
       <strong className="install-hint-title">{TITLE}</strong>
       {mode === 'ios' && (
         <p className="install-hint-text">Bấm nút Chia sẻ, rồi chọn Thêm vào MH chính.</p>

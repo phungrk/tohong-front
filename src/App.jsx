@@ -23,8 +23,9 @@ import { VendorProvider } from './screens/VendorCtx.jsx';
 import { ConnectProvider } from './screens/ConnectCtx.jsx';
 import { SaveBanner } from './ui/SaveBanner.jsx';
 import { InstallHint } from './ui/InstallHint.jsx';
+import { useDocScroll } from './docScroll.js';
 import {
-  useRoute, useHistoryLayer, goTab, openCategory, closeSubpage,
+  useRoute, useLayerCount, useHistoryLayer, buildHash, goTab, openCategory, closeSubpage,
   dropMissingCategory, afterLayersClosed,
 } from './nav.js';
 
@@ -138,6 +139,10 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
 
   const hasLocalProfile = (() => { try { return !!localStorage.getItem('th_user'); } catch { return false; } })();
   const [obOpen, setObOpen] = useState(!hasLocalProfile);
+
+  // Cuộn cấp document (T-054): nhớ vị trí theo trang, khoá nền khi có lớp (Onboarding cũng là lớp), khối gợi ý ẩn/hiện theo hướng cuộn.
+  const layerCount = useLayerCount();
+  const { hintHidden, remember, startFresh } = useDocScroll(buildHash(tab, budgetOpenCatId), layerCount > 0 || obOpen);
 
   const [coupleId, setCoupleId] = useState(null);
   const [role, setRole] = useState(null); // vai trò trong couple (owner | member | viewer), từ /api/me
@@ -339,6 +344,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const navigate = (i) => {
     if (i === 1) { openAI(CTX_BY_TAB[tab] || 'home'); return; }
     track('tab_selected', { tab_index: i });
+    remember();
     goTab(i);
   };
 
@@ -361,7 +367,7 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     <ScreenDashboard coupleId={coupleId} role={role} onProfileChanged={handleProfileEdited} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
     null, // chat is now the AI modal — not a screen
     <ScreenTimeline key={`timeline-${refreshKeys.timeline}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
-    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => (id ? openCategory(id) : closeSubpage())} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
+    <ScreenBudget coupleId={coupleId} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} refreshKey={refreshKeys.budget} openCatId={budgetOpenCatId} onOpenCat={(id) => { remember(); if (!id) { closeSubpage(); return; } startFresh(buildHash(3, id)); openCategory(id); }} onCatMissing={dropMissingCategory} onOpenVendorChat={openAIVendor} />,
     <ScreenGuests key={`guests-${refreshKeys.guests}`} coupleId={coupleId} navigate={navigate} onMenuOpen={() => setDrawer(true)} onOpenAI={() => openAI()} />,
   ];
 
@@ -370,19 +376,21 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     <div className="app-page">
       <div className="app-frame">
       <ConnectProvider coupleId={coupleId} role={role} isGuest={isGuest} onShowSignIn={onShowSignIn}>
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
           {isGuest && <SaveBanner onSignIn={onShowSignIn} />}
-          {/* screen stack — all mounted, shown/hidden via opacity */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {/* bốn màn cùng mount (giữ state); màn không xem ẩn bằng display nên không chiếm chiều cao cuộn, không nhận chạm/focus */}
+          <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
             {screens.map((screen, i) => screen && (
-              <div key={i} style={{ position: 'absolute', inset: 0, transition: 'opacity .2s ease',
-                opacity: tab === i ? 1 : 0, pointerEvents: tab === i ? 'auto' : 'none' }}>
+              <div key={i} style={{ display: tab === i ? 'flex' : 'none', flexDirection: 'column', flex: 1 }}>
                 {screen}
               </div>
             ))}
           </div>
-          <InstallHint suppressed={obOpen} />
-          <BottomTabBar active={tab} onSelect={navigate} />
+          {/* dính đáy vùng nhìn thấy: khối gợi ý cài (nếu có) ngay trên thanh tab */}
+          <div style={{ position: 'sticky', bottom: 0, zIndex: 40 }}>
+            <InstallHint suppressed={obOpen} scrollHidden={hintHidden} />
+            <BottomTabBar active={tab} onSelect={navigate} />
+          </div>
           <AIChatModal
             open={aiOpen}
             onClose={() => setAiOpen(false)}

@@ -156,7 +156,7 @@ export function VendorFlowSheet({ open, onClose, dialog = false, returnFocusRef 
   if (dialog && !open) return null;
 
   return (
-    <div style={{ position: dialog ? 'fixed' : 'absolute', inset: 0, zIndex: 320, pointerEvents: open ? 'all' : 'none' }}>
+    <div className="ov-fixed" style={{ position: dialog ? 'fixed' : 'absolute', inset: 0, zIndex: 320, pointerEvents: open ? 'all' : 'none' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.42)',
         opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
       <div ref={dialogRef} {...(dialog ? { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Cách hoạt động', tabIndex: -1 } : {})}

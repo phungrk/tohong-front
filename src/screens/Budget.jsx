@@ -149,12 +149,12 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   const priceChanged = info && liveMin != null && liveMin !== price;
 
   return (
-    <>
+    <div className="ov-fixed" style={{ zIndex: 499, pointerEvents: 'none' }}>
       {/* Backdrop */}
       <div
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0, zIndex: 499,
+          position: 'absolute', inset: 0, zIndex: 499,
           background: 'rgba(43,36,32,0.38)',
           opacity: open ? 1 : 0,
           transition: 'opacity .22s',
@@ -166,7 +166,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{
-          position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 500,
+          position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 500, pointerEvents: open ? 'auto' : 'none',
           background: 'var(--paper)',
           borderRadius: '22px 22px 0 0',
           maxHeight: '85vh',
@@ -290,7 +290,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -323,7 +323,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
   return (
     <div style={{ padding: '0 16px 32px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 0 12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 16px 12px', margin: '0 -16px', position: 'sticky', top: 0, zIndex: 30, background: 'rgba(252,248,243,0.97)' }}>
         <button onClick={onBack} aria-label="Quay lại" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
           <Icon name="chevron-left" size={24} color="var(--ink-700)" />
         </button>
@@ -604,7 +604,7 @@ export function ScreenBudget({
 
   if (openCat) {
     return (
-      <div style={{ height: '100%', background: 'var(--paper)', overflowY: 'auto' }}>
+      <div style={{ flex: 1, background: 'var(--paper)' }}>
         <BudgetCatDetail
           cat={openCat}
           bud={bud}
@@ -618,9 +618,9 @@ export function ScreenBudget({
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
       {/* Sticky header */}
-      <div style={{ flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: compact ? '1px solid var(--line-100)' : '1px solid transparent', transition: 'border-color .2s' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 30, flexShrink: 0, background: 'rgba(252,248,243,0.96)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: compact ? '1px solid var(--line-100)' : '1px solid transparent', transition: 'border-color .2s' }}>
         {/* Row 1 — always visible */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--header-pt) 16px 10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -653,7 +653,7 @@ export function ScreenBudget({
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      <div style={{ flex: '1 0 auto', padding: '16px 16px 24px' }}>
         {/* Total card — observed for compact trigger */}
         <div ref={totalCardRef} style={{ paddingBottom: 16, borderBottom: '1px solid var(--line-100)', marginBottom: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 14, marginBottom: 12 }}>

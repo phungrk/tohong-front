@@ -102,7 +102,7 @@ export function AIChatModal({
   const isVendorMode = !!vendorSeed;
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 500, pointerEvents: open ? 'all' : 'none' }}>
+    <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 500, pointerEvents: open ? 'all' : 'none' }}>
       {/* backdrop */}
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
         opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
