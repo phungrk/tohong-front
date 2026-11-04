@@ -58,9 +58,14 @@ export function useDocScroll(pageKey, locked) {
   const remember = useCallback(() => { if (keyRef.current) posRef.current[keyRef.current] = window.scrollY; }, []);
   const startFresh = useCallback((hash) => { freshRef.current = hash; }, []);
   useEffect(() => {
-    // Back/Forward: listener capture chạy trước listener của nav.js, trước khi React vẽ trang mới.
-    window.addEventListener('popstate', remember, true);
-    return () => window.removeEventListener('popstate', remember, true);
+    // Back/Forward/go gọi bằng mã: ghi vị trí NGAY trước khi trình duyệt đổi bước. Đọc ở popstate là quá muộn
+    // (trình duyệt đã đặt lại scrollY khi chuyển bước, đo được 0 hoặc giá trị cũ của bước đích).
+    // Người dùng bấm Back của trình duyệt: sự kiện scroll đã ghi vị trí trước đó.
+    const h = window.history;
+    const orig = { back: h.back, forward: h.forward, go: h.go };
+    const wrap = (fn) => function patched(...args) { remember(); return fn.apply(this, args); };
+    h.back = wrap(orig.back); h.forward = wrap(orig.forward); h.go = wrap(orig.go);
+    return () => { h.back = orig.back; h.forward = orig.forward; h.go = orig.go; };
   }, [remember]);
 
   useEffect(() => {
