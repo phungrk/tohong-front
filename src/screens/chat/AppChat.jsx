@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Icon } from '../../ui/Icon.jsx';
+import { useShowAfter, SkelRegion, Bar } from '../../ui/Skel.jsx';
 import { ThreadMark, Avatar, AgentTag } from '../../ui/atoms.jsx';
 import { useBudget } from '../../budget/useBudget.js';
 import { GuestCard, TimelineCard, ChecklistCard, ChatBudgetMini } from './cards.jsx';
@@ -92,6 +93,18 @@ function BotMarkdown({ text }) {
         {text}
       </Markdown>
     </div>
+  );
+}
+
+// Lịch sử cuộc trò chuyện đang tải: bong bóng trái (trợ lý) và phải (bạn) xen kẽ (T-061).
+function HistorySkeleton() {
+  return (
+    <SkelRegion style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Bar h={64} w="72%" r="var(--r-lg)" />
+      <Bar h={40} w="48%" r="var(--r-lg)" style={{ alignSelf: 'flex-end' }} />
+      <Bar h={88} w="78%" r="var(--r-lg)" />
+      <Bar h={40} w="40%" r="var(--r-lg)" style={{ alignSelf: 'flex-end' }} />
+    </SkelRegion>
   );
 }
 
@@ -279,6 +292,7 @@ export function AppChat({
   hideHeader = false,
 }) {
   const budgetHook = useBudget(coupleId);
+  const showHistSk = useShowAfter(!!chatSession?.loading);
   const TOPICS = makeTopics(budgetHook, coupleId);
   const ctxTopic = TOPICS.find((t) => t.id === CTX_TO_TOPIC_ID[ctxId]) ?? null;
 
@@ -470,7 +484,7 @@ export function AppChat({
 
       {/* thread */}
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 8px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {chatSession?.loading && <TypingDots />}
+        {chatSession?.loading && showHistSk && <HistorySkeleton />}
         {msgs.map((m, i) => m.who === 'me'
           ? <AUserBubble key={m._id ?? i}>{m.text}</AUserBubble>
           : m._streaming && !m.intro ? null

@@ -4,6 +4,7 @@ import { AIButton } from '../ui/AIButton.jsx';
 import { EditName } from '../ui/atoms.jsx';
 import { ListRow, SectionHeader } from '../ui/ListRow.jsx';
 import { api } from '../api.js';
+import { useShowAfter, SkelRegion, SkelHold, Bar, LoadError } from '../ui/Skel.jsx';
 import { track } from '../analytics.js';
 
 const GKST = {
@@ -56,23 +57,33 @@ function GkSeg({ value, onChange }) {
   );
 }
 
-export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
+export function ScreenGuests({ me = { status: 'ok' }, coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
   const [gs, setGs]       = useState([]);
   const [capacity, setCap] = useState(0);
   const [filter, setFilter] = useState('all');
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  // Đang chờ = còn chờ /api/me, hoặc đã có coupleId mà danh sách khách chưa về (T-061).
+  const waiting = !failed && me.status !== 'error' && (me.status === 'loading' || (!!coupleId && !loaded));
+  const showSk = useShowAfter(waiting);
+  const ready = !waiting && !failed && me.status !== 'error';
 
   // Load from server on mount
   useEffect(() => {
     if (!coupleId) return;
+    setFailed(false);
+    setLoaded(false);
     api.getGuests(coupleId)
       .then((data) => {
         if (data?.guests !== undefined) {
           setGs(data.guests);
           if (data.capacity) setCap(data.capacity);
         }
+        setLoaded(true);
       })
-      .catch(() => {});
-  }, [coupleId]);
+      .catch(() => { setFailed(true); });
+  }, [coupleId, tries]);
 
   // Optimistic cycle — update locally, then PATCH server
   const cycle = useCallback((id) => {
@@ -138,7 +149,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
           </button>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Khách mời</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>{sums.total} người</div>
+            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>{ready ? `${sums.total} người` : '\u00a0'}</div>
           </div>
           <AIButton onOpen={onOpenAI} />
         </div>
@@ -149,14 +160,20 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
             <div style={{ width: (capacity > 0 ? (sums.pending / capacity) * 100 : 0) + '%', background: 'var(--kim-400)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
-            <span><b style={{ color: 'var(--sage-600)' }}>{sums.yes}</b> xác nhận · <b style={{ color: 'var(--kim-700)' }}>{sums.pending}</b> chờ</span>
-            <span>{capacity > 0 ? `Sức chứa ${capacity} khách` : 'Chưa đặt sức chứa'}</span>
+            <span>{ready ? <><b style={{ color: 'var(--sage-600)' }}>{sums.yes}</b> xác nhận · <b style={{ color: 'var(--kim-700)' }}>{sums.pending}</b> chờ</> : '\u00a0'}</span>
+            <span>{!ready ? '' : capacity > 0 ? `Sức chứa ${capacity} khách` : 'Chưa đặt sức chứa'}</span>
           </div>
         </div>
 
         <GkSeg value={filter} onChange={setFilter} />
       </div>
 
+      {me.status === 'error' ? <LoadError what="danh sách khách mời" onRetry={me.retry} />
+      : failed ? <LoadError what="danh sách khách mời" onRetry={() => setTries((n) => n + 1)} />
+      : waiting ? (showSk
+        ? <SkelRegion style={{ flex: '1 0 auto', padding: '18px 16px 8px' }}><Bar h={14} w={80} /><Bar h={70} mt={12} /><Bar h={70} mt={10} /><Bar h={70} mt={10} /><Bar h={70} mt={10} /></SkelRegion>
+        : <SkelHold style={{ flex: '1 0 auto' }} />)
+      : (
       <div style={{ flex: '1 0 auto', padding: '0 16px 8px' }}>
         {gs.length === 0 && (
           <div style={{ marginTop: 18, padding: '24px 16px', textAlign: 'center', border: '1px dashed var(--line-200)', borderRadius: 'var(--r-md)',
@@ -181,6 +198,7 @@ export function ScreenGuests({ coupleId = null, onMenuOpen = () => {}, onOpenAI 
           <Icon name="user-plus" size={16} color="var(--son-600)" /> Thêm khách mời
         </button>
       </div>
+      )}
 
     </div>
   );

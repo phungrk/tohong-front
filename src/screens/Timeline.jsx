@@ -4,6 +4,7 @@ import { AIButton } from '../ui/AIButton.jsx';
 import { Avatar } from '../ui/atoms.jsx';
 import { ListRow, SectionHeader, RowIcon, Amount } from '../ui/ListRow.jsx';
 import { api } from '../api.js';
+import { useShowAfter, SkelRegion, SkelHold, Bar, LoadError } from '../ui/Skel.jsx';
 import { track } from '../analytics.js';
 import { useHistoryLayer } from '../nav.js';
 import { buildTemplate } from './checklistTemplates.js';
@@ -306,8 +307,14 @@ function TlDayTab({ rundown, suggestions, onToggle, onAdd, onAcceptSuggestion, o
   );
 }
 
-export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
+export function ScreenTimeline({ me = { status: 'ok' }, coupleId = null, onMenuOpen = () => {}, onOpenAI = () => {} }) {
   const [tab, setTab] = useState('prep');
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  // Đang chờ = còn chờ /api/me, hoặc đã có coupleId mà timeline + summary chưa về (T-061).
+  const waiting = !failed && me.status !== 'error' && (me.status === 'loading' || (!!coupleId && !loaded));
+  const showSk = useShowAfter(waiting);
   const [phases, setPhases] = useState(EMPTY_PHASES);
   const [rundown, setRundown] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -331,9 +338,12 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
   useEffect(() => {
     if (!coupleId) return;
     let cancelled = false;
+    setFailed(false);
+    setLoaded(false);
     Promise.all([api.getTimeline(coupleId), api.getSummary(coupleId)])
       .then(async ([data, summary]) => {
         if (cancelled) return;
+        setLoaded(true); // cùng lô cập nhật với phases/wedding bên dưới (trước await đầu tiên)
         const daysLeft = summary?.days_left ?? null;
         setWedding({
           date: summary?.profile?.wedding_date || null,
@@ -359,9 +369,9 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };
-  }, [coupleId]);
+  }, [coupleId, tries]);
 
   const scheduleSave = (nextPhases, nextRundown) => {
     if (!coupleId) return;
@@ -437,7 +447,7 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.1 }}>Kế hoạch</div>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 1 }}>
-              {donePrep}/{allTasks.length} việc xong{wedding.daysLeft != null ? ` · còn ${wedding.daysLeft} ngày` : ''}
+              {loaded ? `${donePrep}/${allTasks.length} việc xong${wedding.daysLeft != null ? ` · còn ${wedding.daysLeft} ngày` : ''}` : '\u00a0'}
             </div>
           </div>
           {weddingLabel && <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--son-50)', border: '1px solid var(--son-200)', borderRadius: 'var(--r-pill)', padding: '5px 11px' }}>
@@ -457,7 +467,12 @@ export function ScreenTimeline({ coupleId = null, onMenuOpen = () => {}, onOpenA
       </div>
 
       <div style={{ flex: '1 0 auto', padding: '0 16px' }}>
-        {tab === 'prep'
+        {me.status === 'error' ? <LoadError what="kế hoạch" onRetry={me.retry} style={{ margin: '24px 0' }} />
+        : failed ? <LoadError what="kế hoạch" onRetry={() => setTries((n) => n + 1)} style={{ margin: '24px 0' }} />
+        : waiting ? (showSk
+          ? <SkelRegion style={{ paddingTop: 16 }}><Bar h={55} r="var(--r-lg)" /><Bar h={35} mt={14} /><Bar h={61} mt={8} /><Bar h={61} mt={8} /><Bar h={61} mt={8} /><Bar h={61} mt={8} /></SkelRegion>
+          : <SkelHold />)
+        : tab === 'prep'
           ? <TlPrepTab phases={phases} onToggle={togglePrep} onAdd={() => setTaskSheetOpen(true)} />
           : <TlDayTab
               rundown={rundown}
