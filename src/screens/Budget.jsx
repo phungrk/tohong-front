@@ -155,9 +155,9 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
         onClick={onClose}
         style={{
           position: 'absolute', inset: 0, zIndex: 499,
-          background: 'rgba(43,36,32,0.38)',
+          background: open ? 'rgba(43,36,32,0.38)' : 'transparent',
           opacity: open ? 1 : 0,
-          transition: 'opacity .22s',
+          transition: 'opacity .22s, background-color .22s',
           pointerEvents: open ? 'auto' : 'none',
         }}
       />

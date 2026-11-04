@@ -134,6 +134,9 @@ body,
   min-height: 100%;
 }
 
+/* T-059: html giữ màu giấy (vùng thanh trên Safari iOS), body giữ linen */
+html { background: var(--paper); }
+
 body {
   margin: 0;
   background: var(--linen);

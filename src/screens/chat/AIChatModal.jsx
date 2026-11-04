@@ -104,8 +104,8 @@ export function AIChatModal({
   return (
     <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 500, pointerEvents: open ? 'all' : 'none' }}>
       {/* backdrop */}
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
-        opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: open ? 'rgba(43,36,32,0.38)' : 'transparent',
+        opacity: open ? 1 : 0, transition: 'opacity .22s ease, background-color .22s ease' }} />
 
       {/* sheet */}
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 64,
