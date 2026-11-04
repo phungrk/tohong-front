@@ -24,6 +24,8 @@ import { ConnectProvider } from './screens/ConnectCtx.jsx';
 import { SaveBanner } from './ui/SaveBanner.jsx';
 import { InstallHint } from './ui/InstallHint.jsx';
 import { useDocScroll } from './docScroll.js';
+import { useVVBottom } from './vvBottom.js';
+import { VVDebug } from './VVDebug.jsx';
 import {
   useRoute, useLayerCount, useHistoryLayer, buildHash, goTab, openCategory, closeSubpage,
   dropMissingCategory, afterLayersClosed,
@@ -341,6 +343,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
     openAI(CTX_BY_TAB[tab] || 'home');
   };
 
+  const vvGap = useVVBottom(); // bù đáy khối dính theo visualViewport (T-056)
+
   const navigate = (i) => {
     if (i === 1) { openAI(CTX_BY_TAB[tab] || 'home'); return; }
     track('tab_selected', { tab_index: i });
@@ -387,7 +391,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
             ))}
           </div>
           {/* dính đáy vùng nhìn thấy: khối gợi ý cài (nếu có) ngay trên thanh tab */}
-          <div style={{ position: 'sticky', bottom: 0, zIndex: 40 }}>
+          <VVDebug gap={vvGap} />
+          <div style={{ position: 'sticky', bottom: 'var(--vv-bottom, 0px)', zIndex: 40 }}>
             <InstallHint suppressed={obOpen} scrollHidden={hintHidden} />
             <BottomTabBar active={tab} onSelect={navigate} />
           </div>
