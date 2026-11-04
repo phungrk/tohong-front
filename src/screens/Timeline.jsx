@@ -47,8 +47,8 @@ function TlAddSheet({ open, onClose, onAdd, suggestTime }) {
 
   return (
     <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
-        opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: open ? 'rgba(43,36,32,0.38)' : 'transparent',
+        opacity: open ? 1 : 0, transition: 'opacity .22s ease, background-color .22s ease' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
         borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 40px rgba(80,50,40,0.18)',
         transform: open ? 'translateY(0)' : 'translateY(104%)', opacity: open ? 1 : 0,
@@ -132,8 +132,8 @@ function TlAddTaskSheet({ open, onClose, onAdd, phases }) {
 
   return (
     <div className="ov-fixed" style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: open ? 'all' : 'none' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(43,36,32,0.38)',
-        opacity: open ? 1 : 0, transition: 'opacity .22s ease' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: open ? 'rgba(43,36,32,0.38)' : 'transparent',
+        opacity: open ? 1 : 0, transition: 'opacity .22s ease, background-color .22s ease' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--paper)',
         borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 40px rgba(80,50,40,0.18)',
         transform: open ? 'translateY(0)' : 'translateY(104%)', opacity: open ? 1 : 0,
