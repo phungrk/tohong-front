@@ -6,17 +6,27 @@ import { VENDOR_CATEGORIES } from './screens/VendorCtx.jsx';
 const ACCENT = { fill: 'var(--son-500)', stroke: 'none' };
 const A = (p) => <circle {...p} style={ACCENT} />;
 
+// Bông hoa năm cánh tròn quanh một nhuỵ
+const flower = (cx, cy, pr, R) => (<>
+  {[0, 1, 2, 3, 4].map((i) => {
+    const a = (i * 72 - 90) * Math.PI / 180;
+    return <circle key={i} cx={+(cx + R * Math.cos(a)).toFixed(1)} cy={+(cy + R * Math.sin(a)).toFixed(1)} r={pr} />;
+  })}
+  {A({ cx, cy, r: pr * 0.6 })}
+</>);
+
 const DRAW = {
   // Tiệc & nhà hàng: ly rượu
   venue: (<>
     <path d="M35 26H65C65 42 59 54 50 54C41 54 35 42 35 26Z" />
     <path d="M36 38H64M50 54V71M38 72H62M72 24V32M68 28H76" />
   </>),
-  // Ăn hỏi & sính lễ: tráp có nơ
+  // Ăn hỏi & sính lễ: tráp tròn có nắp
   ceremony: (<>
-    <rect x="26" y="48" width="48" height="24" rx="3" />
-    <rect x="22" y="38" width="56" height="10" rx="3" />
-    <path d="M50 38V72M50 38C42 26 32 32 42 37M50 38C58 26 68 32 58 37" />
+    <path d="M24 50C24 34 76 34 76 50Z" />
+    <path d="M26 50V68C26 75 74 75 74 68V50M26 60H74M50 34V30" />
+    <circle cx="50" cy="27" r="3.5" />
+    {A({ cx: 50, cy: 60, r: 2.5 })}
   </>),
   // Chụp ảnh / quay: máy ảnh
   photography: (<>
@@ -35,20 +45,17 @@ const DRAW = {
     <path d="M43 22L41 42L28 78H72L59 42L57 22" />
     <path d="M43 22Q50 32 57 22M41 42H59M50 46V78" />
   </>),
-  // Trang trí & hoa: bó hoa
+  // Trang trí & hoa: bó hoa nhiều cánh
   decor: (<>
-    <circle cx="38" cy="36" r="8" />
-    <circle cx="62" cy="36" r="8" />
-    <circle cx="50" cy="25" r="8" />
-    {A({ cx: 38, cy: 36, r: 2.5 })}{A({ cx: 62, cy: 36, r: 2.5 })}{A({ cx: 50, cy: 25, r: 2.5 })}
-    <path d="M38 44L50 66M62 44L50 66M50 33V66M42 66H58L60 78H40Z" />
+    {flower(50, 33, 5.5, 8)}{flower(30, 50, 4, 5.5)}{flower(70, 50, 4, 5.5)}
+    <path d="M50 44V68M30 56L47 70M70 56L53 70M42 70H58L60 80H40Z" />
   </>),
-  // Trang điểm & làm tóc: gương cầm tay
+  // Trang điểm & làm tóc: thỏi son
   makeup: (<>
-    <circle cx="50" cy="40" r="18" />
-    <circle cx="50" cy="40" r="12" />
-    <rect x="45" y="58" width="10" height="22" rx="5" />
-    <path d="M42 35Q44 31 49 30" />
+    <rect x="38" y="60" width="24" height="20" rx="2" />
+    <rect x="41" y="48" width="18" height="12" rx="1" />
+    <path d="M43 48V36L57 28V48M38 60H62" />
+    {A({ cx: 70, cy: 32, r: 2 })}{A({ cx: 74, cy: 40, r: 1.5 })}
   </>),
   // Xe hoa & đưa đón: xe có trái tim
   transport: (<>
@@ -97,7 +104,7 @@ export function VendorIllustration({ catId, chip = false, chipBottom = 6 }) {
   const label = illustrationLabel(catId);
   return (
     <span role="img" aria-label={label} title={chip ? undefined : label}
-      style={{ position: 'absolute', inset: 0, display: 'block', pointerEvents: 'none' }}>
+      style={{ position: 'absolute', inset: 0, display: 'block', pointerEvents: chip ? 'none' : 'auto' }}>
       <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true" focusable="false"
         style={{ display: 'block', fill: 'none', stroke: 'var(--ink-700)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <circle cx="50" cy="50" r="44" style={{ fill: 'var(--paper)', stroke: 'none' }} />
