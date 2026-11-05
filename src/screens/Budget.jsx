@@ -14,7 +14,8 @@ import { useConnect } from './connectContext.js';
 import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { useHistoryLayer } from '../nav.js';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
-import { useSavedVendorPhotoBg } from '../vendorImages.js';
+import { useSavedVendorPhoto } from '../vendorImages.js';
+import { VendorIllustration } from '../vendorIllustrations.jsx';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
 function ItemRow({ it, onAmt, onName, onRemove, venueItem = false, venueCalc = null }) {
@@ -99,7 +100,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   const { vendorInfoFor } = useConnect();
   const { guests, budgetReady } = useVendorCtx();
   // Ảnh theo pool hiện tại (tra theo id); không có ảnh dùng được thì nền sage/sand như trước. Dữ liệu đã lưu không bị sửa.
-  const photoBg = useSavedVendorPhotoBg(vendor);
+  const { bg: photoBg, state: photoState } = useSavedVendorPhoto(vendor);
 
   useEffect(() => {
     if (vendor) setNote(vendor.note || '');
@@ -187,9 +188,11 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           <div style={{
             width: 56, height: 56, borderRadius: 'var(--r-sm)', flexShrink: 0,
             background: photoBg || (isConfirmed ? 'linear-gradient(135deg,var(--sage-100),var(--sage-200))' : 'var(--sand)'),
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
           }}>
-            <Icon name="store" size={22} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />
+            {photoState === 'bad'
+              ? <VendorIllustration catId={catId} />
+              : <Icon name="store" size={22} color={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>

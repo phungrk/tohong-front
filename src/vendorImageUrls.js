@@ -23,3 +23,11 @@ export function photoUrlsOf(vendor) {
   const list = vendor?.gallery?.length ? vendor.gallery : [vendor?.grad];
   return list.map(urlFromCss).filter(Boolean);
 }
+
+/* Trạng thái một ô ảnh (spec T-066 M1): 'good' có ảnh dùng được; 'checking' còn URL chưa biết kết quả;
+   'bad' không có URL nào hoặc mọi URL đều hỏng. Chỉ 'bad' mới được hiện minh hoạ. */
+export function photoStateOf(urls, isGood, isBad) {
+  if (!urls || !urls.length) return 'bad';
+  if (urls.some(isGood)) return 'good';
+  return urls.every(isBad) ? 'bad' : 'checking';
+}

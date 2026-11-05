@@ -21,3 +21,15 @@ test('ảnh mặc định theo danh mục, danh mục lạ dùng gradient chung'
   assert.notEqual(fallbackGradFor('venue'), fallbackGradFor('khong-co'));
   assert.equal(fallbackGradFor('khong-co'), fallbackGradFor(undefined));
 });
+
+// T-066 / T-068: trạng thái ô ảnh. Chỉ 'bad' mới được hiện minh hoạ.
+import { photoStateOf } from '../src/vendorImageUrls.js';
+test('photoStateOf: không URL hoặc mọi URL hỏng là bad; còn URL chưa biết là checking; có ảnh tốt là good', () => {
+  const good = new Set(['g']), bad = new Set(['b1', 'b2']);
+  const isGood = (u) => good.has(u), isBad = (u) => bad.has(u);
+  assert.equal(photoStateOf([], isGood, isBad), 'bad');
+  assert.equal(photoStateOf(undefined, isGood, isBad), 'bad');
+  assert.equal(photoStateOf(['b1', 'b2'], isGood, isBad), 'bad');
+  assert.equal(photoStateOf(['b1', 'pending'], isGood, isBad), 'checking');
+  assert.equal(photoStateOf(['b1', 'g'], isGood, isBad), 'good');
+});
