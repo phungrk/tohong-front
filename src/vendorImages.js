@@ -4,14 +4,15 @@
 // Không viết cứng host ảnh nào: URL luôn lấy từ dữ liệu vendor (API hoặc nơi lưu).
 import { useEffect, useState } from 'react';
 import { api } from './api.js';
-import { cssBg, fallbackGradFor, photoUrlsOf } from './vendorImageUrls.js';
+import { cssBg, fallbackGradFor, photoUrlsOf, photoStateOf } from './vendorImageUrls.js';
 
-export { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, fallbackGradFor, cssBg, urlFromCss, photoUrlsOf } from './vendorImageUrls.js';
+export { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, fallbackGradFor, cssBg, urlFromCss, photoUrlsOf, photoStateOf } from './vendorImageUrls.js';
 
 
 /* ── Thử tải ảnh: mỗi URL tối đa một lần mỗi lần mở trang ───────────────── */
 const results = new Map();   // url → true | false (đã xong)
 const inflight = new Map();  // url → Promise<boolean>
+const HANG_MS = 8000;        // ảnh không trả lời sau 8 giây thì coi là hỏng (spec T-066 M1)
 
 function probe(url) {
   if (results.has(url)) return Promise.resolve(results.get(url));
@@ -19,16 +20,17 @@ function probe(url) {
   const p = new Promise((resolve) => {
     if (typeof Image === 'undefined') { resolve(false); return; }
     const im = new Image();
-    im.onload = () => resolve(im.naturalWidth > 0);
-    im.onerror = () => resolve(false);
+    const timer = setTimeout(() => { im.onload = null; im.onerror = null; resolve(false); }, HANG_MS);
+    im.onload = () => { clearTimeout(timer); resolve(im.naturalWidth > 0); };
+    im.onerror = () => { clearTimeout(timer); resolve(false); };
     im.src = url;
   }).then((ok) => { results.set(url, ok); inflight.delete(url); return ok; });
   inflight.set(url, p);
   return p;
 }
 
-/* Trả về isGood(url): true chỉ khi ảnh đã tải được. Đang thử hoặc hỏng đều là false
-   (hiện ảnh mặc định, không bao giờ hiện khung vỡ). */
+/* Trả về { isGood, isBad }: isGood(url) true chỉ khi ảnh đã tải được; isBad(url) true chỉ khi đã biết chắc là hỏng
+   (lỗi, trả HTML, hoặc treo quá 8 giây). Đang thử là cả hai đều false ("đang kiểm"). */
 export function useImageStatus(urls) {
   const [, bump] = useState(0);
   const key = urls.join('\n');
@@ -40,19 +42,20 @@ export function useImageStatus(urls) {
     }
     return () => { alive = false; };
   }, [key]);
-  return (url) => results.get(url) === true;
+  return { isGood: (url) => results.get(url) === true, isBad: (url) => results.get(url) === false };
 }
 
-/* Bề mặt 1-4: vendor vừa lấy từ API. Trả bgOf(v) (nền một ô) và galleryOf(v) (mảng nền cho gallery, luôn ≥ 1). */
+/* Bề mặt 1-4: vendor vừa lấy từ API. Trả bgOf(v) (nền một ô), galleryOf(v) (mảng nền cho gallery, luôn ≥ 1)
+   và stateOf(v) ('good' | 'checking' | 'bad'; chỉ 'bad' mới hiện minh hoạ). */
 export function useVendorBackgrounds(vendors, catId) {
   const list = (vendors || []).filter(Boolean);
-  const isGood = useImageStatus(list.flatMap(photoUrlsOf));
+  const { isGood, isBad } = useImageStatus(list.flatMap(photoUrlsOf));
   const fallback = fallbackGradFor(catId);
   const galleryOf = (v) => {
     const good = v ? photoUrlsOf(v).filter(isGood) : [];
     return good.length ? good.map(cssBg) : [fallback];
   };
-  return { galleryOf, bgOf: (v) => galleryOf(v)[0] };
+  return { galleryOf, bgOf: (v) => galleryOf(v)[0], stateOf: (v) => photoStateOf(v ? photoUrlsOf(v) : [], isGood, isBad) };
 }
 
 /* ── Bề mặt 5-6: vendor đã lưu ──────────────────────────────────────────
@@ -73,9 +76,10 @@ function lookupPool(id) {
   return e.promise;
 }
 
-/* Nền ảnh (CSS) của vendor đã lưu, hoặc null khi phải dùng ảnh mặc định của bề mặt.
-   Từ lúc mở đến khi tra xong: null và không yêu cầu nào tới URL ảnh đã lưu. */
-export function useSavedVendorPhotoBg(vendor) {
+/* Ảnh của vendor đã lưu: { bg, state }. bg là nền ảnh (CSS) hoặc null khi phải dùng ảnh mặc định của bề mặt;
+   state là 'good' | 'checking' | 'bad' (chỉ 'bad' mới hiện minh hoạ).
+   Từ lúc mở đến khi tra xong: bg null, state 'checking', không yêu cầu nào tới URL ảnh đã lưu. */
+export function useSavedVendorPhoto(vendor) {
   const [, bump] = useState(0);
   const id = vendor?.id;
   useEffect(() => {
@@ -88,7 +92,11 @@ export function useSavedVendorPhotoBg(vendor) {
   let urls = [];
   if (!id) urls = photoUrlsOf(vendor);
   else if (e?.done) urls = e.ok ? e.urls : photoUrlsOf(vendor);
-  const isGood = useImageStatus(urls);
+  const { isGood, isBad } = useImageStatus(urls);
   const first = urls.find(isGood);
-  return first ? cssBg(first) : null;
+  const pending = !!id && !e?.done;
+  return { bg: first ? cssBg(first) : null, state: pending ? 'checking' : photoStateOf(urls, isGood, isBad) };
 }
+
+/* Chỉ nền ảnh (CSS) của vendor đã lưu, hoặc null. */
+export const useSavedVendorPhotoBg = (vendor) => useSavedVendorPhoto(vendor).bg;
