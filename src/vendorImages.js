@@ -9,6 +9,15 @@ import { cssBg, fallbackGradFor, photoUrlsOf, photoStateOf } from './vendorImage
 export { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, fallbackGradFor, cssBg, urlFromCss, photoUrlsOf, photoStateOf } from './vendorImageUrls.js';
 
 
+/* ── Ghi công ảnh Google (spec 005) ──────────────────────────────────────────
+   url → "Tên tác giả" (chuỗi attribution từ pool). Đăng ký mỗi khi nhận vendor từ API (match hoặc tra theo id);
+   mọi bề mặt tra `creditOf(url)` để hiện PhotoCredit. Ảnh không phải Google không có entry. */
+const credits = new Map();
+export function registerPhotoCredits(photos) {
+  for (const p of photos || []) if (p?.url && p.attribution) credits.set(p.url, String(p.attribution));
+}
+export const creditOf = (url) => (url ? credits.get(url) || null : null);
+
 /* ── Thử tải ảnh: mỗi URL tối đa một lần mỗi lần mở trang ───────────────── */
 const results = new Map();   // url → true | false (đã xong)
 const inflight = new Map();  // url → Promise<boolean>
@@ -51,11 +60,17 @@ export function useVendorBackgrounds(vendors, catId) {
   const list = (vendors || []).filter(Boolean);
   const { isGood, isBad } = useImageStatus(list.flatMap(photoUrlsOf));
   const fallback = fallbackGradFor(catId);
+  const goodUrls = (v) => (v ? photoUrlsOf(v).filter(isGood) : []);
   const galleryOf = (v) => {
-    const good = v ? photoUrlsOf(v).filter(isGood) : [];
+    const good = goodUrls(v);
     return good.length ? good.map(cssBg) : [fallback];
   };
-  return { galleryOf, bgOf: (v) => galleryOf(v)[0], stateOf: (v) => photoStateOf(v ? photoUrlsOf(v) : [], isGood, isBad) };
+  return {
+    galleryOf,
+    bgOf: (v) => galleryOf(v)[0],
+    stateOf: (v) => photoStateOf(v ? photoUrlsOf(v) : [], isGood, isBad),
+    creditOf: (v) => creditOf(goodUrls(v)[0]),   // tác giả ảnh đang hiện (ảnh đầu); null nếu không phải ảnh Google
+  };
 }
 
 /* ── Bề mặt 5-6: vendor đã lưu ──────────────────────────────────────────
@@ -69,14 +84,18 @@ function lookupPool(id) {
   if (e) return e.promise;
   e = { done: false, ok: false, urls: [] };
   e.promise = api.getVendorPhotos(id)
-    .then((res) => { e.ok = true; e.urls = (res?.vendor?.photos || []).map((p) => p?.url).filter(Boolean); })
+    .then((res) => {
+      e.ok = true;
+      registerPhotoCredits(res?.vendor?.photos);
+      e.urls = (res?.vendor?.photos || []).map((p) => p?.url).filter(Boolean);
+    })
     .catch(() => { e.ok = false; })
     .then(() => { e.done = true; });
   lookups.set(id, e);
   return e.promise;
 }
 
-/* Ảnh của vendor đã lưu: { bg, state }. bg là nền ảnh (CSS) hoặc null khi phải dùng ảnh mặc định của bề mặt;
+/* Ảnh của vendor đã lưu: { bg, state, credit }. credit = tác giả ảnh Google đang hiện (hoặc null). bg là nền ảnh (CSS) hoặc null khi phải dùng ảnh mặc định của bề mặt;
    state là 'good' | 'checking' | 'bad' (chỉ 'bad' mới hiện minh hoạ).
    Từ lúc mở đến khi tra xong: bg null, state 'checking', không yêu cầu nào tới URL ảnh đã lưu. */
 export function useSavedVendorPhoto(vendor) {
@@ -95,7 +114,7 @@ export function useSavedVendorPhoto(vendor) {
   const { isGood, isBad } = useImageStatus(urls);
   const first = urls.find(isGood);
   const pending = !!id && !e?.done;
-  return { bg: first ? cssBg(first) : null, state: pending ? 'checking' : photoStateOf(urls, isGood, isBad) };
+  return { bg: first ? cssBg(first) : null, state: pending ? 'checking' : photoStateOf(urls, isGood, isBad), credit: creditOf(first) };
 }
 
 /* Chỉ nền ảnh (CSS) của vendor đã lưu, hoặc null. */
