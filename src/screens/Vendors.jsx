@@ -5,6 +5,7 @@ import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
+import { PhotoCredit } from '../PhotoCredit.jsx';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
 function VVendorRow({ catId, vendor }) {
@@ -28,6 +29,7 @@ function VVendorRow({ catId, vendor }) {
       <ListRow
         leading={<div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'center', background: thumbBg, position: 'relative', overflow: 'hidden' }}>
           {photo.state === 'bad' && <VendorIllustration catId={catId} />}
+          <PhotoCredit credit={photo.credit} compact />
         </div>}
         title={vendor.name}
         sub={`${vendor.priceTotal}tr · ${vendor.priceUnit}`}

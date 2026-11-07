@@ -10,7 +10,8 @@ import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
 import { PriceTag } from '../../ui/PriceTag.jsx';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg } from '../../vendorImageUrls.js';
-import { useVendorBackgrounds } from '../../vendorImages.js';
+import { useVendorBackgrounds, urlFromCss, creditOf, registerPhotoCredits } from '../../vendorImages.js';
+import { PhotoCredit } from '../../PhotoCredit.jsx';
 import { VendorIllustration } from '../../vendorIllustrations.jsx';
 
 const VCMP_MAX = 5; // anchor + tối đa 4 vendor khác trong bảng so sánh
@@ -22,6 +23,7 @@ export const useChatActions = () => useContext(ChatActionsCtx);
 function adaptVendor(bv, catId) {
   const bk = bv.match?.scoreBreakdown || {};
   const photoUrls = (bv.photos || []).map((p) => p.url).filter(Boolean);
+  registerPhotoCredits(bv.photos); // spec 005: ảnh Google phải hiện tên tác giả ở mọi bề mặt → đăng ký url → tác giả
   const fallbackGrad = CAT_FALLBACK_GRAD[catId] || GENERIC_FALLBACK_GRAD;
   const gallery = photoUrls.length
     ? photoUrls.map(cssBg)
@@ -206,7 +208,7 @@ export function VMatchChatCard({ catId }) {
   const showSk = useShowAfter(vendors === null && !error); // skeleton sau ~150ms (T-061)
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
-  const { bgOf, stateOf } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
+  const { bgOf, stateOf, creditOf: creditFor } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
 
   useEffect(() => {
     let alive = true;
@@ -318,6 +320,7 @@ export function VMatchChatCard({ catId }) {
                     <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
                       borderRadius: 'var(--r-sm)', background: bgOf(v), position: 'relative', overflow: 'hidden' }}>
                       {stateOf(v) === 'bad' && <VendorIllustration catId={catId} chip chipBottom={rank === 1 ? 28 : 6} />}
+                      <PhotoCredit credit={creditFor(v)} compact />
                       <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
                         color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
                         fontFamily: 'var(--font-ui)' }}>#{rank}</span>
@@ -534,6 +537,7 @@ export function VDetailChatCard({ catId, vendor }) {
 
   const gallery = galleryOf(vendor); // chỉ ảnh tải được; hết ảnh thì 1 ảnh mặc định (không chấm chuyển ảnh)
   const galShow = Math.min(galIdx, gallery.length - 1);
+  const galAttr = creditOf(urlFromCss(gallery[galShow])); // tác giả ảnh Google đang xem (spec 005)
 
   const onSave = () => {
     saveVendor(catId, vendor, 'detail');
@@ -556,6 +560,7 @@ export function VDetailChatCard({ catId, vendor }) {
         <div style={{ height: 150, position: 'relative', flexShrink: 0, overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: gallery[galShow], transition: 'background .25s ease' }} />
           {stateOf(vendor) === 'bad' && <VendorIllustration catId={catId} chip chipBottom={9} />}
+          <PhotoCredit credit={galAttr} left={9} bottom={gallery.length > 1 ? 22 : 9} />
           <button type="button" onClick={onSave} disabled={isSaved} style={{ position: 'absolute', top: 9, right: 9,
             width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: isSaved ? 'default' : 'pointer',
             background: isSaved ? 'var(--son-500)' : 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
@@ -714,7 +719,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
   const [error, setError] = useState(false);
   const [sel, setSel] = useState([]);
   const [done, setDone] = useState(false);
-  const { bgOf, stateOf } = useVendorBackgrounds([anchor, ...(others || [])], catId);
+  const { bgOf, stateOf, creditOf: creditFor } = useVendorBackgrounds([anchor, ...(others || [])], catId);
   const showSk = useShowAfter(others === null && !error);
 
   useEffect(() => {
@@ -755,6 +760,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
           border: '1px solid var(--son-200)', borderRadius: 'var(--r-md)' }}>
           <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: bgOf(anchor), flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
             {stateOf(anchor) === 'bad' && <VendorIllustration catId={catId} />}
+            <PhotoCredit credit={creditFor(anchor)} compact />
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
@@ -794,6 +800,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 opacity: disabled && !on ? 0.45 : 1, transition: 'all .18s ease' }}>
               <span style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', background: bgOf(v), flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                 {stateOf(v) === 'bad' && <VendorIllustration catId={catId} />}
+                <PhotoCredit credit={creditFor(v)} compact />
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
@@ -843,7 +850,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
   // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
-  const { bgOf, stateOf } = useVendorBackgrounds(vendors, catId);
+  const { bgOf, stateOf, creditOf: creditFor } = useVendorBackgrounds(vendors, catId);
   const compareTrackedRef = useRef(false);
   const compareCount = vendors.length;
   const compareValid = !!cat && compareCount >= 2;
@@ -907,6 +914,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                   background: i === 0 ? 'var(--son-50)' : 'transparent' }}>
                   <div style={{ height: 30, borderRadius: 'var(--r-sm)', background: bgOf(v), marginBottom: 5, position: 'relative', overflow: 'hidden' }}>
                     {stateOf(v) === 'bad' && <VendorIllustration catId={catId} />}
+                    <PhotoCredit credit={creditFor(v)} compact />
                   </div>
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
