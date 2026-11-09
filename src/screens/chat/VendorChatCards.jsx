@@ -317,7 +317,7 @@ export function VMatchChatCard({ catId }) {
                     {/* thumbnail — tim nổi góc phải-trên, thứ hạng góc trái-trên */}
                     <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
                       borderRadius: 'var(--r-sm)', background: bgOf(v), position: 'relative', overflow: 'hidden' }}>
-                      {stateOf(v) === 'bad' && <VendorIllustration catId={catId} chip chipBottom={rank === 1 ? 28 : 6} />}
+                      {stateOf(v) === 'bad' && <VendorIllustration catId={catId} large />}
                       <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
                         color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 999, padding: '1px 7px',
                         fontFamily: 'var(--font-ui)' }}>#{rank}</span>
@@ -555,7 +555,7 @@ export function VDetailChatCard({ catId, vendor }) {
         {/* 1. Gallery — ảnh thật (1–4 ảnh tuỳ vendor) hoặc gradient fallback */}
         <div style={{ height: 150, position: 'relative', flexShrink: 0, overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: gallery[galShow], transition: 'background .25s ease' }} />
-          {stateOf(vendor) === 'bad' && <VendorIllustration catId={catId} chip chipBottom={9} />}
+          {stateOf(vendor) === 'bad' && <VendorIllustration catId={catId} large />}
           <button type="button" onClick={onSave} disabled={isSaved} style={{ position: 'absolute', top: 9, right: 9,
             width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: isSaved ? 'default' : 'pointer',
             background: isSaved ? 'var(--son-500)' : 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
