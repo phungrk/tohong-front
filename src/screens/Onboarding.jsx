@@ -737,7 +737,7 @@ export function Onboarding({ open, onDone }) {
       <div style={{ position:'absolute', inset:0, background: shown?'rgba(43,36,32,0.52)':'transparent',
         opacity:shown?1:0, transition:'opacity .26s ease, background-color .26s ease' }}/>
 
-      <div style={{ position:'absolute', left:0, right:0, bottom:0, top:76,
+      <div className="ob-sheet" style={{ position:'absolute', left:0, right:0, bottom:0, top:76,
         background:'var(--paper)', borderRadius:'22px 22px 0 0', overflow:'hidden',
         display:'flex', flexDirection:'column',
         transform:shown?'translateY(0)':'translateY(106%)',
