@@ -88,29 +88,23 @@ const GENERIC = (<>
   <path d="M60 72C44 60 42 46 51 41C56 38 60 42 60 45C60 42 64 38 69 41C78 46 76 60 60 72Z" style={{ stroke: 'var(--son-500)' }} />
 </>);
 
-const CHIP = {
-  position: 'absolute', left: 6, fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, lineHeight: '16px',
-  color: 'var(--ink-700)', background: 'var(--card)', borderRadius: 4, padding: '0 5px', whiteSpace: 'nowrap',
-};
-
 const illustrationLabel = (catId) => {
   const name = VENDOR_CATEGORIES.find((c) => c.id === catId)?.name;
   return name && Object.hasOwn(DRAW, catId) ? `Ảnh minh hoạ: ${name}` : 'Ảnh minh hoạ';
 };
 
-/* Phủ kín khung ảnh cha (cha phải có position relative). chip: hiện chữ "Ảnh minh hoạ" (ô từ 80px trở lên),
-   chipBottom: khoảng cách chip tới đáy ô (để chừa dải "PHÙ HỢP NHẤT"). Ô nhỏ không chip thì có title. */
-export function VendorIllustration({ catId, chip = false, chipBottom = 6 }) {
+/* Phủ kín khung ảnh cha (cha phải có position relative). Không in chữ nhìn thấy (T-114); tên truy cập nằm ở aria-label.
+   large: ô từ 80px trở lên, không title và cho chuột xuyên qua; ô nhỏ có title. */
+export function VendorIllustration({ catId, large = false }) {
   const label = illustrationLabel(catId);
   return (
-    <span role="img" aria-label={label} title={chip ? undefined : label}
-      style={{ position: 'absolute', inset: 0, display: 'block', pointerEvents: chip ? 'none' : 'auto' }}>
+    <span role="img" aria-label={label} title={large ? undefined : label}
+      style={{ position: 'absolute', inset: 0, display: 'block', pointerEvents: large ? 'none' : 'auto' }}>
       <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true" focusable="false"
         style={{ display: 'block', fill: 'none', stroke: 'var(--ink-700)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <circle cx="50" cy="50" r="44" style={{ fill: 'var(--paper)', stroke: 'none' }} />
         {Object.hasOwn(DRAW, catId) ? DRAW[catId] : GENERIC}
       </svg>
-      {chip && <span aria-hidden="true" style={{ ...CHIP, bottom: chipBottom }}>Ảnh minh hoạ</span>}
     </span>
   );
 }
