@@ -34,9 +34,9 @@ function useFooterFade() {
     const ro = new ResizeObserver(upd); ro.observe(b); ro.observe(foot.current);
     return () => { b.removeEventListener('scroll', upd); window.removeEventListener('resize', upd); ro.disconnect(); };
   });
-  const bodyStyle = tight ? {} : { paddingBottom: fh + 8 };
+  const bodyStyle = tight ? {} : { paddingBottom: fh + 8, scrollPaddingBottom: fh + 8 };
   const veil = <div aria-hidden="true" style={{ position:'absolute', left:0, right:0, top:-17, height:16, pointerEvents:'none', display: tight?'none':'block', opacity: fade?1:0, background:'linear-gradient(to bottom, rgba(252,248,243,0), rgba(252,248,243,.5))' }}/>;
-  const hold = <div aria-hidden="true" style={{ position:'absolute', left:0, right:0, top:12, bottom:0, pointerEvents:'auto', display: tight?'none':'block' }}/>;
+  const hold = <div aria-hidden="true" style={{ position:'absolute', left:0, right:0, top:10, bottom:0, pointerEvents:'auto', display: tight?'none':'block' }}/>;
   const footStyle = tight ? { flexShrink:0, borderTop:'1px solid var(--line-100)', background:'var(--paper)' } : { position:'absolute', left:0, right:0, bottom:0,
     paddingTop: fade ? 12 + FADE_EXTRA : 12,
     background: fade ? 'linear-gradient(to bottom, rgba(252,248,243,.5) 0, var(--paper) 12px) border-box' : 'var(--paper)',
