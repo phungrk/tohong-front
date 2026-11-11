@@ -731,5 +731,9 @@ textarea {
 .ov-fixed { overflow: hidden; position: fixed !important; top: 0 !important; bottom: 0 !important; left: var(--ov-l) !important; right: var(--ov-l) !important; }
 /* T-117: điện thoại thấp, sheet onboarding nâng đỉnh để đủ chỗ cho bước 2/3 (px, không dùng vh/lvh) */
 @media (max-width: 600px) { .ob-sheet { top: 24px !important; } }
+/* T-122: dải mờ của footer onboarding không nhận chạm; phần đặc (lớp giữ chạm) vẫn nhận */
+.ob-foot[data-fade="1"] { pointer-events: none; }
+.ob-foot > *:not([aria-hidden]) { position: relative; }
+.ob-foot[data-fade="1"] > *:not([aria-hidden]) { pointer-events: auto; }
 html.doc-locked { overflow: hidden; }
 html { scrollbar-gutter: stable; } /* Firefox thanh cuộn cổ điển: khoá nền không làm khung dịch ngang */
