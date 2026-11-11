@@ -5,9 +5,44 @@
    Step 3a · Khám phá phong cách (grid)
    Step 3b · Kết quả */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { ThreadMark } from '../ui/atoms.jsx';
+
+
+/* T-122: footer đè lên vùng nội dung; trong suốt dần khi còn nội dung nằm dưới footer, đặc lại khi hết. */
+const FADE_EXTRA = 0;
+function useFooterFade() {
+  const body = useRef(null), foot = useRef(null);
+  const [fade, setFade] = useState(false);
+  const [fh, setFh] = useState(119);
+  const [tight, setTight] = useState(typeof window !== 'undefined' && window.innerHeight < 480);
+  useLayoutEffect(() => {
+    const upd = () => {
+      const b = body.current, f = foot.current; if (!b || !f) return;
+      const t = window.innerHeight < 480; setTight(t); if (t) { setFade(false); return; }
+      const last = b.lastElementChild; if (!last) return;
+      const solidH = f.offsetHeight - (f.dataset.fade === '1' ? FADE_EXTRA : 0);
+      const solidTop = b.getBoundingClientRect().bottom - solidH;
+      setFh(solidH);
+      setFade(last.getBoundingClientRect().bottom > solidTop - 4);
+    };
+    upd();
+    const b = body.current;
+    b.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    const ro = new ResizeObserver(upd); ro.observe(b); ro.observe(foot.current);
+    return () => { b.removeEventListener('scroll', upd); window.removeEventListener('resize', upd); ro.disconnect(); };
+  });
+  const bodyStyle = tight ? {} : { paddingBottom: fh + 8, scrollPaddingBottom: fh + 8 };
+  const veil = <div aria-hidden="true" style={{ position:'absolute', left:0, right:0, top:-17, height:16, pointerEvents:'none', display: tight?'none':'block', opacity: fade?1:0, background:'linear-gradient(to bottom, rgba(252,248,243,0), rgba(252,248,243,.5))' }}/>;
+  const hold = <div aria-hidden="true" style={{ position:'absolute', left:0, right:0, top:10, bottom:0, pointerEvents:'auto', display: tight?'none':'block' }}/>;
+  const footStyle = tight ? { flexShrink:0, borderTop:'1px solid var(--line-100)', background:'var(--paper)' } : { position:'absolute', left:0, right:0, bottom:0,
+    paddingTop: fade ? 12 + FADE_EXTRA : 12,
+    background: fade ? 'linear-gradient(to bottom, rgba(252,248,243,.5) 0, var(--paper) 12px) border-box' : 'var(--paper)',
+    borderTop: fade ? '1px solid transparent' : '1px solid var(--line-100)' };
+  return { bodyRef: body, footRef: foot, fade, bodyStyle, footStyle, veil: <>{veil}{hold}</> };
+}
 
 /* ── constants ── */
 const OB_QUICK_CITIES = ['TP.HCM', 'Hà Nội', 'Đà Nẵng'];
@@ -406,6 +441,7 @@ function OBWelcome({ onStart }) {
    STEP 1 · Couple info
 ═══════════════════════════════════════════ */
 function OBStep1({ data, set, onNext }) {
+  const { bodyRef, footRef, fade, bodyStyle, footStyle, veil } = useFooterFade();
   const ready = data.brideName.trim() && data.groomName.trim();
   return (
     <>
@@ -422,7 +458,7 @@ function OBStep1({ data, set, onNext }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'18px 16px', display:'flex', flexDirection:'column', gap:18 }}>
+      <div ref={bodyRef} style={{ flex:1, overflowY:'auto', padding:'18px 16px', display:'flex', flexDirection:'column', gap:18, ...bodyStyle }}>
         <OBRoleSelector role={data.userRole} onPick={v => set('userRole',v)}/>
         <div style={{ height:1, background:'var(--line-100)' }}/>
         <OBPerson icon="flower" label="Cô dâu"
@@ -432,7 +468,8 @@ function OBStep1({ data, set, onNext }) {
           name={data.groomName} onName={v => set('groomName',v)} namePh="Tên chú rể"/>
       </div>
 
-      <div style={{ flexShrink:0, borderTop:'1px solid var(--line-100)', padding:'12px 20px 20px' }}>
+      <div ref={footRef} data-fade={fade?'1':'0'} className="ob-foot" style={{ padding:'12px 20px 20px', ...footStyle }}>
+        {veil}
         {!ready && (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:9 }}>
             <Icon name="info" size={12} color="var(--ink-400)"/>
@@ -462,6 +499,7 @@ function OBStep1({ data, set, onNext }) {
    STEP 2 · Wedding plan
 ═══════════════════════════════════════════ */
 function OBStep2({ data, set, onBack, onNext }) {
+  const { bodyRef, footRef, fade, bodyStyle, footStyle, veil } = useFooterFade();
   return (
     <>
       <div style={{ flexShrink:0, padding:'0 20px 14px', display:'flex', alignItems:'flex-end', gap:2 }}>
@@ -484,7 +522,7 @@ function OBStep2({ data, set, onBack, onNext }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'16px 16px', display:'flex', flexDirection:'column', gap:18 }}>
+      <div ref={bodyRef} style={{ flex:1, overflowY:'auto', padding:'16px 16px', display:'flex', flexDirection:'column', gap:18, ...bodyStyle }}>
         <OBSection label="Ngày cưới dự kiến" icon="calendar-heart">
           <OBDatePicker weddingD={data.weddingD} weddingM={data.weddingM} weddingY={data.weddingY} set={set}/>
         </OBSection>
@@ -501,8 +539,9 @@ function OBStep2({ data, set, onBack, onNext }) {
         </OBSection>
       </div>
 
-      <div style={{ flexShrink:0, borderTop:'1px solid var(--line-100)', padding:'12px 20px 20px',
-        display:'flex', flexDirection:'column', gap:8 }}>
+      <div ref={footRef} data-fade={fade?'1':'0'} className="ob-foot" style={{ padding:'12px 20px 20px',
+        display:'flex', flexDirection:'column', gap:8, ...footStyle }}>
+        {veil}
         <button onClick={onNext}
           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
             fontFamily:'var(--font-ui)', fontSize:16, fontWeight:700,
@@ -554,6 +593,7 @@ function PCPhoto({ item, selected, onClick }) {
 }
 
 function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
+  const { bodyRef, footRef, fade, bodyStyle, footStyle, veil } = useFooterFade();
   const n = likes.size, ready = n>=4;
   return (
     <>
@@ -577,7 +617,7 @@ function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
       </div>
       <div style={{ height:1, background:'var(--line-100)', flexShrink:0 }}/>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'14px 16px 8px' }}>
+      <div ref={bodyRef} style={{ flex:1, overflowY:'auto', padding:'14px 16px 8px', ...bodyStyle }}>
         <div style={{ fontFamily:'var(--font-body)', fontSize:14, color:'var(--ink-500)', marginBottom:12, lineHeight:1.45 }}>
           Không cần gọi tên phong cách — Tơ Hồng tự đọc được gu của hai bạn.
         </div>
@@ -586,7 +626,8 @@ function OBStep3Grid({ likes, toggle, onBack, onNext, onSkip }) {
         </div>
       </div>
 
-      <div style={{ flexShrink:0, borderTop:'1px solid var(--line-100)', padding:'12px 20px 20px' }}>
+      <div ref={footRef} data-fade={fade?'1':'0'} className="ob-foot" style={{ padding:'12px 20px 20px', ...footStyle }}>
+        {veil}
         {!ready && (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:9 }}>
             <Icon name="heart" size={12} color="var(--ink-400)"/>
