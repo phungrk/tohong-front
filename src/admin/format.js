@@ -56,11 +56,13 @@ const ERR = {
   unexpected_field: 'Quyết định này không mang link hay place_id.',
   note_too_long: 'Ghi chú tối đa 300 ký tự.',
   invalid_decision: 'Quyết định chưa hợp lệ.',
+  reviews_corrupt: 'Dữ liệu review chờ áp dụng trên máy chủ bị hỏng, hãy báo kỹ thuật (chưa thể duyệt hay xuất lô).',
   invalid_filter: 'Bộ lọc không hợp lệ.',
   conflict: 'Có thay đổi đồng thời, hãy thử lại.',
 };
 
 export function adminErrMsg(err) {
+  if (err?.status === 412) return ERR.conflict; // ghi đồng thời: báo riêng, không lộ 'precondition failed'
   if (err?.code && ERR[err.code]) return ERR[err.code];
   return err?.message || 'Có lỗi xảy ra, hãy thử lại.';
 }
