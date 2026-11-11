@@ -729,5 +729,7 @@ textarea {
 /* Lớp phủ neo theo vùng nhìn thấy, rộng đúng bằng khung (thay cho contain: layout của khung cũ) */
 :root { --ov-l: max(0px, calc((100vw - var(--app-max)) / 2)); }
 .ov-fixed { overflow: hidden; position: fixed !important; top: 0 !important; bottom: 0 !important; left: var(--ov-l) !important; right: var(--ov-l) !important; }
+/* T-117: điện thoại thấp, sheet onboarding nâng đỉnh để đủ chỗ cho bước 2/3 (px, không dùng vh/lvh) */
+@media (max-width: 600px) { .ob-sheet { top: 24px !important; } }
 html.doc-locked { overflow: hidden; }
 html { scrollbar-gutter: stable; } /* Firefox thanh cuộn cổ điển: khoá nền không làm khung dịch ngang */
