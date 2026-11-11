@@ -4,6 +4,7 @@ import { VENDOR_CATEGORIES } from '../screens/VendorCtx.jsx';
 import { Loading, ErrorNote, Badge, Field } from './common.jsx';
 import { adminErrMsg } from './format.js';
 import { useLoad } from './useLoad.js';
+import { EnrichTable } from './EnrichTable.jsx';
 
 const LABELS = [
   ['', 'Mọi nhãn'],
@@ -22,7 +23,21 @@ const priceText = (min, max) => {
   return max != null && max !== min ? `${min}–${max}tr` : `${min}tr`;
 };
 
+// Tab "Dữ liệu vendor": danh sách vendor (sửa giá/liên hệ/ẩn) hoặc bảng enrich Google Maps (T-124).
 export function VendorData({ focusId }) {
+  const [view, setView] = useState('list');
+  return (
+    <div>
+      <div className="adm-toolbar" role="group" aria-label="Chế độ xem dữ liệu vendor">
+        <button type="button" className={`adm-chip ${view === 'list' ? 'is-active' : ''}`} aria-pressed={view === 'list'} onClick={() => setView('list')}>Danh sách vendor</button>
+        <button type="button" className={`adm-chip ${view === 'enrich' ? 'is-active' : ''}`} aria-pressed={view === 'enrich'} onClick={() => setView('enrich')}>Enrich Google Maps</button>
+      </div>
+      {view === 'list' ? <VendorList focusId={focusId} /> : <EnrichTable />}
+    </div>
+  );
+}
+
+function VendorList({ focusId }) {
   const [category, setCategory] = useState('');
   const [label, setLabel] = useState('');
   const [qInput, setQInput] = useState('');
