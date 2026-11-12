@@ -92,3 +92,24 @@
 .adm-member-head { font-weight: 600; font-size: 14px; color: var(--ink-900); }
 .adm-member-couple { font-size: 14px; margin-top: 6px; }
 .adm-member-btn { min-height: 44px; min-width: 44px; }
+
+/* Bảng enrich vendor (T-124) */
+.adm-enrich-asof { font-size: 13px; margin: 0 0 10px; }
+.adm-enrich-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.adm-enrich-wrap { padding: 0; overflow-x: auto; max-width: 100%; }
+.adm-enrich { min-width: 900px; }
+.adm-enrich td:nth-child(2) { min-width: 150px; }
+.adm-enrich td:nth-child(3) { min-width: 180px; max-width: 240px; overflow-wrap: anywhere; }
+.adm-enrich td:nth-child(4) { min-width: 220px; max-width: 280px; }
+.adm-enrich td:nth-child(5) { min-width: 120px; }
+.adm-enrich td:last-child { min-width: 120px; }
+.adm-enrich-name { font-weight: 600; }
+.adm-enrich-sub { font-size: 12px; margin-top: 3px; }
+.adm-enrich-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.adm-enrich-link { font-size: 12.5px; font-weight: 600; color: var(--son-600); }
+.adm-enrich-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-enrich-actions .adm-btn { white-space: nowrap; }
+.adm-enrich-radios { border: 0; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 6px; }
+.adm-enrich-radios .adm-check { margin: 0; }
+.adm-modal-back { position: fixed; inset: 0; background: rgba(40, 30, 30, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+.adm-modal { width: min(520px, 100%); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }

@@ -229,6 +229,20 @@ export const api = {
     if (limit) p.set('limit', limit);
     return req('GET', `/api/admin/vendors?${p}`);
   },
+  // Bảng enrich vendor (T-124): Approve / Sửa thủ công chỉ ghi review chờ áp dụng.
+  adminEnrichList: ({ filter, category, q, offset, limit } = {}) => {
+    const p = new URLSearchParams();
+    if (filter && filter !== 'all') p.set('filter', filter);
+    if (category) p.set('category', category);
+    if (q) p.set('q', q);
+    if (offset) p.set('offset', offset);
+    if (limit) p.set('limit', limit);
+    return req('GET', `/api/admin/vendor-enrich?${p}`);
+  },
+  adminEnrichReview: (id, body) =>
+    req('PUT', `/api/admin/vendor-enrich/${encodeURIComponent(id)}/review`, body),
+  adminEnrichWithdraw: (id) =>
+    req('DELETE', `/api/admin/vendor-enrich/${encodeURIComponent(id)}/review`),
   adminVendorGet: (id) => req('GET', `/api/admin/vendors/${encodeURIComponent(id)}`),
   adminVendorPut: (id, body) =>
     req('PUT', `/api/admin/vendors/${encodeURIComponent(id)}/override`, body),

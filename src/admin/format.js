@@ -47,10 +47,22 @@ const ERR = {
   hidden_reason_required: 'Hãy nhập lý do khi ẩn vendor.',
   invalid_override: 'Dữ liệu ghi đè chưa hợp lệ.',
   override_not_found: 'Vendor này chưa có ghi đè nào.',
+  not_approvable: 'Dòng này không Approve được (ứng viên ngoài TP.HCM hoặc đã có quyết định).',
+  already_overridden: 'Vendor này đã duyệt tay, muốn đổi hãy sửa manual_overrides.json bằng PR.',
+  missing_target: 'Cần link Google Maps hoặc place_id.',
+  ambiguous_target: 'Chỉ nhập một trong link hoặc place_id.',
+  bad_link: 'Link phải là https của share.google, goo.gl, maps.app.goo.gl hoặc google.com/maps.',
+  bad_place_id: 'place_id chưa đúng dạng.',
+  unexpected_field: 'Quyết định này không mang link hay place_id.',
+  note_too_long: 'Ghi chú tối đa 300 ký tự.',
+  invalid_decision: 'Quyết định chưa hợp lệ.',
+  reviews_corrupt: 'Dữ liệu review chờ áp dụng trên máy chủ bị hỏng, hãy báo kỹ thuật (chưa thể duyệt hay xuất lô).',
+  invalid_filter: 'Bộ lọc không hợp lệ.',
   conflict: 'Có thay đổi đồng thời, hãy thử lại.',
 };
 
 export function adminErrMsg(err) {
+  if (err?.status === 412) return ERR.conflict; // ghi đồng thời: báo riêng, không lộ 'precondition failed'
   if (err?.code && ERR[err.code]) return ERR[err.code];
   return err?.message || 'Có lỗi xảy ra, hãy thử lại.';
 }
