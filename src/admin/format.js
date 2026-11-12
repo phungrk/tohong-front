@@ -57,6 +57,7 @@ const ERR = {
   note_too_long: 'Ghi chú tối đa 300 ký tự.',
   invalid_decision: 'Quyết định chưa hợp lệ.',
   reviews_corrupt: 'Dữ liệu review chờ áp dụng trên máy chủ bị hỏng, hãy báo kỹ thuật (chưa thể duyệt hay xuất lô).',
+  decided_by_capu: 'Capu đã quyết dòng này, chỉ Capu rút lại hoặc đổi được.',
   invalid_filter: 'Bộ lọc không hợp lệ.',
   conflict: 'Có thay đổi đồng thời, hãy thử lại.',
 };

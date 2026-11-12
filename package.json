@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:journey": "node --test scripts/test-journey.mjs",
-    "test:vendor-images": "node --test scripts/test-vendor-images.mjs"
+    "test:vendor-images": "node --test scripts/test-vendor-images.mjs",
+    "test:admin-enrich": "node --test scripts/test-admin-enrich-capu.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
