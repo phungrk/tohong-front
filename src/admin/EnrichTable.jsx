@@ -187,7 +187,7 @@ function EnrichRow({ r, review, busy, onApprove, onWithdraw, onEdit }) {
       <td>
         {r.override ? (
           <div className="adm-enrich-tags"><Badge tone={tone}>{label}</Badge><Badge tone="ok">Đã duyệt tay</Badge></div>
-        ) : review ? <Badge tone="progress">Chờ áp dụng</Badge> : <Badge tone={tone}>{label}</Badge>}
+        ) : review ? <Badge tone="progress">{review.by_capu === true ? 'Chờ áp dụng' : 'Chờ Capu'}</Badge> : <Badge tone={tone}>{label}</Badge>}
       </td>
       <td>
         {r.override ? <span className="adm-muted">Đã duyệt tay</span> : (
