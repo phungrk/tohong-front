@@ -25,7 +25,7 @@ const priceText = (min, max) => {
 
 // Tab "Dữ liệu vendor": danh sách vendor (sửa giá/liên hệ/ẩn) hoặc bảng enrich Google Maps (T-124).
 export function VendorData({ focusId }) {
-  const [view, setView] = useState('list');
+  const [view, setView] = useState(focusId ? 'list' : 'enrich');
   return (
     <div>
       <div className="adm-toolbar" role="group" aria-label="Chế độ xem dữ liệu vendor">
