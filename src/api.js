@@ -241,6 +241,7 @@ export const api = {
   },
   adminEnrichReview: (id, body) =>
     req('PUT', `/api/admin/vendor-enrich/${encodeURIComponent(id)}/review`, body),
+  adminEnrichDetail: (id) => req('GET', `/api/admin/vendor-enrich/${encodeURIComponent(id)}/detail`),
   adminEnrichWithdraw: (id) =>
     req('DELETE', `/api/admin/vendor-enrich/${encodeURIComponent(id)}/review`),
   adminVendorGet: (id) => req('GET', `/api/admin/vendors/${encodeURIComponent(id)}`),
