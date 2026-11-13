@@ -27,6 +27,12 @@ const Line = ({ label, children }) => <div className="adm-drawer-line"><span cla
 export function EnrichDrawer({ id, name, trigger, onClose, onPad }) {
   const [state, setState] = useState({ id: null, data: null, err: '' });
   const [w, setW] = useState(() => { let v = null; try { v = Number(localStorage.getItem(LS)); } catch { /* */ } return v || null; });
+  const [, setVw] = useState(() => window.innerWidth); // đổi khung nhìn thì tính lại bố cục như mở ở khung đó
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   const b = bounds();
   const cur = b.narrow ? window.innerWidth : clamp(w ?? b.min);
   const push = !b.narrow && window.innerWidth - cur >= REST;
