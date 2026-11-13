@@ -27,11 +27,11 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const DEV_ADMIN_TOKEN = import.meta.env.VITE_ADMIN_DEV_TOKEN;
 
 const TABS = [
+  { id: 'vendors', label: 'Dữ liệu vendor' },
   { id: 'members', label: 'Thành viên' },
   { id: 'connect', label: 'Hộp kết nối', count: 'connect_new' },
   { id: 'upgrade', label: 'Nâng cấp gói', count: 'upgrade_pending' },
   { id: 'legacy', label: 'Gói tự kích hoạt', count: 'legacy_active' },
-  { id: 'vendors', label: 'Dữ liệu vendor' },
   { id: 'audit', label: 'Nhật ký' },
 ];
 
@@ -104,7 +104,7 @@ function Frame({ children, right }) {
 }
 
 function AdminShell({ onSignOut }) {
-  const [tab, setTab] = useState('members');
+  const [tab, setTab] = useState('vendors');
   // Mở "Dữ liệu vendor" thẳng vào một vendor (nút "Sửa vendor này" ở hộp kết nối)
   const [focusVendor, setFocusVendor] = useState(null);
   const fetchMe = useCallback(() => api.adminMe(), []);
@@ -143,6 +143,7 @@ function AdminShell({ onSignOut }) {
               key={t.id}
               type="button"
               className={`adm-tab ${tab === t.id ? 'is-active' : ''}`}
+              aria-current={tab === t.id ? 'page' : undefined}
               onClick={() => { if (t.id !== 'vendors') setFocusVendor(null); setTab(t.id); }}
             >
               {t.label}
