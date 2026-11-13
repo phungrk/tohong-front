@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { adminErrMsg } from './format.js';
+import { absentNoteFields, notesFor } from './enrichNotes.js';
 
 const LS = 'enrich-drawer-width';
 const STEP = 24;
@@ -40,7 +41,7 @@ export function EnrichDrawer({ id, name, trigger, onClose, onPad }) {
   useEffect(() => {
     let live = true;
     api.adminEnrichDetail(id).then((data) => live && setState({ id, data, err: '' }))
-      .catch((e) => live && setState({ id, data: null, err: e?.status === 403 ? 'Chỉ Capu xem được chi tiết này' : e?.status === 404 ? 'Không có chi tiết cho vendor này' : adminErrMsg(e) }));
+      .catch((e) => live && setState({ id, data: null, err: e?.status === 403 ? 'Chỉ admin xem được chi tiết này' : e?.status === 404 ? 'Không có chi tiết cho vendor này' : adminErrMsg(e) }));
     return () => { live = false; };
   }, [id]);
   useEffect(() => {
@@ -91,7 +92,13 @@ export function EnrichDrawer({ id, name, trigger, onClose, onPad }) {
           {d.pool.vendor && Object.entries(d.pool.vendor).map(([k, v]) => (
             <div key={k}>
               <Line label={k}><Val v={v} /></Line>
-              {(d.pool.field_notes || []).filter((n) => n.field === k).map((n) => <div key={n.code} className="adm-muted adm-drawer-note">{n.text}</div>)}
+              {notesFor(d.pool.field_notes, k).map((n) => <div key={n.code} className="adm-muted adm-drawer-note">{n.text}</div>)}
+            </div>
+          ))}
+          {absentNoteFields(d.pool.vendor, d.pool.field_notes).map((k) => (
+            <div key={`absent-${k}`}>
+              <Line label={k}><Val v={undefined} /></Line>
+              {notesFor(d.pool.field_notes, k).map((n) => <div key={n.code} className="adm-muted adm-drawer-note">{n.text}</div>)}
             </div>
           ))}
           <h4>Lớp admin (R2)</h4>
