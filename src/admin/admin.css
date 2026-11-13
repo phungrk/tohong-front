@@ -113,3 +113,11 @@
 .adm-enrich-radios .adm-check { margin: 0; }
 .adm-modal-back { position: fixed; inset: 0; background: rgba(40, 30, 30, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
 .adm-modal { width: min(520px, 100%); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.adm-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 60; background: #fff; border-left: 1px solid var(--line-100); box-shadow: -8px 0 32px rgba(0,0,0,.18); overflow-y: auto; overflow-x: hidden; box-sizing: border-box; padding: 16px 14px; overflow-wrap: anywhere; max-width: 100%; }
+.adm-drawer h4 { margin: 14px 0 4px; font-size: 13px; }
+.adm-drawer-k { font-weight: 600; margin-right: 6px; }
+.adm-drawer-line { font-size: 13.5px; padding: 3px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.adm-drawer-note { font-size: 12px; padding-left: 8px; }
+.adm-drawer-close { position: absolute; top: 6px; right: 6px; min-height: 44px; min-width: 64px; }
+.adm-drawer-sep { position: absolute; top: 0; bottom: 0; left: -6px; width: 12px; cursor: col-resize; touch-action: none; z-index: 2; }
+.adm-drawer-sep::after { content: ""; position: absolute; top: 50%; left: 4px; width: 4px; height: 48px; margin-top: -24px; border-radius: 2px; background: var(--line-100); }

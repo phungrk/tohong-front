@@ -4,6 +4,7 @@ import { VENDOR_CATEGORIES } from '../screens/VendorCtx.jsx';
 import { Loading, ErrorNote, Badge, Field } from './common.jsx';
 import { adminErrMsg } from './format.js';
 import { useLoad } from './useLoad.js';
+import { EnrichDrawer } from './EnrichDrawer.jsx';
 
 // Bảng enrich vendor (T-124): một vendor một nhóm. Approve / Sửa thủ công chỉ ghi một "quyết định chờ áp dụng"
 // (không đổi dữ liệu vendor, không gọi Google); áp vào manual_overrides.json là bước riêng do Capu xác nhận.
@@ -63,6 +64,8 @@ export function EnrichTable() {
   const [edit, setEdit] = useState(null); // dòng đang mở hộp thoại Sửa thủ công
   const [busyId, setBusyId] = useState('');
   const [rowError, setRowError] = useState('');
+  const [open, setOpen] = useState(null);
+  const [pad, setPad] = useState(0);
 
   const fetchList = useCallback(
     () => api.adminEnrichList({ filter, category, q, offset, limit: PAGE }),
@@ -101,7 +104,7 @@ export function EnrichTable() {
   const goFilter = (f) => { setFilter(f); setOffset(0); };
 
   return (
-    <section>
+    <section style={pad ? { paddingRight: pad } : undefined}>
       <h2 className="adm-h2">Enrich Google Maps</h2>
       {data && (
         <p className="adm-muted adm-enrich-asof">
@@ -137,7 +140,8 @@ export function EnrichTable() {
               <tbody>
                 {data.rows.length === 0 && <tr><td colSpan={6} className="adm-muted">Không có vendor nào khớp bộ lọc.</td></tr>}
                 {data.rows.map((r) => <EnrichRow key={r.id} r={r} review={reviewOf(r)} busy={busyId === r.id}
-                  onApprove={() => approve(r)} onWithdraw={() => withdraw(r)} onEdit={() => setEdit(r)} />)}
+                  onApprove={() => approve(r)} onWithdraw={() => withdraw(r)} onEdit={() => setEdit(r)}
+                  selected={open?.id === r.id} onOpen={(el) => setOpen({ id: r.id, name: r.name, trigger: el })} />)}
               </tbody>
             </table>
           </div>
@@ -148,17 +152,21 @@ export function EnrichTable() {
           </div>
         </>
       )}
+      {open && <EnrichDrawer id={open.id} name={open.name} trigger={open.trigger} onClose={() => setOpen(null)} onPad={setPad} />}
       {edit && <ManualDialog r={edit} onClose={() => setEdit(null)} onSaved={(review) => { setLocal((l) => ({ ...l, [edit.id]: review })); setEdit(null); }} />}
     </section>
   );
 }
 
-function EnrichRow({ r, review, busy, onApprove, onWithdraw, onEdit }) {
+function EnrichRow({ r, review, busy, onApprove, onWithdraw, onEdit, selected, onOpen }) {
   const [label, tone] = GROUP[r.group] || [r.group, 'neutral'];
   const g = r.google;
   const price = priceText(r.marry);
+  const rowRef = useRef(null);
+  const click = (e) => { if (e.target.closest('button, a, input, select, textarea')) return; onOpen(rowRef.current); };
   return (
-    <tr>
+    <tr ref={rowRef} className="is-clickable" tabIndex={0} aria-current={selected ? 'true' : undefined} onClick={click}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(rowRef.current); } }}>
       <td className="adm-num">{r.n}</td>
       <td>
         <div className="adm-enrich-name">{r.name}</div>
