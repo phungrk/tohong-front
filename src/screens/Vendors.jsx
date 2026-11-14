@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
+import { PhotoCredit } from '../ui/PhotoCredit.jsx';
 import { PriceTag } from '../ui/PriceTag.jsx';
 import { priceText } from '../ui/priceText.js';
 import { useConnect } from './connectContext.js';
@@ -43,6 +44,7 @@ function VVendorRow({ catId, vendor }) {
           {vendor.priceTotal > 0 && (changed
             ? <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable)}) · <PriceTag source={info.price_source || vendor.priceSource} label={info.price_label} /></>
             : <> · <PriceTag source={info?.price_source || vendor.priceSource} label={info?.price_label} /></>)}
+          {photo.credit && <> · </>}<PhotoCredit credit={photo.credit} run />
         </>}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
         right={<>
@@ -78,7 +80,7 @@ function CatCard({ cat, onOpenChat }) {
   else if (vendors.length > 0) { sub = `Đang xem ${vendors.length} vendor`; subColor = 'var(--kim-700)'; }
 
   return (
-    <div>
+    <div data-cat={cat.id}>
       <ListRow
         icon={cat.icon} done={status === 'confirmed'}
         title={cat.name}
@@ -125,6 +127,20 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
   const savedIds = VENDOR_CATEGORIES.flatMap((c) => (saved[c.id]?.shortlisted || []).map((v) => v.id)).join(',');
   useEffect(() => { if (savedIds) ensureVendorInfo(savedIds.split(',')); }, [savedIds, ensureVendorInfo]);
 
+  // Mở màn có vendor đã lưu thì cuộn tới hạng mục đầu tiên có vendor: tên tác giả ảnh (T-156) làm hàng vendor cao hơn,
+  // không cuộn thì vendor và ghi công nằm dưới các hạng mục trống. Chỉ một lần mỗi lần mở màn; sau đó người dùng tự cuộn.
+  const scrollRef = useRef(null);
+  const scrolledRef = useRef(false);
+  useEffect(() => {
+    if (scrolledRef.current || !totalSaved) return;
+    const box = scrollRef.current;
+    const target = box && VENDOR_CATEGORIES.map((c) => box.querySelector(`[data-cat="${c.id}"]`))
+      .find((el, i) => el && (saved[VENDOR_CATEGORIES[i].id]?.shortlisted || []).length > 0);
+    if (!target) return;
+    scrolledRef.current = true;
+    box.scrollTop = Math.max(0, target.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 8);
+  }, [totalSaved, saved]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--paper)' }}>
       {/* header */}
@@ -159,7 +175,7 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       </div>
 
       {/* scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
         <VFlowOverview onOpen={() => setHelpOpen(true)} />
         <SectionHeader label="Hạng mục" />
         {VENDOR_CATEGORIES.map((cat) => (

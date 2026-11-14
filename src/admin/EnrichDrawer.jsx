@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { adminErrMsg } from './format.js';
+import { isGooglePhoto, authorOf } from '../vendorImageUrls.js';
 import { absentNoteFields, notesFor } from './enrichNotes.js';
 
 const LS = 'enrich-drawer-width';
@@ -39,15 +40,22 @@ function PhotoList({ photos }) {
       <span className="adm-drawer-k">photos</span>
       {!list.length && <span>Chưa có ảnh</span>}
       <div className="adm-drawer-photos">
-        {list.map((p, i) => (
-          <div key={`${i}-${p.url}`} className="adm-drawer-photo">
-            {broken[p.url] && <span className="adm-muted">Ảnh không tải được</span>}
-            <img src={p.url} alt={`Ảnh vendor ${i + 1}`} loading="lazy" referrerPolicy="no-referrer" className="adm-drawer-thumb"
-              style={broken[p.url] ? { display: 'none' } : undefined} onError={() => setBroken((b) => ({ ...b, [p.url]: true }))} />
-            <div><a href={p.url} target="_blank" rel="noopener noreferrer">Mở ảnh gốc</a></div>
-            {p.attribution && <div className="adm-muted">{`Ảnh: ${p.attribution}`}</div>}
-          </div>
-        ))}
+        {list.map((p, i) => {
+          // T-156: ảnh Google có tên tác giả hợp lệ thì hiện kèm tên; thiếu tên thì không hiện <img>, báo để admin sửa; ảnh khác không ghi công.
+          const google = isGooglePhoto(p), credit = google ? authorOf(p) : null;
+          if (google && !credit) return (
+            <div key={`${i}-${p.url}`} className="adm-drawer-photo"><span className="adm-muted">Thiếu ghi công tác giả</span></div>
+          );
+          return (
+            <div key={`${i}-${p.url}`} className="adm-drawer-photo">
+              {broken[p.url] && <span className="adm-muted">Ảnh không tải được</span>}
+              <img src={p.url} alt={`Ảnh vendor ${i + 1}`} loading="lazy" referrerPolicy="no-referrer" className="adm-drawer-thumb"
+                style={broken[p.url] ? { display: 'none' } : undefined} onError={() => setBroken((b) => ({ ...b, [p.url]: true }))} />
+              <div><a href={p.url} target="_blank" rel="noopener noreferrer">Mở ảnh gốc</a></div>
+              {credit && <div className="adm-muted" style={{ fontSize: 12, overflowWrap: 'anywhere' }}>{`Ảnh: ${credit}`}</div>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
