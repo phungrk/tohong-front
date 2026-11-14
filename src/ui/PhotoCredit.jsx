@@ -1,7 +1,7 @@
 // Ghi công tác giả ảnh Google (T-156, ADR-041 điểm 4): tên tác giả của CHÍNH ảnh đang hiện, chữ thuần nhìn thấy được,
 // nguyên văn (không đổi hoa thường), cỡ chữ 10px, không cắt (tên dài xuống dòng), đứng cạnh ảnh.
 // `credit` null (ảnh không phải Google) thì không hiện gì. Ô ảnh nhỏ: đặt `inline` ngay cạnh/dưới ô, không ép vào trong ô.
-const BASE = { fontFamily: 'var(--font-ui)', fontSize: 10, lineHeight: 1.3, overflowWrap: 'anywhere', whiteSpace: 'normal', textTransform: 'none' };
+const BASE = { fontFamily: 'var(--font-ui)', fontSize: 10, lineHeight: 1.3, overflowWrap: 'anywhere', whiteSpace: 'normal', textTransform: 'none', unicodeBidi: 'isolate' };
 
 export function PhotoCredit({ credit, overlay = false, run = false, left = 8, bottom = 8, style }) {
   if (!credit) return null;

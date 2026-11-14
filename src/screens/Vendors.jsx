@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
@@ -80,7 +80,7 @@ function CatCard({ cat, onOpenChat }) {
   else if (vendors.length > 0) { sub = `Đang xem ${vendors.length} vendor`; subColor = 'var(--kim-700)'; }
 
   return (
-    <div data-cat={cat.id}>
+    <div>
       <ListRow
         icon={cat.icon} done={status === 'confirmed'}
         title={cat.name}
@@ -127,20 +127,6 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
   const savedIds = VENDOR_CATEGORIES.flatMap((c) => (saved[c.id]?.shortlisted || []).map((v) => v.id)).join(',');
   useEffect(() => { if (savedIds) ensureVendorInfo(savedIds.split(',')); }, [savedIds, ensureVendorInfo]);
 
-  // Mở màn có vendor đã lưu thì cuộn tới hạng mục đầu tiên có vendor: tên tác giả ảnh (T-156) làm hàng vendor cao hơn,
-  // không cuộn thì vendor và ghi công nằm dưới các hạng mục trống. Chỉ một lần mỗi lần mở màn; sau đó người dùng tự cuộn.
-  const scrollRef = useRef(null);
-  const scrolledRef = useRef(false);
-  useEffect(() => {
-    if (scrolledRef.current || !totalSaved) return;
-    const box = scrollRef.current;
-    const target = box && VENDOR_CATEGORIES.map((c) => box.querySelector(`[data-cat="${c.id}"]`))
-      .find((el, i) => el && (saved[VENDOR_CATEGORIES[i].id]?.shortlisted || []).length > 0);
-    if (!target) return;
-    scrolledRef.current = true;
-    box.scrollTop = Math.max(0, target.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 8);
-  }, [totalSaved, saved]);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--paper)' }}>
       {/* header */}
@@ -175,7 +161,7 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
       </div>
 
       {/* scrollable content */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
         <VFlowOverview onOpen={() => setHelpOpen(true)} />
         <SectionHeader label="Hạng mục" />
         {VENDOR_CATEGORIES.map((cat) => (

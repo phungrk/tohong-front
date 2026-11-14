@@ -773,10 +773,10 @@ export function VPickerMultiChatCard({ catId, anchor }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{anchor.name}</div>
+            <PhotoCredit credit={creditOf(anchor)} />
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--son-600)', marginTop: 2, fontWeight: 600 }}>
               Đang xem — luôn trong bảng so sánh
             </div>
-            <PhotoCredit credit={creditOf(anchor)} style={{ marginTop: 2 }} />
           </div>
           <span style={{ width: 20, height: 20, borderRadius: 6, background: 'var(--son-500)', display: 'flex',
             alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -813,12 +813,12 @@ export function VPickerMultiChatCard({ catId, anchor }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                <PhotoCredit credit={creditOf(v)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
                   <PriceTag source={v.priceSource} label={v.priceLabel} />
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
                 </div>
-                <PhotoCredit credit={creditOf(v)} style={{ marginTop: 2 }} />
               </div>
               <MatchBadge pct={v.match} />
               <span style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',

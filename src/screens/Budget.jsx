@@ -199,8 +199,8 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>
+            <PhotoCredit credit={photoCredit} />
             {vendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 2 }}>{vendor.spec}</div>}
-            <PhotoCredit credit={photoCredit} style={{ marginTop: 2 }} />
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', flexShrink: 0 }}>
             <Icon name="x" size={20} color="var(--ink-500)" />
