@@ -65,7 +65,6 @@ export function EnrichTable() {
   const [busyId, setBusyId] = useState('');
   const [rowError, setRowError] = useState('');
   const [open, setOpen] = useState(null);
-  const [pad, setPad] = useState(0);
 
   const fetchList = useCallback(
     () => api.adminEnrichList({ filter, category, q, offset, limit: PAGE }),
@@ -104,7 +103,7 @@ export function EnrichTable() {
   const goFilter = (f) => { setFilter(f); setOffset(0); };
 
   return (
-    <section style={pad ? { paddingRight: pad } : undefined}>
+    <section>
       <h2 className="adm-h2">Enrich Google Maps</h2>
       {data && (
         <p className="adm-muted adm-enrich-asof">
@@ -152,7 +151,7 @@ export function EnrichTable() {
           </div>
         </>
       )}
-      {open && <EnrichDrawer id={open.id} name={open.name} trigger={open.trigger} onClose={() => setOpen(null)} onPad={setPad} />}
+      {open && <EnrichDrawer id={open.id} name={open.name} trigger={open.trigger} onClose={() => setOpen(null)} />}
       {edit && <ManualDialog r={edit} onClose={() => setEdit(null)} onSaved={(review) => { setLocal((l) => ({ ...l, [edit.id]: review })); setEdit(null); }} />}
     </section>
   );
