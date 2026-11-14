@@ -9,6 +9,7 @@ import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
 import { priceBand, venueCost } from '../journey.js';
 import { PriceTag } from '../ui/PriceTag.jsx';
+import { priceText } from '../ui/priceText.js';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
 import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
@@ -149,6 +150,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   const info = vendorInfoFor(vendor.id);
   const liveMin = info?.priceMin;
   const priceChanged = info && liveMin != null && liveMin !== price;
+  const perTable = catId === 'venue' && !!info?.price_basis; // nhà hàng có nguồn giá: giá theo bàn
 
   return (
     <div className="ov-fixed" style={{ zIndex: 499, pointerEvents: 'none' }}>
@@ -207,16 +209,16 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           {/* Price + status */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>
-              {price > 0 ? `${price}tr` : 'Chưa có giá'}
+              {price > 0 ? priceText(price, null, perTable) : 'Chưa có giá'}
             </span>
             {isConfirmed && (
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--sage-600)', background: 'var(--sage-100)', borderRadius: 999, padding: '3px 10px' }}>Đã chốt</span>
             )}
           </div>
-          {price > 0 && !priceChanged && <div style={{ marginTop: -6, marginBottom: 8 }}><PriceTag source={info?.price_source || vendor.priceSource} /></div>}
+          {price > 0 && !priceChanged && <div style={{ marginTop: -6, marginBottom: 8 }}><PriceTag source={info?.price_source || vendor.priceSource} label={info?.price_label} /></div>}
           {priceChanged && (
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginBottom: 8, lineHeight: 1.5 }}>
-              Bạn đã lưu lúc {price}tr. Giá hiện tại trên Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr · <PriceTag source={info.price_source} />
+              Bạn đã lưu lúc {price}tr. Giá hiện tại trên Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr{perTable ? '/bàn' : ''} · <PriceTag source={info.price_source} label={info.price_label} />
             </div>
           )}
 
@@ -432,11 +434,11 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--ink-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</div>
                         <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)' }}>
-                          {price > 0 ? `${price}tr` : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
-                          {price > 0 && info?.price_source && (
-                            info.priceMin != null && info.priceMin !== price
-                              ? <> · <span style={{ color: 'var(--ink-400)' }}>giá đã cập nhật</span></>
-                              : <> · <PriceTag source={info.price_source} /></>
+                          {price > 0 ? priceText(price, null, isVenue && !!info?.price_basis) : 'Chưa có giá'}{vendor.spec ? ` · ${vendor.spec}` : ''}
+                          {price > 0 && (
+                            info?.priceMin != null && info.priceMin !== price
+                              ? <> · <span style={{ color: 'var(--ink-400)' }}>giá đã cập nhật</span> · <PriceTag source={info.price_source} label={info.price_label} /></>
+                              : <> · <PriceTag source={info?.price_source || vendor.priceSource} label={info?.price_label} /></>
                           )}
                         </div>
                         {info?.hidden && (

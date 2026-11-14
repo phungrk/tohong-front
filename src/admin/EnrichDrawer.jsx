@@ -26,6 +26,7 @@ const Line = ({ label, children }) => <div className="adm-drawer-line"><span cla
 
 
 const EFF_KEYS = ['name', 'description', 'styles', 'tags', 'photos', 'capacity', 'priceMin', 'priceMax'];
+const PRICE_LABEL_KEYS = ['price_basis', 'price_as_of', 'price_label'];
 const pickEff = (eff) => (eff ? Object.fromEntries(EFF_KEYS.filter((k) => k in eff).map((k) => [k, eff[k]])) : {});
 const fmtItem = (x) => (x && typeof x === 'object' ? (x.url ? x.url : 'min' in x ? `${x.min}–${x.max}` : JSON.stringify(x)) : String(x));
 const fmtVal = (v) => (v === null || v === undefined || (Array.isArray(v) && !v.length) ? '—' : Array.isArray(v) ? v.map(fmtItem).join(', ') : fmtItem(v));
@@ -157,6 +158,8 @@ export function EnrichDrawer({ id, name, trigger, onClose }) {
   const eff = info?.effective || null;
   const edited = info?.edited_fields || [];
   const vendor = d?.pool?.vendor ? { ...d.pool.vendor, ...pickEff(eff) } : d?.pool?.vendor;
+  // T-164: một nhãn giá duy nhất. Nhãn hiệu lực (đã tính overlay) khi tải được lớp sửa, không thì nhãn của pool; ba trường nhãn không lặp lại trong danh sách trường pool.
+  const priceLabel = eff?.price_label || d?.pool?.vendor?.price_label || null;
   const put = async (body) => {
     setBusy(true); setSaveErr('');
     try { await api.adminVendorPut(id, { expected_version: info?.version || 0, ...body }); await reloadInfo(); return true; } catch (e) {
@@ -184,6 +187,7 @@ export function EnrichDrawer({ id, name, trigger, onClose }) {
           <h4>Kết quả trong pool</h4>
           <div>{!d.pool.in_pool ? 'Ngoài pool' : d.pool.visible ? 'Trong pool' : 'Trong pool · đang ẩn'}</div>
           {d.pool.reasons.map((r) => <div key={r.code} className="adm-muted">{r.text}</div>)}
+          {priceLabel && <div>Nhãn giá: {priceLabel}</div>}
           {state.infoErr && <div className="adm-muted" role="status">Không tải được lớp sửa</div>}
           {info && (info.source_changed || []).map((c) => (
             <div key={`sc-${c.field}`} className="adm-drawer-warn" role="status">
@@ -192,7 +196,7 @@ export function EnrichDrawer({ id, name, trigger, onClose }) {
                 : `Pool nguồn đã đổi sau lần sửa: ${c.field} — lúc sửa: ${fmtVal(c.base)}, hiện: ${fmtVal(c.now)}`}
             </div>
           ))}
-          {vendor && Object.entries(vendor).map(([k, v]) => (
+          {vendor && Object.entries(vendor).filter(([k]) => !PRICE_LABEL_KEYS.includes(k)).map(([k, v]) => (
             <div key={k}>
               {k === 'photos' ? <PhotoList photos={v} /> : <Line label={k}><Val v={v} /></Line>}
               {edited.includes(k) && (

@@ -9,6 +9,7 @@ import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
 import { PriceTag } from '../../ui/PriceTag.jsx';
+import { priceText } from '../../ui/priceText.js';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg } from '../../vendorImageUrls.js';
 import { useVendorBackgrounds } from '../../vendorImages.js';
 import { VendorIllustration } from '../../vendorIllustrations.jsx';
@@ -33,6 +34,8 @@ function adaptVendor(bv, catId) {
     priceTotal: bv.priceMin ?? bv.price ?? 0,   // dùng giá "từ" làm ước lượng cho budget
     priceMax: bv.priceMax ?? null,
     priceSource: bv.price_source || null,       // 'verified' | 'estimated' (backend overlay)
+    priceLabel: bv.price_label || null,         // nhãn giá nguyên văn từ back (T-164); thiếu => nhãn dự phòng theo priceSource
+    perTable: catId === 'venue' && !!bv.price_basis, // nhà hàng có nguồn giá: giá theo bàn
     hidden: bv.hidden === true,
     priceUnit: spec,
     rating: bv.rating ?? 0,
@@ -365,8 +368,8 @@ export function VMatchChatCard({ catId }) {
                       {/* giá trọn gói — đẩy xuống đáy */}
                       <div style={{ marginTop: 'auto', paddingTop: 5, fontFamily: 'var(--font-ui)', fontSize: 13.5,
                         fontWeight: 700, color: 'var(--ink-900)' }}>
-                        {v.priceTotal}tr{v.priceMax && v.priceMax !== v.priceTotal ? `–${v.priceMax}tr` : ''}
-                        <PriceTag source={v.priceSource} style={{ marginLeft: 6 }} />
+                        {priceText(v.priceTotal, v.priceMax, v.perTable)}
+                        <PriceTag source={v.priceSource} label={v.priceLabel} style={{ marginLeft: 6 }} />
                       </div>
                     </div>
                   </div>
@@ -596,9 +599,9 @@ export function VDetailChatCard({ catId, vendor }) {
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 18, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-              {vendor.priceTotal}tr{vendor.priceMax && vendor.priceMax !== vendor.priceTotal ? `–${vendor.priceMax}tr` : ''}
+              {priceText(vendor.priceTotal, vendor.priceMax, vendor.perTable)}
             </div>
-            <PriceTag source={vendor.priceSource} style={{ marginTop: 3 }} />
+            <PriceTag source={vendor.priceSource} label={vendor.priceLabel} style={{ marginTop: 3 }} />
             {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
           </div>
         </div>
@@ -799,8 +802,8 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{v.priceTotal}tr</span>
-                  <PriceTag source={v.priceSource} />
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
+                  <PriceTag source={v.priceSource} label={v.priceLabel} />
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
                 </div>
               </div>
@@ -872,8 +875,8 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   const rows = [
     { label: 'Giá', val: (v) => (
         <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span>{v.priceTotal}tr</span>
-          <PriceTag source={v.priceSource} style={{ fontSize: 12, fontWeight: 500 }} />
+          <span>{priceText(v.priceTotal, null, v.perTable)}</span>
+          <PriceTag source={v.priceSource} label={v.priceLabel} style={{ fontSize: 12, fontWeight: 500 }} />
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
     { label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') },

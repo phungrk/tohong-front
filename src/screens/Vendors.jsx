@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../ui/Icon.jsx';
 import { VENDOR_CATEGORIES, useVendorCtx } from './VendorCtx.jsx';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
+import { PriceTag } from '../ui/PriceTag.jsx';
+import { priceText } from '../ui/priceText.js';
+import { useConnect } from './connectContext.js';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
 function VVendorRow({ catId, vendor }) {
@@ -14,6 +17,11 @@ function VVendorRow({ catId, vendor }) {
   // Ảnh theo pool hiện tại (tra theo id); chưa tra xong, ảnh hỏng hoặc hết ảnh thì gradient danh mục. Dữ liệu đã lưu không bị sửa.
   const photo = useSavedVendorPhoto(vendor);
   const thumbBg = photo.bg || fallbackGradFor(catId);
+  // Nhãn giá lấy từ trạng thái hiện tại của vendor (/api/vendors/status), không từ bản chụp lúc lưu; thiếu thì nhãn dự phòng.
+  const { vendorInfoFor } = useConnect();
+  const info = vendorInfoFor(vendor.id);
+  const changed = info && info.priceMin != null && info.priceMin !== vendor.priceTotal;
+  const perTable = catId === 'venue' && !!info?.price_basis;
 
   const toggleConfirm = () => {
     if (isConfirmed) {
@@ -30,7 +38,12 @@ function VVendorRow({ catId, vendor }) {
           {photo.state === 'bad' && <VendorIllustration catId={catId} />}
         </div>}
         title={vendor.name}
-        sub={`${vendor.priceTotal}tr · ${vendor.priceUnit}`}
+        sub={<>
+          {priceText(vendor.priceTotal, null, perTable)}{vendor.priceUnit ? ` · ${vendor.priceUnit}` : ''}
+          {vendor.priceTotal > 0 && (changed
+            ? <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable)}) · <PriceTag source={info.price_source || vendor.priceSource} label={info.price_label} /></>
+            : <> · <PriceTag source={info?.price_source || vendor.priceSource} label={info?.price_label} /></>)}
+        </>}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
         right={<>
           <button type="button" onClick={toggleConfirm} style={{
@@ -107,6 +120,10 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
   const totalSaved = VENDOR_CATEGORIES.reduce((s, c) => s + (saved[c.id]?.shortlisted?.length || 0), 0);
   const totalBudget = VENDOR_CATEGORIES.reduce((s, c) => s + getCatBudget(c.id), 0);
   const confirmed = getBudgetConfirmed();
+  // Lấy trạng thái mới nhất (nhãn giá, ẩn) của mọi vendor đã lưu, một lần cho cả màn.
+  const { ensureVendorInfo } = useConnect();
+  const savedIds = VENDOR_CATEGORIES.flatMap((c) => (saved[c.id]?.shortlisted || []).map((v) => v.id)).join(',');
+  useEffect(() => { if (savedIds) ensureVendorInfo(savedIds.split(',')); }, [savedIds, ensureVendorInfo]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--paper)' }}>

@@ -8,7 +8,9 @@ import { EnrichTable } from './EnrichTable.jsx';
 
 const LABELS = [
   ['', 'Mọi nhãn'],
-  ['estimated', 'Giá ước tính'],
+  ['estimate_category', 'Ước tính theo hạng mục'],
+  ['legacy_marry', 'Giá marry.vn'],
+  ['estimated', 'Chưa xác minh'],
   ['verified', 'Giá đã xác minh'],
   ['missing_contact', 'Thiếu liên hệ'],
   ['has_contact', 'Có liên hệ'],
@@ -18,9 +20,10 @@ const LABELS = [
 ];
 const PAGE = 50;
 
-const priceText = (min, max) => {
+// Nhà hàng có nguồn giá (price_basis): giá theo bàn.
+const priceText = (min, max, perTable = false) => {
   if (min == null && max == null) return '—';
-  return max != null && max !== min ? `${min}–${max}tr` : `${min}tr`;
+  return (max != null && max !== min ? `${min}–${max}tr` : `${min}tr`) + (perTable ? '/bàn' : '');
 };
 
 // Tab "Dữ liệu vendor": danh sách vendor (sửa giá/liên hệ/ẩn) hoặc bảng enrich Google Maps (T-124).
@@ -87,10 +90,10 @@ function VendorList({ focusId }) {
                           <div>{v.name || <span className="adm-muted">(không còn trong pool)</span>}</div>
                           <div className="adm-muted" style={{ fontSize: 12 }}>{v.catLabel || v.category || ''} · {v.id}</div>
                         </td>
-                        <td className="adm-num">{priceText(v.priceMin, v.priceMax)}</td>
+                        <td className="adm-num">{priceText(v.priceMin, v.priceMax, v.category === 'venue' && !!v.price_basis)}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <Badge tone={v.price_source === 'verified' ? 'ok' : 'neutral'}>{v.price_source === 'verified' ? 'Giá đã xác minh' : 'Giá ước tính'}</Badge>
+                            <Badge tone={v.price_source === 'verified' ? 'ok' : 'neutral'}>{v.price_label || (v.price_source === 'verified' ? 'Giá đã xác minh' : 'Giá ước tính')}</Badge>
                             {v.has_contact ? <Badge tone="info">Có liên hệ</Badge> : <Badge tone="neutral">Thiếu liên hệ</Badge>}
                             {v.hidden && <Badge tone="bad">Đang ẩn</Badge>}
                             {v.orphan && <Badge tone="progress">Mồ côi</Badge>}
