@@ -10,7 +10,8 @@ import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
 import { PriceTag } from '../../ui/PriceTag.jsx';
 import { priceText } from '../../ui/priceText.js';
-import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg } from '../../vendorImageUrls.js';
+import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg, usablePhotos } from '../../vendorImageUrls.js';
+import { PhotoCredit } from '../../ui/PhotoCredit.jsx';
 import { useVendorBackgrounds } from '../../vendorImages.js';
 import { VendorIllustration } from '../../vendorIllustrations.jsx';
 
@@ -22,13 +23,15 @@ export const useChatActions = () => useContext(ChatActionsCtx);
 /* Map vendor từ API (/api/vendors/match) → shape mà các card + luồng save/budget dùng. */
 function adaptVendor(bv, catId) {
   const bk = bv.match?.scoreBreakdown || {};
-  const photoUrls = (bv.photos || []).map((p) => p.url).filter(Boolean);
+  // Ảnh Google phải kèm tên tác giả (T-156): ảnh Google thiếu tên không vào gallery; tên đi cùng từng ảnh (photoCredits, cùng chỉ số).
+  const usable = usablePhotos(bv.photos);
+  const photoUrls = usable.map((p) => p.url);
   const fallbackGrad = CAT_FALLBACK_GRAD[catId] || GENERIC_FALLBACK_GRAD;
   const gallery = photoUrls.length
     ? photoUrls.map(cssBg)
     : [fallbackGrad];
   const spec = bv.spec || (bv.tags || []).slice(0, 2).join(' · ');
-  return {
+  const out = {
     id: bv.id,
     name: bv.name,
     priceTotal: bv.priceMin ?? bv.price ?? 0,   // dùng giá "từ" làm ước lượng cho budget
@@ -61,6 +64,9 @@ function adaptVendor(bv, catId) {
       .map((r) => ({ name: r.author || 'Khách trên Google Maps', rating: r.rating || Math.round(bv.rating || 5), text: r.text })),
     description: bv.description || '',
   };
+  // Không liệt kê (không lưu vào máy cùng vendor đã lưu): tên tác giả chỉ để hiện ghi công trong phiên này.
+  Object.defineProperty(out, 'photoCredits', { value: usable.map((p) => p.credit), enumerable: false });
+  return out;
 }
 
 /* ── SaveFlash ─────────────────────────────────────────────── */
@@ -209,7 +215,7 @@ export function VMatchChatCard({ catId }) {
   const showSk = useShowAfter(vendors === null && !error); // skeleton sau ~150ms (T-061)
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
-  const { bgOf, stateOf } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
+  const { bgOf, stateOf, creditOf } = useVendorBackgrounds(vendors, catId); // ảnh hỏng không hiện: thay bằng ảnh tốt khác hoặc ảnh mặc định
 
   useEffect(() => {
     let alive = true;
@@ -318,7 +324,8 @@ export function VMatchChatCard({ catId }) {
                     borderBottom: i < visibleVendors.length - 1 ? '1px solid var(--line-100)' : 'none' }}>
                   <div style={{ display: 'flex', gap: 11, alignItems: 'stretch' }}>
                     {/* thumbnail — tim nổi góc phải-trên, thứ hạng góc trái-trên */}
-                    <div style={{ width: 100, alignSelf: 'stretch', minHeight: 100, flexShrink: 0,
+                    <div style={{ width: 100, alignSelf: 'stretch', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <div style={{ flex: 1, minHeight: 100,
                       borderRadius: 'var(--r-sm)', background: bgOf(v), position: 'relative', overflow: 'hidden' }}>
                       {stateOf(v) === 'bad' && <VendorIllustration catId={catId} large />}
                       <span style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(43,36,32,0.6)',
@@ -339,6 +346,8 @@ export function VMatchChatCard({ catId }) {
                           PHÙ HỢP NHẤT
                         </span>
                       )}
+                    </div>
+                    <PhotoCredit credit={creditOf(v)} />
                     </div>
                     {/* info — thứ tự listing */}
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
@@ -492,7 +501,7 @@ export function VDetailChatCard({ catId, vendor }) {
   // whyLoading: dimm template + caret trong lúc chờ AI.
   const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
   const [hidden, setHidden] = useState(false); // admin vừa ẩn vendor này → "không còn nhận đặt"
-  const { galleryOf, stateOf } = useVendorBackgrounds([vendor], catId);
+  const { galleryOf, stateOf, creditsOf } = useVendorBackgrounds([vendor], catId);
 
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const isSaved = (saved[catId]?.shortlisted || []).some((v) => v.id === vendor?.id);
@@ -537,6 +546,7 @@ export function VDetailChatCard({ catId, vendor }) {
 
   const gallery = galleryOf(vendor); // chỉ ảnh tải được; hết ảnh thì 1 ảnh mặc định (không chấm chuyển ảnh)
   const galShow = Math.min(galIdx, gallery.length - 1);
+  const galCredit = creditsOf(vendor)[galShow] || null; // tác giả của CHÍNH ảnh đang xem
 
   const onSave = () => {
     saveVendor(catId, vendor, 'detail');
@@ -559,6 +569,7 @@ export function VDetailChatCard({ catId, vendor }) {
         <div style={{ height: 150, position: 'relative', flexShrink: 0, overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: gallery[galShow], transition: 'background .25s ease' }} />
           {stateOf(vendor) === 'bad' && <VendorIllustration catId={catId} large />}
+          <PhotoCredit credit={galCredit} overlay left={9} bottom={gallery.length > 1 ? 22 : 9} />
           <button type="button" onClick={onSave} disabled={isSaved} style={{ position: 'absolute', top: 9, right: 9,
             width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: isSaved ? 'default' : 'pointer',
             background: isSaved ? 'var(--son-500)' : 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
@@ -717,7 +728,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
   const [error, setError] = useState(false);
   const [sel, setSel] = useState([]);
   const [done, setDone] = useState(false);
-  const { bgOf, stateOf } = useVendorBackgrounds([anchor, ...(others || [])], catId);
+  const { bgOf, stateOf, creditOf } = useVendorBackgrounds([anchor, ...(others || [])], catId);
   const showSk = useShowAfter(others === null && !error);
 
   useEffect(() => {
@@ -762,6 +773,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{anchor.name}</div>
+            <PhotoCredit credit={creditOf(anchor)} />
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--son-600)', marginTop: 2, fontWeight: 600 }}>
               Đang xem — luôn trong bảng so sánh
             </div>
@@ -801,6 +813,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                <PhotoCredit credit={creditOf(v)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
                   <PriceTag source={v.priceSource} label={v.priceLabel} />
@@ -846,7 +859,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
   // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
-  const { bgOf, stateOf } = useVendorBackgrounds(vendors, catId);
+  const { bgOf, stateOf, creditOf } = useVendorBackgrounds(vendors, catId);
   const compareTrackedRef = useRef(false);
   const compareCount = vendors.length;
   const compareValid = !!cat && compareCount >= 2;
@@ -911,6 +924,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                   <div style={{ height: 30, borderRadius: 'var(--r-sm)', background: bgOf(v), marginBottom: 5, position: 'relative', overflow: 'hidden' }}>
                     {stateOf(v) === 'bad' && <VendorIllustration catId={catId} />}
                   </div>
+                  <PhotoCredit credit={creditOf(v)} style={{ marginBottom: 4 }} />
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
                   <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>

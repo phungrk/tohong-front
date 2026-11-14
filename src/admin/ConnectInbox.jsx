@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { api } from '../api.js';
 import { Loading, ErrorNote, Badge, Field } from './common.jsx';
 import { adminErrMsg, fmtContact, fmtTime, fmtWait } from './format.js';
+import { isGoogleHostUrl } from '../vendorImageUrls.js';
 import { useLoad } from './useLoad.js';
 
 const STATUS = {
@@ -174,7 +175,7 @@ function ConnectDetail({ id, onChanged, onEditVendor }) {
         <dt>Gửi lúc</dt><dd>{fmtTime(req.created_at)} · chờ {fmtWait(req.waiting_hours)}</dd>
         {closedStatus && (<><dt>Lý do đóng</dt><dd>{REASON_LABEL[req.close_reason] || req.close_reason || '—'}</dd></>)}
       </dl>
-      {req.vendor?.photo && (
+      {req.vendor?.photo && !isGoogleHostUrl(req.vendor.photo) && ( // ảnh Google không có tên tác giả ở API này: không hiện (T-156)
         <img src={req.vendor.photo} alt="" style={{ width: '100%', maxHeight: 140, objectFit: 'cover', borderRadius: 'var(--r-md)', marginBottom: 12 }} />
       )}
       <button type="button" className="adm-btn adm-btn-sm" onClick={() => onEditVendor(req.vendor?.id)}>Sửa vendor này</button>

@@ -18,11 +18,46 @@ export function urlFromCss(css) {
   return m ? m[1] : null;
 }
 
-/* URL ảnh đã nằm trong đối tượng vendor đã map (gallery, hoặc grad nếu thiếu gallery). */
-export function photoUrlsOf(vendor) {
-  const list = vendor?.gallery?.length ? vendor.gallery : [vendor?.grad];
-  return list.map(urlFromCss).filter(Boolean);
+/* ── Ghi công ảnh Google (T-156, ADR-041 điểm 4) ────────────────────────────
+   Ảnh Google: `source` là "google" (không phân biệt hoa thường) HOẶC URL ở googleusercontent.com / tên miền con.
+   Tên tác giả: `attribution` của CHÍNH ảnh đó, đã trim; rỗng hoặc không phải chuỗi là thiếu. Ảnh Google thiếu tên không được hiện. */
+export const GOOGLE_PHOTO_HOST = 'googleusercontent.com';
+export function isGoogleHostUrl(url) {
+  try { const h = new URL(String(url).trim()).hostname.toLowerCase(); return h === GOOGLE_PHOTO_HOST || h.endsWith('.' + GOOGLE_PHOTO_HOST); } catch { return false; }
 }
+export const isGooglePhoto = (p) => !!p && ((typeof p.source === 'string' && p.source.trim().toLowerCase() === 'google') || isGoogleHostUrl(p.url));
+export const authorOf = (p) => (p && typeof p.attribution === 'string' && p.attribution.trim() ? p.attribution.trim() : null);
+
+/* Ảnh từ API (`photos[]`) → [{ url, credit }] chỉ gồm ảnh được phép hiện: ảnh không phải Google (credit null, kể cả khi bản ghi có
+   `attribution`) và ảnh Google có tên tác giả (credit = tên). Ảnh Google thiếu tên bị bỏ. Thứ tự giữ nguyên. */
+export function usablePhotos(photos) {
+  const out = [];
+  for (const p of Array.isArray(photos) ? photos : []) {
+    if (!p || typeof p.url !== 'string' || !p.url) continue;
+    if (!isGooglePhoto(p)) { out.push({ url: p.url, credit: null }); continue; }
+    const credit = authorOf(p);
+    if (credit) out.push({ url: p.url, credit });
+  }
+  return out;
+}
+
+/* Ảnh trong đối tượng vendor đã map (gallery, hoặc grad nếu thiếu gallery) → [{ url, credit }].
+   `photoCredits` (cùng chỉ số với gallery) do adaptVendor gắn, không lưu vào máy. Dữ liệu đã lưu không có nó:
+   URL Google không biết tên tác giả thì bị bỏ (không hiện). */
+export function photoEntriesOf(vendor) {
+  const list = vendor?.gallery?.length ? vendor.gallery : [vendor?.grad];
+  const credits = vendor?.gallery?.length ? vendor.photoCredits : null;
+  const out = [];
+  list.forEach((css, i) => {
+    const url = urlFromCss(css);
+    if (!url) return;
+    const credit = credits?.[i] || null;
+    if (!credit && isGoogleHostUrl(url)) return;
+    out.push({ url, credit });
+  });
+  return out;
+}
+export const photoUrlsOf = (vendor) => photoEntriesOf(vendor).map((e) => e.url);
 
 /* Trạng thái một ô ảnh (spec T-066 M1): 'good' có ảnh dùng được; 'checking' còn URL chưa biết kết quả;
    'bad' không có URL nào hoặc mọi URL đều hỏng. Chỉ 'bad' mới được hiện minh hoạ. */

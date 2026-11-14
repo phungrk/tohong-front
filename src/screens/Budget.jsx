@@ -16,6 +16,7 @@ import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
 import { useHistoryLayer } from '../nav.js';
 import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { useSavedVendorPhoto } from '../vendorImages.js';
+import { PhotoCredit } from '../ui/PhotoCredit.jsx';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
 
 /* ── ItemRow (unchanged from original) ─────────────────────── */
@@ -101,7 +102,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   const { vendorInfoFor } = useConnect();
   const { guests, budgetReady } = useVendorCtx();
   // Ảnh theo pool hiện tại (tra theo id); không có ảnh dùng được thì nền sage/sand như trước. Dữ liệu đã lưu không bị sửa.
-  const { bg: photoBg, state: photoState } = useSavedVendorPhoto(vendor);
+  const { bg: photoBg, state: photoState, credit: photoCredit } = useSavedVendorPhoto(vendor);
 
   useEffect(() => {
     if (vendor) setNote(vendor.note || '');
@@ -198,6 +199,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, color: 'var(--ink-900)' }}>{vendor.name}</div>
+            <PhotoCredit credit={photoCredit} />
             {vendor.spec && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 2 }}>{vendor.spec}</div>}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', flexShrink: 0 }}>
