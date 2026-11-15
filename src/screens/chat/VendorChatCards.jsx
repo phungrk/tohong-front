@@ -8,7 +8,6 @@ import { track } from '../../analytics.js';
 import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
-import { PriceTag } from '../../ui/PriceTag.jsx';
 import { priceText } from '../../ui/priceText.js';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg, usablePhotos } from '../../vendorImageUrls.js';
 import { PhotoCredit } from '../../ui/PhotoCredit.jsx';
@@ -380,7 +379,6 @@ export function VMatchChatCard({ catId }) {
                       <div style={{ marginTop: 'auto', paddingTop: 5, fontFamily: 'var(--font-ui)', fontSize: 13.5,
                         fontWeight: 700, color: 'var(--ink-900)' }}>
                         {priceText(v.priceTotal, v.priceMax, v.perTable)}
-                        <PriceTag source={v.priceSource} label={v.priceLabel} style={{ marginLeft: 6 }} />
                       </div>
                     </div>
                   </div>
@@ -614,7 +612,6 @@ export function VDetailChatCard({ catId, vendor }) {
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 18, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {priceText(vendor.priceTotal, vendor.priceMax, vendor.perTable)}
             </div>
-            <PriceTag source={vendor.priceSource} label={vendor.priceLabel} style={{ marginTop: 3 }} />
             {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
           </div>
         </div>
@@ -823,7 +820,6 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 <PhotoCredit credit={creditOf(v)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
-                  <PriceTag source={v.priceSource} label={v.priceLabel} />
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
                 </div>
               </div>
@@ -896,7 +892,6 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
     { label: 'Giá', val: (v) => (
         <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
           <span>{priceText(v.priceTotal, null, v.perTable)}</span>
-          <PriceTag source={v.priceSource} label={v.priceLabel} style={{ fontSize: 12, fontWeight: 500 }} />
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
     { label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') },
