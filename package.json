@@ -11,7 +11,8 @@
     "test:journey": "node --test scripts/test-journey.mjs",
     "test:vendor-images": "node --test scripts/test-vendor-images.mjs",
     "test:admin-enrich": "node --test scripts/test-admin-enrich-capu.mjs scripts/test-admin-enrich-notes.mjs",
-    "test:price-text": "node --test scripts/test-price-text.mjs"
+    "test:price-text": "node --test scripts/test-price-text.mjs",
+    "test:score-epoch": "node --test scripts/test-score-epoch.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",

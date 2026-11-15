@@ -4,6 +4,8 @@
 const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787';
 const DEV_TOKEN = import.meta.env.VITE_DEV_TOKEN || 'dev';
 
+import { bumpScoreEpoch, budgetScoreSig, profilePatchTouchesScore } from './scoreEpoch.js';
+
 // ── Guest token ──────────────────────────────────────────────────────────────
 // Tạo/đọc token ngẫu nhiên lưu localStorage, dùng khi chưa đăng nhập.
 // Backend chấp nhận token bắt đầu bằng "guest_" → userId = token.
@@ -78,6 +80,9 @@ async function reqOrNull(method, path, body) {
   return res.json();
 }
 
+// T-174: chữ ký dự toán đã lưu (lần tải hoặc lần ghi thành công gần nhất) theo cặp đôi.
+const knownBudgetSig = new Map();
+
 export const api = {
   getMe: () => req('GET', '/api/me'),
 
@@ -86,7 +91,10 @@ export const api = {
   getProfile: (coupleId) => req('GET', `/api/couples/${coupleId}`),
 
   updateProfile: (coupleId, patch) =>
-    req('PATCH', `/api/couples/${coupleId}`, patch),
+    req('PATCH', `/api/couples/${coupleId}`, patch).then((res) => {
+      if (profilePatchTouchesScore(patch)) bumpScoreEpoch(); // T-174: thẻ vendor lấy lại điểm
+      return res;
+    }),
 
   listConversations: (coupleId, limit = 20) =>
     req('GET', `/api/couples/${coupleId}/conversations?limit=${limit}`),
@@ -120,8 +128,18 @@ export const api = {
   getSummary: (coupleId) => req('GET', `/api/couples/${coupleId}/summary`),
 
   // ── Budget ─────────────────────────────────────────────────────────────────
-  getBudget: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/budget`),
-  putBudget: (coupleId, body) => req('PUT', `/api/couples/${coupleId}/budget`, body),
+  getBudget: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/budget`).then((doc) => {
+    if (doc) knownBudgetSig.set(coupleId, budgetScoreSig(doc)); // bản đã lưu front biết
+    return doc;
+  }),
+  putBudget: (coupleId, body) => req('PUT', `/api/couples/${coupleId}/budget`, body).then((res) => {
+    // T-174: chỉ khi ghi thành công làm đổi dự toán/tổng/số khách so với bản đã biết (chưa biết thì coi là đổi).
+    const sig = budgetScoreSig(body);
+    const changed = knownBudgetSig.get(coupleId) !== sig;
+    knownBudgetSig.set(coupleId, sig);
+    if (changed) bumpScoreEpoch();
+    return res;
+  }),
 
   // ── Timeline ───────────────────────────────────────────────────────────────
   getTimeline: (coupleId) => reqOrNull('GET', `/api/couples/${coupleId}/timeline`),

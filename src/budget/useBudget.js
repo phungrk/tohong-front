@@ -56,6 +56,11 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const [phase, setPhase] = useState('loading');
   const [tries, setTries] = useState(0);
   const saveTimer = useRef(null);
+  // T-174: lần tự lưu lỗi không được im lặng. saveError = có bản trên màn chưa lưu được; retrySave ghi lại bản mới nhất đang hiện.
+  const [saveError, setSaveError] = useState(false);
+  const saveSeq = useRef(0); // chỉ kết quả của lần ghi bắt đầu sau cùng được quyết định câu báo (lần cũ về trễ không đè)
+  const catsRef = useRef(cats);
+  useEffect(() => { catsRef.current = cats; }, [cats]);
   // Keep a ref to latest meta so scheduleSave closure always has current values
   const metaRef = useRef(meta);
   useEffect(() => { metaRef.current = meta; }, [meta]);
@@ -66,6 +71,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
       .then((data) => {
         setPhase('ready');
         if (data?.categories) {
+          setSaveError(false); // màn vừa thay bằng bản đã lưu của server: không còn số nào chưa lưu
           setLoaded(true);
           setCats(data.categories.map(withMeta));
           setMeta({
@@ -83,25 +89,35 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
 
   const retry = () => { setPhase('loading'); setTries((n) => n + 1); };
 
+  const saveNow = (newCats) => {
+    const m = metaRef.current;
+    // estimated_tr, variance_tr, state are read-only — backend computes them
+    // Giữ thứ tự trường như máy chủ trả về (chỉ lọc bỏ trường chỉ đọc), để lần lưu không làm đổi dữ liệu dùng chung ngoài phần người dùng sửa.
+    const pick = (o, keys) => Object.fromEntries(Object.keys(o).filter((k) => keys.includes(k)).map((k) => [k, o[k]]));
+    const payload = newCats.map((c) => ({
+      ...pick(c, ['id', 'name', 'allocated_tr', 'pct', 'priority']),
+      items: (c.items || []).map((it) => pick(it, ['id', 'name', 'amt', 'status', 'vendor'])),
+    }));
+    const seq = ++saveSeq.current;
+    const settle = (failed) => { if (seq === saveSeq.current) setSaveError(failed); };
+    return api.putBudget(coupleId, {
+      categories: payload,
+      total_tr: m.totalTr,
+      guests: m.guests,
+      mung_tr: m.mungTr,
+    }).then(() => settle(false), () => settle(true)); // lỗi: giữ số người dùng vừa chỉnh, chỉ báo là chưa lưu
+  };
+
   const scheduleSave = (newCats) => {
     if (!coupleId) return;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      const m = metaRef.current;
-      // estimated_tr, variance_tr, state are read-only — backend computes them
-      // Giữ thứ tự trường như máy chủ trả về (chỉ lọc bỏ trường chỉ đọc), để lần lưu không làm đổi dữ liệu dùng chung ngoài phần người dùng sửa.
-      const pick = (o, keys) => Object.fromEntries(Object.keys(o).filter((k) => keys.includes(k)).map((k) => [k, o[k]]));
-      const payload = newCats.map((c) => ({
-        ...pick(c, ['id', 'name', 'allocated_tr', 'pct', 'priority']),
-        items: (c.items || []).map((it) => pick(it, ['id', 'name', 'amt', 'status', 'vendor'])),
-      }));
-      api.putBudget(coupleId, {
-        categories: payload,
-        total_tr: m.totalTr,
-        guests: m.guests,
-        mung_tr: m.mungTr,
-      }).catch(() => {});
-    }, 800);
+    saveTimer.current = setTimeout(() => { saveNow(newCats); }, 800);
+  };
+
+  const retrySave = () => {
+    if (!coupleId) return;
+    clearTimeout(saveTimer.current); // bản mới nhất trên màn thay cho lần tự lưu đang chờ
+    saveNow(catsRef.current);
   };
 
   const mutate = (fn) =>
@@ -163,7 +179,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const itemsTotal = (c) => (c.items || []).reduce((s, it) => s + (it.amt || 0), 0);
 
   return {
-    cats, setCats, loaded, phase, retry, total, over,
+    cats, setCats, loaded, phase, retry, saveError, retrySave, total, over,
     totalTarget: meta.totalTr,
     guests: meta.guests,
     mung: meta.mungTr,

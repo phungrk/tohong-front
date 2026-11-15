@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
 import { useShowAfter, SkelRegion, Bar } from '../../ui/Skel.jsx';
 import { Avatar } from '../../ui/atoms.jsx';
@@ -12,6 +12,7 @@ import { PriceTag } from '../../ui/PriceTag.jsx';
 import { priceText } from '../../ui/priceText.js';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg, usablePhotos } from '../../vendorImageUrls.js';
 import { PhotoCredit } from '../../ui/PhotoCredit.jsx';
+import { useScoreEpoch } from '../../scoreEpoch.js';
 import { useVendorBackgrounds } from '../../vendorImages.js';
 import { VendorIllustration } from '../../vendorIllustrations.jsx';
 
@@ -107,7 +108,24 @@ function vMatchLabel(pct) {
   return pct >= 90 ? 'Rất phù hợp' : pct >= 80 ? 'Khá phù hợp' : 'Phù hợp';
 }
 
+/* T-174: điểm trên thẻ chỉ hiện khi tính theo số liệu hiện tại. Trạng thái 'updating' | 'error' suy ra lúc vẽ (điểm lấy ở đợt số liệu cũ hơn đợt hiện tại),
+   nên không có khung hình nào còn hiện điểm cũ như điểm hiện hành. */
+function scoreStaleState(dataEpoch, epoch, failedKey, key) {
+  if (dataEpoch === null || dataEpoch === epoch) return null;
+  return failedKey === key ? 'error' : 'updating';
+}
+
 /* ── Trạng thái nhỏ trong card (loading / error / empty) ───────── */
+/* Một dòng cho cả thẻ khi điểm đang lấy lại / lấy lại lỗi (T-174). */
+function ScoreStaleNote({ stale, onRetry, bare }) {
+  if (!stale) return null;
+  const body = stale === 'updating'
+    ? 'Đang cập nhật điểm…'
+    : <>Chưa cập nhật được điểm. <button type="button" onClick={onRetry} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'var(--son-600)' }}>Thử lại</button></>;
+  if (bare) return <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-500)' }}>{body}</div>;
+  return <CardNote icon={stale === 'updating' ? 'sparkles' : 'triangle-alert'}>{body}</CardNote>;
+}
+
 function CardNote({ icon, children }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 14px',
@@ -212,6 +230,17 @@ export function VMatchChatCard({ catId }) {
   const [error, setError] = useState(false);
   const [whyThoseVendors, setWhyThoseVendors] = useState('');
   const [phase, setPhase] = useState('loading');  // loading → cards
+  // T-174: điểm đang hiện được lấy ở đợt số liệu nào (null = chưa có); lần lấy lại lỗi ghi theo `key`.
+  const epoch = useScoreEpoch();
+  const [dataEpoch, setDataEpoch] = useState(null);
+  const [failedKey, setFailedKey] = useState(null);
+  const [retryN, setRetryN] = useState(0);
+  const key = `${epoch}:${retryN}`;
+  const stale = vendors === null ? null : scoreStaleState(dataEpoch, epoch, failedKey, key);
+  const loadedRef = useRef(false);   // đã từng có danh sách
+  const countRef = useRef(0);        // số hàng đang có, để lấy lại đúng số hàng đang hiện
+  const epochRef = useRef(epoch);
+  useEffect(() => { epochRef.current = epoch; }, [epoch]);
   const pageRef = useRef(0);          // số trang danh sách đã hiện (đo vendor_list_viewed)
   const listTrackedRef = useRef(false);
   const showSk = useShowAfter(vendors === null && !error); // skeleton sau ~150ms (T-061)
@@ -221,35 +250,46 @@ export function VMatchChatCard({ catId }) {
 
   useEffect(() => {
     let alive = true;
-    api.matchVendors(coupleId, { category: catId, limit: 5 })
+    api.matchVendors(coupleId, { category: catId, limit: Math.max(5, countRef.current) })
       .then((res) => {
         if (!alive) return;
-        const list = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        const list = (res?.vendors || []).map((v) => ({ ...adaptVendor(v, catId), scoreEpoch: epoch }));
         // Một lần mỗi lần hiện thẻ (kể cả 0 kết quả); fetch lại do đổi coupleId không bắn lại.
         if (!listTrackedRef.current) {
           listTrackedRef.current = true;
           pageRef.current = 1;
           track('vendor_list_viewed', { journey: 'vendor', category: catId, page: 1, result_count: list.length });
         }
+        countRef.current = list.length;
+        loadedRef.current = true;
         setVendors(list);
         setTotal(res?.total ?? list.length);
         setWhyThoseVendors(res?.whyThoseVendors || '');
+        setError(false);
+        setDataEpoch(epoch);
         setPhase('cards');
       })
-      .catch(() => { if (alive) setError(true); });
+      .catch(() => {
+        if (!alive) return;
+        if (loadedRef.current) setFailedKey(`${epoch}:${retryN}`); // đã có danh sách: không hiện số cũ, báo lỗi + Thử lại
+        else setError(true);
+      });
     return () => { alive = false; };
-  }, [catId, coupleId]);
+  }, [catId, coupleId, epoch, retryN]);
 
   const loadMore = () => {
-    if (loadingMore || !vendors) return;
+    if (loadingMore || !vendors || stale) return;
     // Already have extra vendors cached — just expand
     if (vendors.length > 5) { setExpanded(true); return; }
     setLoadingMore(true);
+    const at = epoch;
     api.matchVendors(coupleId, { category: catId, limit: 5, offset: vendors.length })
       .then((res) => {
-        const more = (res?.vendors || []).map((v) => adaptVendor(v, catId));
+        if (epochRef.current !== at) return; // số liệu đổi giữa chừng: phần này chấm theo số cũ, danh sách đang được lấy lại
+        const more = (res?.vendors || []).map((v) => ({ ...adaptVendor(v, catId), scoreEpoch: at }));
         pageRef.current += 1;
         track('vendor_list_viewed', { journey: 'vendor', category: catId, page: pageRef.current, result_count: more.length });
+        countRef.current += more.length;
         setVendors((prev) => [...prev, ...more]);
         setTotal(res?.total ?? total);
         setExpanded(true);
@@ -305,6 +345,7 @@ export function VMatchChatCard({ catId }) {
         {error && (
           <CardNote icon="triangle-alert">Không tải được gợi ý. Thử lại sau giúp Tơ Hồng nhé.</CardNote>
         )}
+        <ScoreStaleNote stale={stale} onRetry={() => setRetryN((n) => n + 1)} />
         {vendors !== null && !error && vendors.length === 0 && (
           <CardNote icon="search-x">Chưa tìm thấy vendor phù hợp cho danh mục này.</CardNote>
         )}
@@ -341,7 +382,7 @@ export function VMatchChatCard({ catId }) {
                         <Icon name="heart" size={15} color={isSaved ? '#fff' : 'var(--ink-500)'}
                           fill={isSaved ? '#fff' : 'none'} sw={isSaved ? 2.5 : 1.9} />
                       </button>
-                      {rank === 1 && (
+                      {rank === 1 && !stale && (
                         <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--son-500)',
                           color: '#fff', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textAlign: 'center',
                           padding: '3px 0', fontFamily: 'var(--font-ui)' }}>
@@ -356,6 +397,7 @@ export function VMatchChatCard({ catId }) {
                       <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                       {/* match pill + nhãn định tính */}
+                      {!stale && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
                         <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: '#fff',
                           background: mc, borderRadius: 6, padding: '2px 6px' }}>{v.match}%</span>
@@ -363,6 +405,7 @@ export function VMatchChatCard({ catId }) {
                           {vMatchLabel(v.match)}
                         </span>
                       </div>
+                      )}
                       {/* sao + điểm + (review) */}
                       {v.rating > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
@@ -385,7 +428,7 @@ export function VMatchChatCard({ catId }) {
                     </div>
                   </div>
                   {/* dải "Tơ Hồng gợi ý" — full-width, AI-first */}
-                  {v.reasons.length > 0 && (
+                  {!stale && v.reasons.length > 0 && (
                     <div style={{ marginTop: 9, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                       <Icon name="sparkles" size={13} color="var(--son-400)" sw={1.8} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -490,8 +533,23 @@ function VReviewsBlock({ vendor }) {
 }
 
 /* ── VDetailChatCard ─────────────────────────────────────────── */
-export function VDetailChatCard({ catId, vendor }) {
+export function VDetailChatCard({ catId, vendor: vendor0 }) {
   const { coupleId, saved, saveVendor, getCatBudget, guests, budgetReady } = useVendorCtx();
+  // T-174: điểm trong khối "Phân tích AI" lấy lại sau mỗi đợt số liệu đổi (phản hồi chi tiết mang cả điểm, không chỉ câu AI).
+  const epoch = useScoreEpoch();
+  const [live, setLive] = useState(null);           // { epoch, match, breakdown, reasons, budgetBasisText } của lần lấy gần nhất
+  const [failedKey, setFailedKey] = useState(null);
+  const [retryN, setRetryN] = useState(0);
+  const [mountEpoch] = useState(epoch);
+  const key = `${epoch}:${retryN}`;
+  const dataEpoch = live ? live.epoch : (vendor0?.scoreEpoch ?? mountEpoch); // điểm của vendor truyền vào có thể lấy từ danh sách đang cũ
+  const stale = vendor0 ? scoreStaleState(dataEpoch, epoch, failedKey, key) : null;
+  const vendor = useMemo(() => {
+    if (!vendor0) return vendor0;
+    if (!live) return { ...vendor0, scoreEpoch: dataEpoch };
+    return { ...vendor0, match: live.match, breakdown: live.breakdown, reasons: live.reasons, budgetBasisText: live.budgetBasisText, scoreEpoch: dataEpoch };
+  }, [vendor0, live, dataEpoch]);
+  const aiSeenRef = useRef(false);
   const { pushUser, pushAI } = useChatActions();
   const [flash, setFlash] = useState(false);
   const [galIdx, setGalIdx] = useState(0);
@@ -528,6 +586,7 @@ export function VDetailChatCard({ catId, vendor }) {
   useEffect(() => {
     if (!vendor?.id || !coupleId) return;
     let alive = true;
+    const needScore = dataEpoch !== epoch; // chỉ thay điểm khi điểm đang hiện là của đợt số liệu cũ; lần mở bình thường giữ điểm của danh sách
     api.getVendorDetail(vendor.id, coupleId)
       .then((res) => {
         if (!alive) return;
@@ -535,14 +594,20 @@ export function VDetailChatCard({ catId, vendor }) {
         const aiText = res?.match?.whyThisVendor;
         if (aiText) {
           setWhy(aiText);
-          // Chỉ chạy Typewriter khi AI sinh câu khác template.
-          if (aiText !== (vendor?.why || '')) setTyping(true);
+          // Chỉ chạy Typewriter khi AI sinh câu khác template, và chỉ ở lần mở đầu (lấy lại điểm không gõ lại câu).
+          if (!aiSeenRef.current && aiText !== (vendor?.why || '')) setTyping(true);
+          aiSeenRef.current = true;
+        }
+        if (needScore) {
+          if (!res?.match) { setFailedKey(`${epoch}:${retryN}`); return; }
+          const a = adaptVendor({ ...(res.vendor || {}), id: vendor.id, match: res.match }, catId);
+          setLive({ epoch, match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText });
         }
       })
-      .catch(() => {})
+      .catch(() => { if (alive) setFailedKey(`${epoch}:${retryN}`); })
       .finally(() => { if (alive) setWhyLoading(false); });
     return () => { alive = false; };
-  }, [vendor?.id, coupleId]);
+  }, [vendor?.id, coupleId, epoch, retryN]);
 
   if (!cat || !vendor) return null;
 
@@ -623,11 +688,12 @@ export function VDetailChatCard({ catId, vendor }) {
         <div style={{ padding: '11px 14px', background: 'var(--kim-50)', borderBottom: '1px solid var(--kim-100)' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
             letterSpacing: '0.07em', marginBottom: 9, fontFamily: 'var(--font-ui)' }}>
-            Phân tích AI · {vendor.match}% phù hợp
+            {stale ? 'Phân tích AI' : `Phân tích AI · ${vendor.match}% phù hợp`}
           </div>
-          {[['Ngân sách', vendor.breakdown.budget, 'var(--sage-500)'],
+          {stale && <div style={{ marginBottom: 7 }}><ScoreStaleNote stale={stale} bare onRetry={() => setRetryN((n) => n + 1)} /></div>}
+          {(stale ? [] : [['Ngân sách', vendor.breakdown.budget, 'var(--sage-500)'],
             ['Phong cách', vendor.breakdown.style, 'var(--kim-400)'],
-            ['Lịch trống', vendor.breakdown.avail, 'var(--son-500)']].map(([label, pct, color]) => (
+            ['Lịch trống', vendor.breakdown.avail, 'var(--son-500)']]).map(([label, pct, color]) => (
             <div key={label} style={{ marginBottom: 7 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3,
                 fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-600)' }}>
@@ -730,6 +796,8 @@ export function VDetailChatCard({ catId, vendor }) {
 export function VPickerMultiChatCard({ catId, anchor }) {
   const { coupleId } = useVendorCtx();
   const { pushUser, pushAI } = useChatActions();
+  const epochNow = useScoreEpoch();
+  const [scoreEpoch] = useState(epochNow); // đóng dấu đợt số liệu của điểm chụp ở đây; bảng so sánh sẽ lấy lại nếu đã cũ
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
   const [others, setOthers] = useState(null); // null = đang tải
   const [error, setError] = useState(false);
@@ -744,13 +812,13 @@ export function VPickerMultiChatCard({ catId, anchor }) {
       .then((res) => {
         if (!alive) return;
         const list = (res?.vendors || [])
-          .map((v) => adaptVendor(v, catId))
+          .map((v) => ({ ...adaptVendor(v, catId), scoreEpoch }))
           .filter((v) => v.id !== anchor.id);
         setOthers(list);
       })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
-  }, [catId, coupleId, anchor.id]);
+  }, [catId, coupleId, anchor.id, scoreEpoch]);
 
   if (!cat) return null;
 
@@ -860,9 +928,36 @@ export function VPickerMultiChatCard({ catId, anchor }) {
 /* ── VCompareTableChatCard ─────────────────────────────────────────
    Bảng N cột (2–5) cuộn ngang, cột tiêu chí ghim trái. Mỗi cột có nút Lưu
    độc lập — lưu thẳng vào Shortlist, không tự "chốt". */
-export function VCompareTableChatCard({ catId, vendors = [] }) {
-  const { saved, saveVendor } = useVendorCtx();
+export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
+  const { coupleId, saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(null);
+  // T-174: bảng chụp điểm lúc tạo; sau mỗi đợt số liệu đổi lấy lại điểm từng vendor qua chi tiết (một lần mỗi vendor mỗi đợt).
+  const epoch = useScoreEpoch();
+  const [mountEpoch] = useState(epoch);
+  const [liveMap, setLiveMap] = useState({});       // id -> { epoch, match, breakdown, reasons, budgetBasisText }
+  const [failedKey, setFailedKey] = useState(null);
+  const [retryN, setRetryN] = useState(0);
+  const key = `${epoch}:${retryN}`;
+  const epochOf = (v) => liveMap[v.id]?.epoch ?? v.scoreEpoch ?? mountEpoch;
+  const needIds = vendors0.filter((v) => epochOf(v) !== epoch).map((v) => v.id).join(',');
+  const stale = needIds ? (failedKey === key ? 'error' : 'updating') : null;
+  const vendors = useMemo(() => vendors0.map((v) => {
+    const l = liveMap[v.id];
+    return l ? { ...v, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText, scoreEpoch: l.epoch } : v;
+  }), [vendors0, liveMap]);
+  useEffect(() => {
+    if (!needIds || !coupleId) return undefined;
+    let alive = true;
+    Promise.all(needIds.split(',').map((id) => api.getVendorDetail(id, coupleId).then((res) => {
+      if (!res?.match) throw new Error('no match');
+      const a = adaptVendor({ ...(res.vendor || {}), id, match: res.match }, catId);
+      return [id, { epoch, match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText }];
+    }))).then((pairs) => {
+      if (alive) setLiveMap((m) => ({ ...m, ...Object.fromEntries(pairs) }));
+    }).catch(() => { if (alive) setFailedKey(`${epoch}:${retryN}`); });
+    return () => { alive = false; };
+    // needIds đổi theo epoch (ids chưa theo đợt hiện tại) nên đã phủ epoch; retryN để Thử lại.
+  }, [needIds, epoch, retryN, coupleId, catId]);
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
   // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
@@ -899,7 +994,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
           <PriceTag source={v.priceSource} label={v.priceLabel} style={{ fontSize: 12, fontWeight: 500 }} />
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
-    { label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') },
+    ...(stale ? [] : [{ label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') }]),
     { label: 'Đánh giá', val: (v) => (v.rating > 0 ? `★${v.rating}` : '—'), win: bestMask((v) => v.rating || 0, 'max') },
     ...(vendors.every((v) => v.capacity) ? [{ label: 'Sức chứa', val: (v) => `${v.capacity} khách`, win: bestMask((v) => v.capacity, 'max') }] : []),
     { label: 'Đặc trưng', val: (v) => v.spec || '—', win: noWin, wrap: true },
@@ -934,7 +1029,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
                   <PhotoCredit credit={creditOf(v)} style={{ marginBottom: 4 }} />
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
-                  <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>
+                  {!stale && <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>}
                 </div>
               ))}
             </div>
@@ -993,8 +1088,10 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
           </div>
         )}
 
+        <ScoreStaleNote stale={stale} onRetry={() => setRetryN((n) => n + 1)} />
+
         {/* AI tư vấn — xếp hạng theo % phù hợp, suy ra trực tiếp từ dữ liệu match, không gọi thêm LLM */}
-        <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
+        {!stale && <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
           <Avatar size={24} />
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--kim-700)',
@@ -1007,7 +1104,7 @@ export function VCompareTableChatCard({ catId, vendors = [] }) {
               {cheapest.id !== ranked[0].id && <> Nếu ưu tiên tiết kiệm, <b>{cheapest.name}</b> ({cheapest.priceTotal}tr) đáng cân nhắc nhất.</>}
             </div>
           </div>
-        </div>
+        </div>}
       </CardShell>
     </>
   );

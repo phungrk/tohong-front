@@ -302,6 +302,19 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
   );
 }
 
+/* T-174: lần tự lưu dự toán lỗi → báo ngay cạnh số chưa lưu, còn tới khi một lần ghi thành công. */
+function SaveErrorBanner({ bud }) {
+  if (!bud.saveError) return null;
+  return (
+    <div role="alert" style={{ margin: '8px 16px', padding: '10px 12px', borderRadius: 'var(--r-md)', background: 'var(--son-50)',
+      display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--ink-900)' }}>
+      <span style={{ flex: 1, minWidth: 0 }}>Chưa lưu được dự toán</span>
+      <button type="button" onClick={bud.retrySave}
+        style={{ flexShrink: 0, border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--son-600)' }}>Thử lại</button>
+    </div>
+  );
+}
+
 /* ── BudgetCatDetail ─────────────────────────────────────────── */
 function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpenAI }) {
   const [selectedVendorId, setSelectedVendorId] = useState(null);
@@ -640,6 +653,7 @@ export function ScreenBudget({
   if (openCat) {
     return (
       <div style={{ flex: 1, background: 'var(--paper)' }}>
+        <SaveErrorBanner bud={bud} />
         <BudgetCatDetail
           cat={openCat}
           bud={bud}
@@ -686,6 +700,8 @@ export function ScreenBudget({
           </div>
         )}
       </div>
+
+      <SaveErrorBanner bud={bud} />
 
       {/* Scrollable content */}
       {me.status === 'error' || failed ? <LoadError what="ngân sách" onRetry={retry} />

@@ -25,6 +25,7 @@ import { SaveBanner } from './ui/SaveBanner.jsx';
 import { InstallHint } from './ui/InstallHint.jsx';
 import { useDocScroll } from './docScroll.js';
 import { useVVBottom } from './vvBottom.js';
+import { bumpScoreEpoch } from './scoreEpoch.js';
 import { VVDebug } from './VVDebug.jsx';
 import {
   useRoute, useLayerCount, useHistoryLayer, buildHash, goTab, openCategory, closeSubpage,
@@ -372,6 +373,8 @@ export default function App({ isGuest = false, onShowSignIn } = {}) {
   const handleAction = (actionResult) => {
     const key = ACTION_REFRESH_MAP[actionResult?.type];
     if (key) setRefreshKeys((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+    // T-174: server đã ghi số khách/hồ sơ/khoản dự toán; front không biết trường nào đổi nên coi là đổi → thẻ vendor lấy lại điểm.
+    if ((actionResult?.type === 'update_profile' || actionResult?.type === 'add_budget_item') && actionResult.success) bumpScoreEpoch();
     if (actionResult?.type === 'update_profile' && actionResult.success) syncJourney(coupleId, 'chat_action');
   };
 
