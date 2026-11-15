@@ -51,15 +51,20 @@ test('toPayload lọc trường chỉ đọc', () => {
   assert.deepEqual(p, { categories: [{ id: 'v', name: 'V', allocated_tr: 1, items: [{ id: 'i', name: 'I', amt: 2 }] }], total_tr: 1, guests: 2, mung_tr: 3 });
 });
 
-test('extendBase: thêm khoản mới của server, giữ giá trị nền cũ', async () => {
+test('extendBase: màn đã ghép, nền = server; server đổi nhiều lần không bị coi là người dùng sửa; xoá của người dùng vẫn nhận ra', async () => {
   const { extendBase } = await import('../src/budget/mergeBudget.js');
-  const base = doc([cat('venue', 90, [item('i', 5)])]);
-  const server = doc([cat('venue', 40, [item('i', 6), item('vendor_a', 78)]), cat('x', 1)]);
-  const out = extendBase(base, server);
-  assert.equal(out.categories[0].allocated_tr, 90);
-  assert.deepEqual(out.categories[0].items.map((x) => [x.id, x.amt]), [['i', 5], ['vendor_a', 78]]);
-  assert.deepEqual(out.categories.map((c) => c.id), ['venue', 'x']);
-  // người dùng xoá khoản vendor sau đó: nhận ra là xoá
-  const mine = doc([cat('venue', 40, [item('i', 5)]), cat('x', 1)]);
-  assert.deepEqual(mergeBudget(server, out, mine).categories[0].items.map((x) => x.id), ['i']);
+  const it2 = (amt) => ({ id: 'vendor_a', name: 'A', amt });
+  let base = doc([cat('venue', 90, [item('u', 2)])]);
+  let shown = doc([cat('venue', 40, [item('u', 8)])]); // người dùng: 90->40, sửa u
+  for (const amt of [78, 117]) {
+    const server = doc([cat('venue', 90, [item('u', 2), it2(amt)])]);
+    shown = mergeBudget(server, base, shown); base = extendBase(base, server);
+  }
+  const server3 = doc([cat('venue', 90, [item('u', 2), it2(150)])]);
+  const out = mergeBudget(server3, base, shown);
+  assert.equal(out.categories[0].allocated_tr, 40);
+  assert.equal(out.categories[0].items.find((x) => x.id === 'u').amt, 8);
+  assert.equal(out.categories[0].items.find((x) => x.id === 'vendor_a').amt, 150);
+  shown = doc([cat('venue', 40, [item('u', 8)])]); // người dùng xoá vendor_a
+  assert.equal(mergeBudget(server3, base, shown).categories[0].items.some((x) => x.id === 'vendor_a'), false);
 });

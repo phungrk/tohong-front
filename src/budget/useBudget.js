@@ -94,10 +94,11 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
           };
           if (errRef.current && baseRef.current) {
             // Đang có thay đổi chưa lưu được: ghép phần người dùng đã đổi lên bản server vừa tải (không để số/khoản đó biến mất im lặng);
-            // câu báo còn tới khi ghi thành công; nền chỉ được BỔ SUNG khoản/hạng mục mới của server (không thay giá trị cũ) để còn biết người dùng đã đổi/xoá gì.
+            // câu báo còn tới khi ghi thành công; màn ghép rồi thì nền = bản server vừa tải.
             const server = docToPayload({ ...data, categories: data.categories.map(withMeta) });
-            applyDoc(mergeBudget(server, baseRef.current, toPayload(catsRef.current, metaRef.current)), loadedMeta);
-            baseRef.current = extendBase(baseRef.current, server); // thêm khoản/hạng mục mới của server vào nền (không thay giá trị nền cũ)
+            const mine = toPayload(catsRef.current, metaRef.current);
+            applyDoc(mergeBudget(server, baseRef.current, mine), loadedMeta);
+            baseRef.current = extendBase(baseRef.current, server); // màn đã ghép: nền mới = bản server vừa tải (xem mergeBudget.js)
           } else {
             baseRef.current = docToPayload({ ...data, categories: data.categories.map(withMeta) });
             setCats(data.categories.map(withMeta));

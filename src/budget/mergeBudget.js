@@ -63,17 +63,11 @@ export function mergeBudget(server, base, mine) {
   return out;
 }
 
-/* Khi màn tải lại lúc còn thay đổi chưa lưu: giữ nền cũ (để vẫn thấy người dùng đã đổi gì) và BỔ SUNG những hạng mục/khoản mới xuất hiện trên server
- * (có ở server, chưa có trong nền), để sau đó người dùng xoá chúng thì nhận ra là xoá. Cái đã có trong nền giữ giá trị nền. */
+/* Khi màn tải lại lúc còn thay đổi chưa lưu: màn đã được ghép (mergeBudget: server + phần người dùng đã đổi), nên nền mới = bản server vừa tải.
+ * Khi đó (1) chỗ người dùng không đổi: nền = server, nên server đổi cùng một khoản nhiều lần không bị coi là người dùng sửa; (2) chỗ người dùng đã đổi: màn còn giá trị
+ * của người dùng khác nền = server, vẫn là "đã đổi"; (3) khoản người dùng đã xoá: nền còn khoản (server có), màn không có, vẫn là "đã xoá"; (4) khoản mới của server
+ * (vd vendor_<id>) nằm trong nền và trên màn đã ghép, nên không bị coi là người dùng xoá. Phải gọi SAU khi màn đã nhận bản ghép. `base` giữ trong chữ ký để rõ
+ * đây là phép thay nền. */
 export function extendBase(base, server) {
-  if (!base) return server;
-  const bc = byId(base.categories), sc = byId(server?.categories);
-  const categories = (base.categories || []).map((c) => {
-    const s = sc.get(c.id);
-    if (!s) return c;
-    const have = new Set((c.items || []).map((it) => it.id));
-    return { ...c, items: [...(c.items || []), ...(s.items || []).filter((it) => !have.has(it.id)).map((it) => ({ ...it }))] };
-  });
-  for (const s of server?.categories || []) if (!bc.has(s.id)) categories.push({ ...s, items: (s.items || []).map((it) => ({ ...it })) });
-  return { ...base, categories };
+  return docToPayload(server);
 }
