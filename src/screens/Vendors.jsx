@@ -5,6 +5,7 @@ import { VFlowOverview, VendorFlowSheet } from './VendorFlowSheet.jsx';
 import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
+import { PhotoCredit } from '../ui/PhotoCredit.jsx';
 import { PriceTag } from '../ui/PriceTag.jsx';
 import { priceText } from '../ui/priceText.js';
 import { useConnect } from './connectContext.js';
@@ -43,6 +44,7 @@ function VVendorRow({ catId, vendor }) {
           {vendor.priceTotal > 0 && (changed
             ? <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable)}) · <PriceTag source={info.price_source || vendor.priceSource} label={info.price_label} /></>
             : <> · <PriceTag source={info?.price_source || vendor.priceSource} label={info?.price_label} /></>)}
+          {photo.credit && <> · </>}<PhotoCredit credit={photo.credit} run />
         </>}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
         right={<>
