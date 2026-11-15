@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api.js';
+import { toPayload, docToPayload, mergeBudget } from './mergeBudget.js';
 
 export const DEFAULT_CATEGORY_PCT = {
   venue: 40, ceremony: 10, photography: 8, jewelry: 7, attire: 6,
@@ -58,6 +59,8 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const saveTimer = useRef(null);
   // T-174: lần tự lưu lỗi không được im lặng. saveError = có bản trên màn chưa lưu được; retrySave ghi lại bản mới nhất đang hiện.
   const [saveError, setSaveError] = useState(false);
+  const errRef = useRef(false);   // = saveError, đọc được trong callback bất đồng bộ
+  const baseRef = useRef(null);   // bản front biết là đã lưu (lần tải gần nhất khi không có thay đổi chưa lưu, hoặc lần ghi thành công gần nhất)
   const saveSeq = useRef(0); // chỉ kết quả của lần ghi bắt đầu sau cùng được quyết định câu báo (lần cũ về trễ không đè)
   const catsRef = useRef(cats);
   useEffect(() => { catsRef.current = cats; }, [cats]);
@@ -65,23 +68,40 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const metaRef = useRef(meta);
   useEffect(() => { metaRef.current = meta; }, [meta]);
 
+  // Đặt màn theo một bản ghép (giữ trường chỉ có ở phía màn như locked, isNew).
+  const applyDoc = (doc, extraMeta = {}) => {
+    setCats((prev) => doc.categories.map((c) => {
+      const old = prev.find((p) => p.id === c.id) || {};
+      return withMeta({ ...old, ...c, items: (c.items || []).map((it) => ({ ...(old.items || []).find((x) => x.id === it.id), ...it })) });
+    }));
+    setMeta((m) => ({ ...m, ...extraMeta, totalTr: Number(doc.total_tr) || 0, guests: Number(doc.guests) || 0, mungTr: Number(doc.mung_tr) || 0 }));
+  };
+
   useEffect(() => {
     if (!coupleId) return;
     api.getBudget(coupleId)
       .then((data) => {
         setPhase('ready');
         if (data?.categories) {
-          setSaveError(false); // màn vừa thay bằng bản đã lưu của server: không còn số nào chưa lưu
           setLoaded(true);
-          setCats(data.categories.map(withMeta));
-          setMeta({
+          const loadedMeta = {
             totalTr: Number(data.total_tr) || 0,
             guests: Number(data.guests) || 0,
             mungTr: Number(data.mung_tr) || 0,
             totalEstimatedTr: Number(data.total_estimated_tr) || 0,
             totalVarianceTr: Number(data.total_variance_tr) || 0,
             budgetUsedPct: Number(data.budget_used_pct) || 0,
-          });
+          };
+          if (errRef.current && baseRef.current) {
+            // Đang có thay đổi chưa lưu được: ghép phần người dùng đã đổi lên bản server vừa tải (không để số/khoản đó biến mất im lặng);
+            // câu báo còn tới khi ghi thành công; KHÔNG đổi bản đã lưu (nền) để còn biết khoản nào người dùng xoá.
+            const server = docToPayload({ ...data, categories: data.categories.map(withMeta) });
+            applyDoc(mergeBudget(server, baseRef.current, toPayload(catsRef.current, metaRef.current)), loadedMeta);
+          } else {
+            baseRef.current = docToPayload({ ...data, categories: data.categories.map(withMeta) });
+            setCats(data.categories.map(withMeta));
+            setMeta(loadedMeta);
+          }
         }
       })
       .catch(() => { setPhase((p) => (p === 'ready' ? p : 'error')); }); // đã có dữ liệu thì tải lại hỏng vẫn giữ bản cũ
@@ -89,24 +109,34 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
 
   const retry = () => { setPhase('loading'); setTries((n) => n + 1); };
 
+  // Kết quả của lần ghi bắt đầu sau cùng quyết định câu báo (lần cũ về trễ không đè).
+  const settle = (seq, failed) => { if (seq === saveSeq.current) { errRef.current = failed; setSaveError(failed); } };
+
+  // Ghi thường (không có câu báo): ghi bản đang hiện, như trước.
   const saveNow = (newCats) => {
-    const m = metaRef.current;
-    // estimated_tr, variance_tr, state are read-only — backend computes them
-    // Giữ thứ tự trường như máy chủ trả về (chỉ lọc bỏ trường chỉ đọc), để lần lưu không làm đổi dữ liệu dùng chung ngoài phần người dùng sửa.
-    const pick = (o, keys) => Object.fromEntries(Object.keys(o).filter((k) => keys.includes(k)).map((k) => [k, o[k]]));
-    const payload = newCats.map((c) => ({
-      ...pick(c, ['id', 'name', 'allocated_tr', 'pct', 'priority']),
-      items: (c.items || []).map((it) => pick(it, ['id', 'name', 'amt', 'status', 'vendor'])),
-    }));
+    if (errRef.current) return saveMerged(); // đã có câu báo: mọi lần ghi lại đều lấy bản server rồi ghép
     const seq = ++saveSeq.current;
-    const settle = (failed) => { if (seq === saveSeq.current) setSaveError(failed); };
-    return api.putBudget(coupleId, {
-      categories: payload,
-      total_tr: m.totalTr,
-      guests: m.guests,
-      mung_tr: m.mungTr,
-    }).then(() => settle(false), () => settle(true)); // lỗi: giữ số người dùng vừa chỉnh, chỉ báo là chưa lưu
+    const payload = toPayload(newCats, metaRef.current);
+    return api.putBudget(coupleId, payload).then(() => { baseRef.current = payload; settle(seq, false); }, () => settle(seq, true)); // lỗi: giữ số người dùng vừa chỉnh, chỉ báo là chưa lưu
   };
+
+  // Ghi lại sau lỗi: (1) lấy bản server; (2) chỉ đè phần người dùng đã đổi so với bản đã lưu; (3) ghi bản ghép. Lấy server lỗi thì không ghi mù.
+  const saveMerged = () => {
+    const seq = ++saveSeq.current;
+    const sent = toPayload(catsRef.current, metaRef.current);
+    return api.getBudget(coupleId, { track: false }).then((doc) => {
+      const merged = doc?.categories ? mergeBudget(docToPayload(doc), baseRef.current, sent) : sent;
+      return api.putBudget(coupleId, merged, { userView: sent }).then(() => {
+        baseRef.current = merged;
+        // Màn hiện bản ghép; chỉnh thêm trong lúc ghi được giữ (còn chưa lưu thì câu báo còn và lần tự lưu kế tiếp sẽ ghi tiếp).
+        const now = toPayload(catsRef.current, metaRef.current);
+        const final = mergeBudget(merged, sent, now);
+        applyDoc(final);
+        settle(seq, JSON.stringify(toPayloadShape(final)) !== JSON.stringify(toPayloadShape(merged)));
+      });
+    }).catch(() => settle(seq, true));
+  };
+  const toPayloadShape = (d) => toPayload(d.categories, { totalTr: d.total_tr, guests: d.guests, mungTr: d.mung_tr });
 
   const scheduleSave = (newCats) => {
     if (!coupleId) return;
@@ -116,8 +146,8 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
 
   const retrySave = () => {
     if (!coupleId) return;
-    clearTimeout(saveTimer.current); // bản mới nhất trên màn thay cho lần tự lưu đang chờ
-    saveNow(catsRef.current);
+    clearTimeout(saveTimer.current); // bản đang hiện trên màn thay cho lần tự lưu đang chờ
+    saveMerged();
   };
 
   const mutate = (fn) =>

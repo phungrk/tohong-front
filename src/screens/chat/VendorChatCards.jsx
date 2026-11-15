@@ -120,9 +120,11 @@ function ScoreStaleNote({ stale, onRetry, bare }) {
   if (!stale) return null;
   const body = stale === 'updating'
     ? 'Đang cập nhật điểm…'
+    : stale === 'none'
+    ? 'Chưa có điểm cho vendor này' // 2xx nhưng vendor không có điểm (không qua lọc cứng/ẩn): không phải lỗi, không có nút Thử lại
     : <>Chưa cập nhật được điểm. <button type="button" onClick={onRetry} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'var(--son-600)' }}>Thử lại</button></>;
   if (bare) return <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-500)' }}>{body}</div>;
-  return <CardNote icon={stale === 'updating' ? 'sparkles' : 'triangle-alert'}>{body}</CardNote>;
+  return <CardNote icon={stale === 'error' ? 'triangle-alert' : 'sparkles'}>{body}</CardNote>;
 }
 
 function CardNote({ icon, children }) {
@@ -541,10 +543,10 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
   const [mountEpoch] = useState(epoch);
   const key = `${epoch}:${retryN}`;
   const dataEpoch = live ? live.epoch : (vendor0?.scoreEpoch ?? mountEpoch); // điểm của vendor truyền vào có thể lấy từ danh sách đang cũ
-  const stale = vendor0 ? scoreStaleState(dataEpoch, epoch, failedKey, key) : null;
+  const stale = !vendor0 ? null : live?.none && live.epoch === epoch ? 'none' : scoreStaleState(dataEpoch, epoch, failedKey, key);
   const vendor = useMemo(() => {
     if (!vendor0) return vendor0;
-    if (!live) return { ...vendor0, scoreEpoch: dataEpoch };
+    if (!live || live.none) return { ...vendor0, scoreEpoch: dataEpoch };
     return { ...vendor0, match: live.match, breakdown: live.breakdown, reasons: live.reasons, budgetBasisText: live.budgetBasisText, scoreEpoch: dataEpoch };
   }, [vendor0, live, dataEpoch]);
   const aiSeenRef = useRef(false);
@@ -597,7 +599,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
           aiSeenRef.current = true;
         }
         if (needScore) {
-          if (!res?.match) { setFailedKey(`${epoch}:${retryN}`); return; }
+          if (!res?.match) { setLive({ epoch, none: true }); return; } // 2xx mà không có điểm: "Chưa có điểm cho vendor này", không kẹt lỗi
           const a = adaptVendor({ ...(res.vendor || {}), id: vendor.id, match: res.match }, catId);
           setLive({ epoch, match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText });
         }
@@ -927,10 +929,10 @@ export function VPickerMultiChatCard({ catId, anchor }) {
 export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
   const { coupleId, saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(null);
-  // T-174: bảng chụp điểm lúc tạo; sau mỗi đợt số liệu đổi lấy lại điểm từng vendor qua chi tiết (một lần mỗi vendor mỗi đợt).
+  // T-174: bảng chụp điểm lúc tạo; sau mỗi đợt số liệu đổi lấy lại điểm cả bảng bằng MỘT lần gọi match?ids= (không gọi chi tiết từng vendor: mỗi lần sinh câu AI tốn LLM).
   const epoch = useScoreEpoch();
   const [mountEpoch] = useState(epoch);
-  const [liveMap, setLiveMap] = useState({});       // id -> { epoch, match, breakdown, reasons, budgetBasisText }
+  const [liveMap, setLiveMap] = useState({});       // id -> { epoch, match, breakdown, reasons, budgetBasisText } hoặc { epoch, none: true } (không có điểm)
   const [failedKey, setFailedKey] = useState(null);
   const [retryN, setRetryN] = useState(0);
   const key = `${epoch}:${retryN}`;
@@ -939,17 +941,25 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
   const stale = needIds ? (failedKey === key ? 'error' : 'updating') : null;
   const vendors = useMemo(() => vendors0.map((v) => {
     const l = liveMap[v.id];
-    return l ? { ...v, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText, scoreEpoch: l.epoch } : v;
+    if (!l) return v;
+    if (l.none) return { ...v, noScore: true, match: 0, reasons: [], budgetBasisText: '', scoreEpoch: l.epoch }; // H6: hiện "—", không là lỗi
+    return { ...v, noScore: false, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText, scoreEpoch: l.epoch };
   }), [vendors0, liveMap]);
   useEffect(() => {
     if (!needIds || !coupleId) return undefined;
     let alive = true;
-    Promise.all(needIds.split(',').map((id) => api.getVendorDetail(id, coupleId).then((res) => {
-      if (!res?.match) throw new Error('no match');
-      const a = adaptVendor({ ...(res.vendor || {}), id, match: res.match }, catId);
-      return [id, { epoch, match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText }];
-    }))).then((pairs) => {
-      if (alive) setLiveMap((m) => ({ ...m, ...Object.fromEntries(pairs) }));
+    const ids = needIds.split(',');
+    api.matchVendors(coupleId, { ids }).then((res) => {
+      if (!alive) return;
+      const got = new Map((res?.vendors || []).map((bv) => [bv.id, bv])); // thứ tự không bảo đảm: tra theo id
+      const next = {};
+      for (const id of ids) {
+        const bv = got.get(id);
+        if (!bv?.match) { next[id] = { epoch, none: true }; continue; } // vắng trong phản hồi: vendor đó không có điểm, các cột khác vẫn có
+        const a = adaptVendor(bv, catId);
+        next[id] = { epoch, match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText };
+      }
+      setLiveMap((m) => ({ ...m, ...next }));
     }).catch(() => { if (alive) setFailedKey(`${epoch}:${retryN}`); });
     return () => { alive = false; };
     // needIds đổi theo epoch (ids chưa theo đợt hiện tại) nên đã phủ epoch; retryN để Thử lại.
@@ -977,8 +987,9 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
     setTimeout(() => setFlash(null), 1900);
   };
 
+  const scoreOf = (v) => v.match;
   const bestMask = (fn, dir = 'max') => {
-    const vals = vendors.map(fn);
+    const vals = vendors.map((v) => (v.noScore && fn === scoreOf ? -1 : fn(v)));
     const target = dir === 'min' ? Math.min(...vals) : Math.max(...vals);
     return vendors.map((_, i) => vals[i] === target);
   };
@@ -989,14 +1000,14 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
           <span>{priceText(v.priceTotal, null, v.perTable)}</span>
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
-    ...(stale ? [] : [{ label: 'Phù hợp', val: (v) => `${v.match}%`, win: bestMask((v) => v.match, 'max') }]),
+    ...(stale ? [] : [{ label: 'Phù hợp', val: (v) => (v.noScore ? '—' : `${v.match}%`), win: bestMask(scoreOf, 'max') }]),
     { label: 'Đánh giá', val: (v) => (v.rating > 0 ? `★${v.rating}` : '—'), win: bestMask((v) => v.rating || 0, 'max') },
     ...(vendors.every((v) => v.capacity) ? [{ label: 'Sức chứa', val: (v) => `${v.capacity} khách`, win: bestMask((v) => v.capacity, 'max') }] : []),
     { label: 'Đặc trưng', val: (v) => v.spec || '—', win: noWin, wrap: true },
   ];
 
   const LABEL_W = 70, COL_W = 86;
-  const ranked = [...vendors].sort((a, b) => b.match - a.match);
+  const ranked = vendors.filter((v) => !v.noScore).sort((a, b) => b.match - a.match);
   const cheapest = vendors.reduce((m, v) => (v.priceTotal < m.priceTotal ? v : m), vendors[0]);
 
   return (
@@ -1024,7 +1035,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
                   <PhotoCredit credit={creditOf(v)} style={{ marginBottom: 4 }} />
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
-                  {!stale && <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>}
+                  {!stale && !v.noScore && <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>}
                 </div>
               ))}
             </div>
@@ -1086,7 +1097,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
         <ScoreStaleNote stale={stale} onRetry={() => setRetryN((n) => n + 1)} />
 
         {/* AI tư vấn — xếp hạng theo % phù hợp, suy ra trực tiếp từ dữ liệu match, không gọi thêm LLM */}
-        {!stale && <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
+        {!stale && ranked.length > 0 && <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
           <Avatar size={24} />
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--kim-700)',
