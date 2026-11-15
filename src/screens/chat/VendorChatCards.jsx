@@ -48,6 +48,8 @@ function adaptVendor(bv, catId) {
     grad: gallery[0],
     reasons: (bv.match?.reasons || []).map((r) => (typeof r === 'string' ? r : r.label)),
     why: bv.match?.whyThisVendor || '',
+    // T-167: dòng phép so ngân sách nguyên văn từ back (front không tự tính); back cũ không có trường => rỗng, không hiện gì.
+    budgetBasisText: typeof bv.match?.budgetBasis?.text === 'string' ? bv.match.budgetBasis.text : '',
     includes: bv.tags || [],
     breakdown: {
       budget: Math.round((bk.budget ?? 0.5) * 100),
@@ -624,6 +626,11 @@ export function VDetailChatCard({ catId, vendor }) {
               <div style={{ height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
                 <div style={{ width: pct + '%', height: '100%', background: color, borderRadius: 999 }} />
               </div>
+              {label === 'Ngân sách' && vendor.budgetBasisText && (
+                <div style={{ marginTop: 3, fontFamily: 'var(--font-ui)', fontSize: 11, lineHeight: 1.4, color: 'var(--ink-500)', overflowWrap: 'anywhere' }}>
+                  {vendor.budgetBasisText}
+                </div>
+              )}
             </div>
           ))}
           {/* why sentence: template dimmed khi đang chờ AI → Typewriter khi AI về khác template */}
