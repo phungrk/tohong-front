@@ -3,6 +3,8 @@ import { Icon } from '../../ui/Icon.jsx';
 import { ThreadMark } from '../../ui/atoms.jsx';
 import { ChatTabWrapper } from './index.jsx';
 import { ChatActionsCtx, VPickerChatCard, VMatchChatCard } from './VendorChatCards.jsx';
+import { useVendorCtx } from '../VendorCtx.jsx';
+import { readSavedSig, sameSig } from '../../budget/savedBudgetSig.js';
 
 const CTX_INFO = {
   home:   { icon: 'house',          label: 'Toàn bộ đám cưới' },
@@ -42,10 +44,22 @@ function BotBubble({ children }) {
   );
 }
 
+function VendorNote({ children }) {
+  return <div style={{ padding: '6px 2px', fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-500)' }}>{children}</div>;
+}
+
 /* ── Vendor thread container ─────────────────────────────────── */
 function VendorThread({ vendorSeed }) {
+  const { coupleId } = useVendorCtx();
   const [messages, setMessages] = useState([]);
+  const [note, setNote] = useState(null);  // null | 'loading' (Đang lấy dự toán…) | { retry } (đọc dự toán lỗi)
   const scrollRef = useRef(null);
+  // T-182 (spec T-179): số đã lưu mà danh sách gần nhất của từng hạng mục đã dùng, trong cuộc trò chuyện vendor hiện tại.
+  const sigsRef = useRef({});
+  const catRef = useRef(undefined);   // hạng mục của luồng hiện tại (null = thẻ chọn); đổi thì bắt đầu lại
+  const seqRef = useRef(0);           // chỉ lần bấm sau cùng được quyết định kết quả
+  const mountedRef = useRef(true);
+  const seedRef = useRef(null);       // seed đã xử lý (StrictMode chạy effect hai lần: chỉ một lần đọc dự toán)
 
   const pushUser = (text) => {
     setMessages((prev) => [...prev, { id: prev.length, type: 'user', text }]);
@@ -55,11 +69,49 @@ function VendorThread({ vendorSeed }) {
     setMessages((prev) => [...prev, { id: prev.length, type: 'card', Card, props }]);
   };
 
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
+
+  /* Mỗi lần bấm "Tìm <hạng mục>" (mode 'seed') hoặc chọn hạng mục trên thẻ chọn (mode 'pick'): đợi lần lưu đang chờ, đọc số đã lưu (một GET),
+     rồi in danh sách đầu / in danh sách mới khi số khác danh sách gần nhất / không in khi số bằng. Đọc lỗi: không in, báo + Thử lại. */
+  const findList = async (catId, mode) => {
+    const seq = ++seqRef.current;
+    setNote('loading');
+    const sig = await readSavedSig(coupleId, catId);
+    if (seq !== seqRef.current || !mountedRef.current) return;
+    const restart = mode === 'seed' && catRef.current !== catId;   // đổi hạng mục (hoặc đang ở thẻ chọn): bắt đầu lại như trước
+    if (restart) { catRef.current = catId; sigsRef.current = {}; }
+    if (sig === null) {
+      if (restart) setMessages([]);
+      setNote({ retry: () => findList(catId, mode) });
+      return;
+    }
+    setNote(null);
+    const last = sigsRef.current[catId];
+    if (restart) {
+      sigsRef.current[catId] = sig;
+      setMessages([{ id: catId, type: 'card', Card: VMatchChatCard, props: { catId, sig } }]);
+      return;
+    }
+    if (last !== undefined && sameSig(sig, last)) return;   // số không đổi so với danh sách gần nhất: không in, không gọi match
+    sigsRef.current[catId] = sig;
+    setMessages((prev) => [...prev, { id: prev.length, type: 'card', Card: VMatchChatCard, props: { catId, sig } }]);
+  };
+  const findRef = useRef(findList);
+  useEffect(() => { findRef.current = findList; });
+
   useEffect(() => {
-    const InitCard = vendorSeed?.catId ? VMatchChatCard : VPickerChatCard;
-    const initProps = vendorSeed?.catId ? { catId: vendorSeed.catId } : {};
-    setMessages([{ id: vendorSeed?.catId ?? 'picker', type: 'card', Card: InitCard, props: initProps }]);
-  }, [vendorSeed?.catId]);
+    if (seedRef.current === vendorSeed) return;
+    seedRef.current = vendorSeed;
+    const catId = vendorSeed?.catId;
+    if (!catId) {
+      if (catRef.current === null) return;   // đã ở thẻ chọn: mở lại không bắt đầu lại (như trước)
+      seqRef.current += 1; setNote(null);
+      catRef.current = null; sigsRef.current = {};
+      setMessages([{ id: 'picker', type: 'card', Card: VPickerChatCard, props: {} }]);
+      return;
+    }
+    findRef.current(catId, 'seed');
+  }, [vendorSeed]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -68,7 +120,7 @@ function VendorThread({ vendorSeed }) {
   }, [messages]);
 
   return (
-    <ChatActionsCtx.Provider value={{ pushUser, pushAI }}>
+    <ChatActionsCtx.Provider value={{ pushUser, pushAI, findList: (catId) => findRef.current(catId, 'pick') }}>
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
         {messages.map((msg) => {
           if (msg.type === 'user') {
@@ -81,6 +133,14 @@ function VendorThread({ vendorSeed }) {
             </BotBubble>
           );
         })}
+        {note === 'loading' && <VendorNote>Đang lấy dự toán…</VendorNote>}
+        {note && note !== 'loading' && (
+          <VendorNote>
+            Chưa đọc được dự toán.{' '}
+            <button type="button" onClick={note.retry}
+              style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'var(--son-600)' }}>Thử lại</button>
+          </VendorNote>
+        )}
       </div>
     </ChatActionsCtx.Provider>
   );
