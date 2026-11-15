@@ -19,6 +19,7 @@ export async function readSavedSig(coupleId, catId) {
   await whenSaved();
   try {
     const doc = await api.getBudget(coupleId, { track: false });
+    if (!Array.isArray(doc?.categories)) return null; // 404 (getBudget trả null) hoặc phản hồi không có dự toán: lỗi đọc, không đoán số 0
     const cat = (doc?.categories || []).find((c) => c.id === catId);
     const d = Number(cat?.allocated_tr);
     const k = Number(doc?.guests);

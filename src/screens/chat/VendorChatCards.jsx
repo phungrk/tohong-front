@@ -922,10 +922,38 @@ export function VPickerMultiChatCard({ catId, anchor }) {
    Bảng N cột (2–5) cuộn ngang, cột tiêu chí ghim trái. Mỗi cột có nút Lưu
    độc lập — lưu thẳng vào Shortlist, không tự "chốt". */
 export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
-  const { saved, saveVendor } = useVendorCtx();
+  const { coupleId, saved, saveVendor } = useVendorCtx();
   const [flash, setFlash] = useState(null);
-  // T-182: bảng chấm theo số đã lưu lúc tạo (danh sách đối chiếu lấy lúc mở bảng chọn) rồi đóng băng, không lấy lại điểm khi số đổi.
-  const vendors = vendors0;
+  // T-182 (spec T-179 H4, T-171 H8): lúc tạo, bảng chấm TẤT CẢ vendor theo số đã lưu bằng MỘT lần gọi match?ids= (không gọi chi tiết từng vendor: mỗi lần sinh câu AI tốn LLM), rồi đóng băng.
+  const [liveMap, setLiveMap] = useState(null);     // null = đang lấy; id -> { match, breakdown, reasons, budgetBasisText } hoặc { none: true }
+  const [failed, setFailed] = useState(false);
+  const [retryN, setRetryN] = useState(0);
+  const stale = !coupleId ? null : liveMap ? null : failed ? 'error' : 'updating';
+  const vendors = useMemo(() => vendors0.map((v) => {
+    const l = liveMap?.[v.id];
+    if (!l) return v;
+    if (l.none) return { ...v, noScore: true, match: 0, reasons: [], budgetBasisText: '' }; // vendor không có điểm: hiện "—", không là lỗi
+    return { ...v, noScore: false, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText };
+  }), [vendors0, liveMap]);
+  useEffect(() => {
+    if (!coupleId) return undefined;
+    let alive = true;
+    const ids = vendors0.map((v) => v.id);
+    api.matchVendors(coupleId, { ids }).then((res) => {
+      if (!alive) return;
+      const got = new Map((res?.vendors || []).map((bv) => [bv.id, bv])); // thứ tự không bảo đảm: tra theo id
+      const next = {};
+      for (const id of ids) {
+        const bv = got.get(id);
+        if (!bv?.match) { next[id] = { none: true }; continue; }
+        const a = adaptVendor(bv, catId);
+        next[id] = { match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText };
+      }
+      setLiveMap(next);
+    }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coupleId, catId, retryN]);
   const cat = VENDOR_CATEGORIES.find((c) => c.id === catId);
 
   // vendor_compared: một lần khi bảng so sánh hiện (≥ 2 vendor). Hook đặt TRƯỚC return null sớm.
@@ -962,7 +990,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
           <span>{priceText(v.priceTotal, null, v.perTable)}</span>
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
-    { label: 'Phù hợp', val: (v) => (v.noScore ? '—' : `${v.match}%`), win: bestMask(scoreOf, 'max') },
+    ...(stale ? [] : [{ label: 'Phù hợp', val: (v) => (v.noScore ? '—' : `${v.match}%`), win: bestMask(scoreOf, 'max') }]),
     { label: 'Đánh giá', val: (v) => (v.rating > 0 ? `★${v.rating}` : '—'), win: bestMask((v) => v.rating || 0, 'max') },
     ...(vendors.every((v) => v.capacity) ? [{ label: 'Sức chứa', val: (v) => `${v.capacity} khách`, win: bestMask((v) => v.capacity, 'max') }] : []),
     { label: 'Đặc trưng', val: (v) => v.spec || '—', win: noWin, wrap: true },
@@ -997,7 +1025,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
                   <PhotoCredit credit={creditOf(v)} style={{ marginBottom: 4 }} />
                   <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--ink-900)', lineHeight: 1.2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name.split(' ')[0]}</div>
-                  {!v.noScore && <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>}
+                  {!stale && !v.noScore && <span style={{ display: 'inline-block', marginTop: 3 }}><MatchBadge pct={v.match} /></span>}
                 </div>
               ))}
             </div>
@@ -1056,9 +1084,10 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
           </div>
         )}
 
+        <ScoreStaleNote stale={stale} onRetry={() => { setFailed(false); setRetryN((n) => n + 1); }} />
 
         {/* AI tư vấn — xếp hạng theo % phù hợp, suy ra trực tiếp từ dữ liệu match, không gọi thêm LLM */}
-        {ranked.length > 0 && <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
+        {!stale && ranked.length > 0 && <div style={{ padding: '11px 13px', background: 'var(--kim-50)', borderTop: '1px solid var(--kim-100)', display: 'flex', gap: 8 }}>
           <Avatar size={24} />
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--kim-700)',
