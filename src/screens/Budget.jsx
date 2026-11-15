@@ -487,10 +487,17 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           )}
           <button
             onClick={() => onOpenVendorChat(cat.id)}
-            style={{ width: '100%', marginTop: 12, padding: '12px 0', background: 'var(--son-50)', border: '1px solid var(--son-100)', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--son-600)',
+            style={{ width: '100%', marginTop: 12, padding: '12px 14px', background: 'var(--son-50)', border: '1px solid var(--son-100)', borderRadius: 'var(--r-md)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--son-600)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-            <Icon name="search" size={16} color="var(--son-600)" sw={2} />
-            Tìm {cat.name.toLowerCase()}
+            <span style={{ flexShrink: 0, display: 'flex' }}><Icon name="search" size={16} color="var(--son-600)" sw={2} /></span>
+            {/* T-177: kèm dự toán đang hiện trên thanh (khuôn T-167); dưới 0,05tr coi là chưa phân bổ. Nhãn xuống dòng, không cắt. */}
+            <span style={{ minWidth: 0, textAlign: 'center', overflowWrap: 'anywhere' }}>
+              {(() => {
+                const r = Math.round(allocated * 10) / 10;
+                const name = cat.name.toLowerCase();
+                return r > 0 ? `Tìm ${name} trong khoảng ${String(r).replace('.', ',')}tr` : `Tìm ${name}`;
+              })()}
+            </span>
           </button>
         </div>
       )}
