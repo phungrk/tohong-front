@@ -820,7 +820,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                 <PhotoCredit credit={creditOf(v)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                   <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>
+                  {v.spec && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>}
                 </div>
               </div>
               <MatchBadge pct={v.match} />
