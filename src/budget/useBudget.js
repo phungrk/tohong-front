@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api.js';
+import { saveBegin, saveEnd } from './savedBudgetSig.js';
 import { toPayload, docToPayload, mergeBudget, extendBase } from './mergeBudget.js';
 
 export const DEFAULT_CATEGORY_PCT = {
@@ -140,16 +141,24 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   };
   const toPayloadShape = (d) => toPayload(d.categories, { totalTr: d.total_tr, guests: d.guests, mungTr: d.mung_tr });
 
+  // T-182: lần lưu đang chờ (đợi gộp hoặc đã gửi chưa có phản hồi) được báo cho savedBudgetSig để "Tìm vendor" đợi lưu xong rồi mới đọc số đã lưu.
+  const timerOn = useRef(false);
   const scheduleSave = (newCats) => {
     if (!coupleId) return;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => { saveNow(newCats); }, 800);
+    if (!timerOn.current) { timerOn.current = true; saveBegin(); }
+    saveTimer.current = setTimeout(() => {
+      timerOn.current = false;
+      Promise.resolve(saveNow(newCats)).finally(saveEnd);
+    }, 800);
   };
 
   const retrySave = () => {
     if (!coupleId) return;
     clearTimeout(saveTimer.current); // bản đang hiện trên màn thay cho lần tự lưu đang chờ
-    saveMerged();
+    if (timerOn.current) { timerOn.current = false; saveEnd(); }
+    saveBegin();
+    Promise.resolve(saveMerged()).finally(saveEnd);
   };
 
   const mutate = (fn) =>
