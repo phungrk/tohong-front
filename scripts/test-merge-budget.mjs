@@ -50,3 +50,16 @@ test('toPayload lọc trường chỉ đọc', () => {
   const p = toPayload([{ id: 'v', name: 'V', allocated_tr: 1, estimated_tr: 9, state: 'x', color: 'c', items: [{ id: 'i', name: 'I', amt: 2, isNew: true }] }], { totalTr: 1, guests: 2, mungTr: 3 });
   assert.deepEqual(p, { categories: [{ id: 'v', name: 'V', allocated_tr: 1, items: [{ id: 'i', name: 'I', amt: 2 }] }], total_tr: 1, guests: 2, mung_tr: 3 });
 });
+
+test('extendBase: thêm khoản mới của server, giữ giá trị nền cũ', async () => {
+  const { extendBase } = await import('../src/budget/mergeBudget.js');
+  const base = doc([cat('venue', 90, [item('i', 5)])]);
+  const server = doc([cat('venue', 40, [item('i', 6), item('vendor_a', 78)]), cat('x', 1)]);
+  const out = extendBase(base, server);
+  assert.equal(out.categories[0].allocated_tr, 90);
+  assert.deepEqual(out.categories[0].items.map((x) => [x.id, x.amt]), [['i', 5], ['vendor_a', 78]]);
+  assert.deepEqual(out.categories.map((c) => c.id), ['venue', 'x']);
+  // người dùng xoá khoản vendor sau đó: nhận ra là xoá
+  const mine = doc([cat('venue', 40, [item('i', 5)]), cat('x', 1)]);
+  assert.deepEqual(mergeBudget(server, out, mine).categories[0].items.map((x) => x.id), ['i']);
+});

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api.js';
-import { toPayload, docToPayload, mergeBudget } from './mergeBudget.js';
+import { toPayload, docToPayload, mergeBudget, extendBase } from './mergeBudget.js';
 
 export const DEFAULT_CATEGORY_PCT = {
   venue: 40, ceremony: 10, photography: 8, jewelry: 7, attire: 6,
@@ -94,9 +94,10 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
           };
           if (errRef.current && baseRef.current) {
             // Đang có thay đổi chưa lưu được: ghép phần người dùng đã đổi lên bản server vừa tải (không để số/khoản đó biến mất im lặng);
-            // câu báo còn tới khi ghi thành công; KHÔNG đổi bản đã lưu (nền) để còn biết khoản nào người dùng xoá.
+            // câu báo còn tới khi ghi thành công; nền chỉ được BỔ SUNG khoản/hạng mục mới của server (không thay giá trị cũ) để còn biết người dùng đã đổi/xoá gì.
             const server = docToPayload({ ...data, categories: data.categories.map(withMeta) });
             applyDoc(mergeBudget(server, baseRef.current, toPayload(catsRef.current, metaRef.current)), loadedMeta);
+            baseRef.current = extendBase(baseRef.current, server); // thêm khoản/hạng mục mới của server vào nền (không thay giá trị nền cũ)
           } else {
             baseRef.current = docToPayload({ ...data, categories: data.categories.map(withMeta) });
             setCats(data.categories.map(withMeta));

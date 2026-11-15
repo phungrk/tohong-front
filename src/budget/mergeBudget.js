@@ -62,3 +62,18 @@ export function mergeBudget(server, base, mine) {
   out.categories = cats;
   return out;
 }
+
+/* Khi màn tải lại lúc còn thay đổi chưa lưu: giữ nền cũ (để vẫn thấy người dùng đã đổi gì) và BỔ SUNG những hạng mục/khoản mới xuất hiện trên server
+ * (có ở server, chưa có trong nền), để sau đó người dùng xoá chúng thì nhận ra là xoá. Cái đã có trong nền giữ giá trị nền. */
+export function extendBase(base, server) {
+  if (!base) return server;
+  const bc = byId(base.categories), sc = byId(server?.categories);
+  const categories = (base.categories || []).map((c) => {
+    const s = sc.get(c.id);
+    if (!s) return c;
+    const have = new Set((c.items || []).map((it) => it.id));
+    return { ...c, items: [...(c.items || []), ...(s.items || []).filter((it) => !have.has(it.id)).map((it) => ({ ...it }))] };
+  });
+  for (const s of server?.categories || []) if (!bc.has(s.id)) categories.push({ ...s, items: (s.items || []).map((it) => ({ ...it })) });
+  return { ...base, categories };
+}
