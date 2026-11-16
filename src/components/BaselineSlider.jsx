@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { fmtTr } from '../ui/priceText.js';
 
 // Baseline marker never sits closer than this to the left end of the track
 const MIN_BASE_POS = 0.2;
@@ -69,8 +70,8 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
     diff > 0 ? 'var(--son-600)' :
     diff < 0 ? 'var(--sage-500)' : 'var(--ink-700)';
   const tooltipText =
-    diff > 0 ? `+${diff}tr` :
-    diff < 0 ? `−${Math.abs(diff)}tr` :
+    diff > 0 ? `${fmtTr(diff, { plus: true })}tr` :
+    diff < 0 ? `${fmtTr(diff, { minus: '−' })}tr` :
     'Ban đầu';
 
   return (
@@ -132,7 +133,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
             transform: 'translateX(-50%)', whiteSpace: 'nowrap',
             fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)',
           }}>
-            Ban đầu <strong style={{ color: 'var(--ink-700)' }}>{base}tr</strong>
+            Ban đầu <strong style={{ color: 'var(--ink-700)' }}>{fmtTr(base)}tr</strong>
           </div>
         </div>
 
@@ -186,7 +187,7 @@ export function BaselineSlider({ value, max = 300, base, step = 5, onChange }) {
           aria-valuemin={0}
           aria-valuemax={max}
           aria-valuenow={local}
-          aria-valuetext={`${local} triệu, ${pct}% ngân sách cưới, ${tooltipText}`}
+          aria-valuetext={`${fmtTr(local)} triệu, ${pct}% ngân sách cưới, ${tooltipText}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
