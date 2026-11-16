@@ -71,6 +71,13 @@ function adaptVendor(bv, catId) {
   return out;
 }
 
+/* Bản sao vendor với trường mới. `photoCredits` không liệt kê nên spread `{ ...v }` làm mất tên tác giả ảnh (T-189): luôn đi qua hàm này. */
+function withFields(v, extra) {
+  const out = { ...v, ...extra };
+  if (v && v.photoCredits) Object.defineProperty(out, 'photoCredits', { value: v.photoCredits, enumerable: false });
+  return out;
+}
+
 /* ── SaveFlash ─────────────────────────────────────────────── */
 function SaveFlash({ visible, name }) {
   if (!visible) return null;
@@ -549,7 +556,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
   const showSkel = useShowAfter(skelWait, 150);
   const vendor = useMemo(() => {
     if (!vendor0 || !live || live.none) return vendor0;
-    return { ...vendor0, match: live.match, breakdown: live.breakdown, reasons: live.reasons, budgetBasisText: live.budgetBasisText };
+    return withFields(vendor0, { match: live.match, breakdown: live.breakdown, reasons: live.reasons, budgetBasisText: live.budgetBasisText });
   }, [vendor0, live]);
   const aiSeenRef = useRef(false);
   const { pushUser, pushAI } = useChatActions();
@@ -619,7 +626,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
 
   const onCompare = () => {
     pushUser(`So sánh ${vendor.name} với vendor khác`);
-    pushAI(VPickerMultiChatCard, { catId, anchor: live?.none ? { ...vendor, noScore: true, match: 0, reasons: [], budgetBasisText: '' } : vendor });
+    pushAI(VPickerMultiChatCard, { catId, anchor: live?.none ? withFields(vendor, { noScore: true, match: 0, reasons: [], budgetBasisText: '' }) : vendor });
   };
 
   return (
@@ -954,8 +961,8 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
   const vendors = useMemo(() => vendors0.map((v) => {
     const l = liveMap?.[v.id];
     if (!l) return v;
-    if (l.none) return { ...v, noScore: true, match: 0, reasons: [], budgetBasisText: '' }; // vendor không có điểm: hiện "—", không là lỗi
-    return { ...v, noScore: false, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText };
+    if (l.none) return withFields(v, { noScore: true, match: 0, reasons: [], budgetBasisText: '' }); // vendor không có điểm: hiện "—", không là lỗi
+    return withFields(v, { noScore: false, match: l.match, breakdown: l.breakdown, reasons: l.reasons, budgetBasisText: l.budgetBasisText });
   }), [vendors0, liveMap]);
   useEffect(() => {
     if (!coupleId) return undefined;
