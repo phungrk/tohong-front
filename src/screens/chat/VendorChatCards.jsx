@@ -545,6 +545,8 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
   const [failed, setFailed] = useState(false);
   const [retryN, setRetryN] = useState(0);
   const stale = !vendor0 || !coupleId ? null : live ? (live.none ? 'none' : null) : failed ? 'error' : 'updating';
+  const skelWait = stale === 'updating';           // T-185: chờ điểm -> skeleton (sau ~150ms), không số tạm, không chữ chờ
+  const showSkel = useShowAfter(skelWait, 150);
   const vendor = useMemo(() => {
     if (!vendor0 || !live || live.none) return vendor0;
     return { ...vendor0, match: live.match, breakdown: live.breakdown, reasons: live.reasons, budgetBasisText: live.budgetBasisText };
@@ -558,8 +560,6 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
   const [why, setWhy] = useState(vendor?.why || '');
   // typing=true khi AI text về và khác template → chạy Typewriter animation.
   const [typing, setTyping] = useState(false);
-  // whyLoading: dimm template + caret trong lúc chờ AI.
-  const [whyLoading, setWhyLoading] = useState(!!(vendor?.id && coupleId));
   const [hidden, setHidden] = useState(false); // admin vừa ẩn vendor này → "không còn nhận đặt"
   const { galleryOf, stateOf, creditsOf } = useVendorBackgrounds([vendor], catId);
 
@@ -601,8 +601,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
         const a = adaptVendor({ ...(res.vendor || {}), id: vendor.id, match: res.match }, catId);
         setLive({ match: a.match, breakdown: a.breakdown, reasons: a.reasons, budgetBasisText: a.budgetBasisText });
       })
-      .catch(() => { if (alive) setFailed(true); })
-      .finally(() => { if (alive) setWhyLoading(false); });
+      .catch(() => { if (alive) setFailed(true); });
     return () => { alive = false; };
   }, [vendor?.id, coupleId, retryN]);
 
@@ -680,14 +679,29 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
           </div>
         </div>
 
-        {/* 3. Phân tích AI — bars + lý do, gộp trong khối kim-50 */}
-        <div style={{ padding: '11px 14px', background: 'var(--kim-50)', borderBottom: '1px solid var(--kim-100)' }}>
+        {/* 3. Phân tích AI — bars + lý do, gộp trong khối kim-50. Chờ điểm: skeleton (T-185). */}
+        {(() => {
+          const hid = { visibility: showSkel ? 'visible' : 'hidden' }; // chưa tới mốc: giữ đúng chỗ, không vẽ
+          const Wrap = skelWait && showSkel ? SkelRegion : 'div';
+          return (
+        <Wrap style={{ padding: '11px 14px', background: 'var(--kim-50)', borderBottom: '1px solid var(--kim-100)' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--kim-700)', textTransform: 'uppercase',
-            letterSpacing: '0.07em', marginBottom: 9, fontFamily: 'var(--font-ui)' }}>
+            letterSpacing: '0.07em', marginBottom: 9, fontFamily: 'var(--font-ui)', display: skelWait ? 'flex' : undefined, alignItems: 'center', gap: 8, minHeight: 15 }}>
             {stale ? 'Phân tích AI' : `Phân tích AI · ${vendor.match}% phù hợp`}
+            {skelWait && <Bar h={11} w={92} style={hid} />}
           </div>
-          {stale && <div style={{ marginBottom: 7 }}><ScoreStaleNote stale={stale} bare onRetry={() => { setFailed(false); setRetryN((n) => n + 1); }} /></div>}
-          {(stale ? [] : [['Ngân sách', vendor.breakdown.budget, 'var(--sage-500)'],
+          {stale && !skelWait && <div style={{ marginBottom: 7 }}><ScoreStaleNote stale={stale} bare onRetry={() => { setFailed(false); setRetryN((n) => n + 1); }} /></div>}
+          {skelWait ? ['Ngân sách', 'Phong cách', 'Lịch trống'].map((label) => (
+            <div key={label} style={{ marginBottom: 7 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3,
+                fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--ink-600)' }}>
+                <span>{label}</span>
+                <Bar h={10} w={26} style={hid} />
+              </div>
+              <Bar h={5} w="100%" r={999} style={hid} />
+              {label === 'Ngân sách' && <Bar h={10} w="72%" mt={5} style={hid} />}
+            </div>
+          )) : (stale ? [] : [['Ngân sách', vendor.breakdown.budget, 'var(--sage-500)'],
             ['Phong cách', vendor.breakdown.style, 'var(--kim-400)'],
             ['Lịch trống', vendor.breakdown.avail, 'var(--son-500)']]).map(([label, pct, color]) => (
             <div key={label} style={{ marginBottom: 7 }}>
@@ -706,22 +720,30 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
               )}
             </div>
           ))}
-          {/* why sentence: template dimmed khi đang chờ AI → Typewriter khi AI về khác template */}
-          {why && (
+          {/* câu AI: chờ điểm -> hai dòng skeleton (không câu mẫu mờ, không caret); điểm về mà không có câu AI -> câu mẫu của hàng (nếu có); câu AI về -> Typewriter như cũ */}
+          {skelWait ? (
+            <div style={{ display: 'flex', gap: 8, marginTop: 9, padding: '8px 10px', background: 'var(--card)',
+              border: '1px solid var(--kim-100)', borderRadius: 'var(--r-md)', ...hid }}>
+              <Avatar size={20} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Bar h={13} w="100%" style={hid} />
+                <Bar h={13} w="64%" mt={6} style={hid} />
+              </div>
+            </div>
+          ) : why && (
             <div style={{ display: 'flex', gap: 8, marginTop: 9, padding: '8px 10px', background: 'var(--card)',
               border: '1px solid var(--kim-100)', borderRadius: 'var(--r-md)' }}>
               <Avatar size={20} />
               {typing ? (
                 <Typewriter text={why} speed={14} onDone={() => setTyping(false)} style={{ padding: 0, flex: 1, fontSize: 14 }} />
               ) : (
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.45, flex: 1,
-                  opacity: whyLoading ? 0.6 : 1, transition: 'opacity .2s ease' }}>
-                  {why}{whyLoading && <span className="vm-caret">▌</span>}
-                </span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink-900)', lineHeight: 1.45, flex: 1 }}>{why}</span>
               )}
             </div>
           )}
-        </div>
+        </Wrap>
+          );
+        })()}
 
         {/* 4. Giới thiệu — mô tả vendor thật, thu gọn 3 dòng + mở rộng inline */}
         {vendor.description && (
