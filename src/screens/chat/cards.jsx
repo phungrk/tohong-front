@@ -327,6 +327,9 @@ export function ChecklistCard({ coupleId }) {
 /* ============================= CHAT BUDGET MINI ============================= */
 export function ChatBudgetMini({ budgetHook }) {
   const bud = budgetHook;
+  // T-193: số phân bổ của hạng mục là allocated_tr (có thể là chuỗi từ API); tổng cộng bằng phép cộng số.
+  const amtOf = (c) => Number(c.allocated_tr) || 0;
+  const sumAmt = bud.cats.reduce((s, c) => s + amtOf(c), 0);
   return (
     <CardShell>
       <CardHead icon="wallet" kicker="Ngân sách" title={bud.totalTarget > 0 ? `Phân bổ ${fmtTr(bud.totalTarget)}tr` : 'Phân bổ ngân sách'}
@@ -346,10 +349,10 @@ export function ChatBudgetMini({ budgetHook }) {
               <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-700)' }}>
                 <span style={{ width: 9, height: 9, borderRadius: 3, background: c.color }} /> {c.name}
               </span>
-              <EditAmount value={c.amt} onChange={(v) => bud.setAmt(c.id, v)} size={13} />
+              <EditAmount value={amtOf(c)} onChange={(v) => bud.setAmt(c.id, v)} size={13} />
             </div>
             <div style={{ height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: (bud.total > 0 ? (c.amt / bud.total) * 100 : 0) + '%', background: c.color, borderRadius: 999, transition: 'width .25s ease' }} />
+              <div style={{ height: '100%', width: (sumAmt > 0 ? (amtOf(c) / sumAmt) * 100 : 0) + '%', background: c.color, borderRadius: 999, transition: 'width .25s ease' }} />
             </div>
           </div>
         ))}
