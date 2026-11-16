@@ -26,6 +26,9 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 // Chỉ dùng khi chạy local không có Clerk: backend chỉ nhận token "dev:…" khi DEV_AUTH_BYPASS bật.
 const DEV_ADMIN_TOKEN = import.meta.env.VITE_ADMIN_DEV_TOKEN;
 
+// Cờ tạm mở admin không đăng nhập (ADR-116): bật khi và chỉ khi đúng chuỗi '1'; vắng hay khác là tắt.
+const ADMIN_OPEN = import.meta.env.VITE_ADMIN_OPEN === '1';
+
 const TABS = [
   { id: 'vendors', label: 'Dữ liệu vendor' },
   { id: 'members', label: 'Thành viên' },
@@ -36,6 +39,7 @@ const TABS = [
 ];
 
 export default function AdminApp() {
+  if (ADMIN_OPEN) return <AdminShell />;
   if (PUBLISHABLE_KEY) {
     return (
       <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/?admin">
