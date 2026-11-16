@@ -33,3 +33,14 @@ test('fmtTr: |x| làm tròn rồi đặt dấu, 0 không dấu', () => {
   assert.equal(fmtTr(1440), '1440');
   assert.equal(fmtTr(undefined), '');
 });
+
+test('T-193: giá rỗng và khoảng một đầu rỗng', () => {
+  assert.equal(priceText('', null), 'Chưa có giá');
+  assert.equal(priceText(0, null), '0tr');
+  assert.equal(priceText('', 5, false, true), 'Đến 5tr');
+  assert.equal(priceText(null, 6, true, true), 'Đến 6tr/bàn');
+  assert.equal(priceText(4, '', false, true), 'Từ 4tr');
+  assert.equal(priceText(undefined, undefined, false, true), 'Chưa có giá');
+  assert.equal(priceText(4, 5, false, true), '4tr–5tr');
+  assert.equal(priceText(0, 5, false, true), '0tr–5tr');
+});

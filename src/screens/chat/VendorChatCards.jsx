@@ -8,7 +8,7 @@ import { track } from '../../analytics.js';
 import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
-import { priceText, fmtTr } from '../../ui/priceText.js';
+import { priceText, fmtTr, shownMin } from '../../ui/priceText.js';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg, usablePhotos } from '../../vendorImageUrls.js';
 import { PhotoCredit } from '../../ui/PhotoCredit.jsx';
 import { readSavedSig, sameSig, sigLabel } from '../../budget/savedBudgetSig.js';
@@ -35,6 +35,7 @@ function adaptVendor(bv, catId) {
     id: bv.id,
     name: bv.name,
     priceTotal: bv.priceMin ?? bv.price ?? 0,   // dùng giá "từ" làm ước lượng cho budget
+    priceShown: bv.priceMin ?? bv.price ?? null, // T-193: giá "từ" nguyên gốc để HIỂN THỊ (null/"" = chưa có giá; priceTotal ép null thành 0 cho phép tính)
     priceMax: bv.priceMax ?? null,
     priceSource: bv.price_source || null,       // 'verified' | 'estimated' (backend overlay)
     priceLabel: bv.price_label || null,         // nhãn giá nguyên văn từ back (T-164); thiếu => nhãn dự phòng theo priceSource
@@ -435,7 +436,7 @@ export function VMatchChatCard({ catId, sig }) {
                       {/* giá trọn gói — đẩy xuống đáy */}
                       <div style={{ marginTop: 'auto', paddingTop: 5, fontFamily: 'var(--font-ui)', fontSize: 13.5,
                         fontWeight: 700, color: 'var(--ink-900)' }}>
-                        {priceText(v.priceTotal, v.priceMax, v.perTable)}
+                        {priceText(shownMin(v), v.priceMax, v.perTable, true)}
                       </div>
                     </div>
                   </div>
@@ -680,7 +681,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 18, fontWeight: 700, color: 'var(--son-600)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-              {priceText(vendor.priceTotal, vendor.priceMax, vendor.perTable)}
+              {priceText(shownMin(vendor), vendor.priceMax, vendor.perTable, true)}
             </div>
             {vendor.priceUnit && <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>{vendor.priceUnit}</div>}
           </div>
@@ -913,7 +914,7 @@ export function VPickerMultiChatCard({ catId, anchor }) {
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
                 <PhotoCredit credit={creditOf(v)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(v.priceTotal, null, v.perTable)}</span>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--son-600)', fontVariantNumeric: 'tabular-nums' }}>{priceText(shownMin(v), null, v.perTable)}</span>
                   {v.spec && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>· {v.spec}</span>}
                 </div>
               </div>
@@ -1016,7 +1017,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
   const rows = [
     { label: 'Giá', val: (v) => (
         <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span>{priceText(v.priceTotal, null, v.perTable)}</span>
+          <span>{priceText(shownMin(v), null, v.perTable)}</span>
         </span>
       ), win: bestMask((v) => v.priceTotal, 'min') },
     ...(stale ? [] : [{ label: 'Phù hợp', val: (v) => (v.noScore ? '—' : `${v.match}%`), win: bestMask(scoreOf, 'max') }]),

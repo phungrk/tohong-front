@@ -6,7 +6,7 @@ import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
 import { PhotoCredit } from '../ui/PhotoCredit.jsx';
-import { priceText, fmtTr } from '../ui/priceText.js';
+import { priceText, fmtTr, shownMin } from '../ui/priceText.js';
 import { useConnect } from './connectContext.js';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
@@ -39,8 +39,8 @@ function VVendorRow({ catId, vendor }) {
         </div>}
         title={<><PhotoCredit credit={photo.credit} style={{ fontStyle: 'normal' }} />{vendor.name}</>}
         sub={<>
-          {priceText(vendor.priceTotal, null, perTable)}{vendor.priceUnit ? ` · ${vendor.priceUnit}` : ''}
-          {vendor.priceTotal > 0 && changed && <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable)})</>}
+          {priceText(shownMin(vendor), null, perTable)}{vendor.priceUnit ? ` · ${vendor.priceUnit}` : ''}
+          {vendor.priceTotal > 0 && changed && <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable, true)})</>}
         </>}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
         right={<>
