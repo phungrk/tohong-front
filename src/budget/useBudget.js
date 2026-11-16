@@ -3,6 +3,9 @@ import { api } from '../api.js';
 import { saveBegin, saveEnd } from './savedBudgetSig.js';
 import { toPayload, docToPayload, mergeBudget, extendBase } from './mergeBudget.js';
 
+// T-195: số phân bổ để HIỂN THỊ/tính tổng, đúng cách thẻ chat đọc (cards.jsx). Không dùng để ghi lại dữ liệu đã lưu.
+export const amtOf = (c) => Number(c?.allocated_tr) || 0;
+
 export const DEFAULT_CATEGORY_PCT = {
   venue: 40, ceremony: 10, photography: 8, jewelry: 7, attire: 6,
   decor: 6, makeup: 3, transport: 2, stationery: 2, honeymoon: 6, reserve: 10,
@@ -165,7 +168,7 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
       return next;
     });
 
-  const total = cats.reduce((s, c) => s + (c.allocated_tr || 0), 0);
+  const total = cats.reduce((s, c) => s + amtOf(c), 0);
   const over = total - meta.totalTr;
 
   // honeymoon là mục thêm sau (init 0%). Khi user phân bổ honeymoon, rút tương ứng
@@ -176,10 +179,10 @@ export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
       const val = Math.max(0, Math.round(amt));
       if (id === 'honeymoon') {
         const cur = cs.find((c) => c.id === 'honeymoon');
-        const delta = val - (cur?.allocated_tr || 0);
+        const delta = val - amtOf(cur);
         return cs.map((c) => {
           if (c.id === 'honeymoon') return { ...c, allocated_tr: val };
-          if (c.id === 'reserve') return { ...c, allocated_tr: Math.max(0, (c.allocated_tr || 0) - delta) };
+          if (c.id === 'reserve') return { ...c, allocated_tr: Math.max(0, amtOf(c) - delta) };
           return c;
         });
       }
