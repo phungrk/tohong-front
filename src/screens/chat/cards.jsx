@@ -349,7 +349,7 @@ export function ChatBudgetMini({ budgetHook }) {
               <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--ink-700)' }}>
                 <span style={{ width: 9, height: 9, borderRadius: 3, background: c.color }} /> {c.name}
               </span>
-              <EditAmount value={c.allocated_tr ?? 0} onChange={(v) => bud.setAmt(c.id, v)} size={13} />
+              <EditAmount value={amtOf(c)} onChange={(v) => bud.setAmt(c.id, v)} size={13} />
             </div>
             <div style={{ height: 5, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: (sumAmt > 0 ? (amtOf(c) / sumAmt) * 100 : 0) + '%', background: c.color, borderRadius: 999, transition: 'width .25s ease' }} />
