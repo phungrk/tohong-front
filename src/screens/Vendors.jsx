@@ -41,7 +41,7 @@ function VVendorRow({ catId, vendor }) {
         sub={<>
           {priceText(vendor.priceTotal, null, perTable)}{vendor.priceUnit ? ` · ${vendor.priceUnit}` : ''}
           {vendor.priceTotal > 0 && changed && <> · giá đã cập nhật ({priceText(info.priceMin, info.priceMax, perTable)})</>}
-          {photo.credit && <> · </>}<PhotoCredit credit={photo.credit} run />
+          <PhotoCredit credit={photo.credit} />
         </>}
         subColor={isConfirmed ? 'var(--sage-600)' : 'var(--ink-400)'}
         right={<>
