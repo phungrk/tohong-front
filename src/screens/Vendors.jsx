@@ -34,7 +34,7 @@ function VVendorRow({ catId, vendor }) {
   return (
     <div style={{ paddingLeft: 44 }}>
       <ListRow
-        leading={<div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'center', background: thumbBg, position: 'relative', overflow: 'hidden' }}>
+        leading={<div style={{ width: 32, borderRadius: 'var(--r-sm)', flexShrink: 0, alignSelf: 'stretch', minHeight: 32, background: thumbBg, position: 'relative', overflow: 'hidden' }}>
           {photo.state === 'bad' && <VendorIllustration catId={catId} />}
         </div>}
         title={vendor.name}
