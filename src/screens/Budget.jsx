@@ -8,7 +8,7 @@ import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
 import { priceBand, venueCost } from '../journey.js';
-import { priceText } from '../ui/priceText.js';
+import { priceText, fmtTr, rangeTr } from '../ui/priceText.js';
 import { ConnectAction } from './chat/ConnectAction.jsx';
 import { useConnect } from './connectContext.js';
 import { useOutsideFrameDismiss } from '../ui/useOutsideFrameDismiss.js';
@@ -58,7 +58,7 @@ function ItemRow({ it, onAmt, onName, onRemove, venueItem = false, venueCalc = n
         ) : (
           <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, flexShrink: 0 }}>
             <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 12, color: 'var(--ink-700)', fontVariantNumeric: 'tabular-nums' }}>
-              {venueCalc ? venueCalc.amt : (it.amt || 0)}
+              {fmtTr(venueCalc ? venueCalc.amt : (it.amt || 0))}
             </span>
             <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--ink-500)' }}>tr</span>
           </span>
@@ -218,7 +218,7 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           </div>
           {priceChanged && (
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginBottom: 8, lineHeight: 1.5 }}>
-              Bạn đã lưu lúc {price}tr. Giá hiện tại trên Tơ Hồng: {liveMin}{info.priceMax != null && info.priceMax !== liveMin ? `–${info.priceMax}` : ''}tr{perTable ? '/bàn' : ''}
+              Bạn đã lưu lúc {fmtTr(price)}tr. Giá hiện tại trên Tơ Hồng: {rangeTr(liveMin, info.priceMax)}{perTable ? '/bàn' : ''}
             </div>
           )}
 
@@ -249,9 +249,9 @@ function VendorDetailSheet({ vendor, catId, catAllocated, open, onClose, onConfi
           {/* Compare */}
           {diff !== null && (
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-500)', marginTop: 8 }}>
-              Dự toán: {catAllocated}tr ·{' '}
+              Dự toán: {fmtTr(catAllocated)}tr ·{' '}
               <span style={{ color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)', fontWeight: 600 }}>
-                {diff > 0 ? `+${diff}tr` : `${diff}tr`}
+                {fmtTr(diff, { plus: true })}tr
               </span>
             </div>
           )}
@@ -366,13 +366,13 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="ds-label" style={{ color: 'var(--kim-600)', marginBottom: 4 }}>Dự toán</div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-              {allocated}<span style={{ fontSize: 17 }}>tr</span>
+              {fmtTr(allocated)}<span style={{ fontSize: 17 }}>tr</span>
             </div>
           </div>
           <div style={{ flexShrink: 0, textAlign: 'right' }}>
             <div className="ds-label" style={{ color: 'var(--ink-400)', marginBottom: 4 }}>Ngân sách cưới</div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, color: 'var(--ink-500)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-              {bud.totalTarget || '—'}{bud.totalTarget > 0 && <span style={{ fontSize: 17 }}>tr</span>}
+              {bud.totalTarget ? fmtTr(bud.totalTarget) : '—'}{bud.totalTarget > 0 && <span style={{ fontSize: 17 }}>tr</span>}
             </div>
           </div>
         </div>
@@ -458,7 +458,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
                         )}
                         {spend > 0 && allocated > 0 && (
                           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: diff > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>
-                            {diff > 0 ? `Vượt ${diff}tr so với dự toán` : diff < 0 ? `Còn dư ${-diff}tr` : 'Khớp dự toán'}
+                            {diff > 0 ? `Vượt ${fmtTr(diff)}tr so với dự toán` : diff < 0 ? `Còn dư ${fmtTr(Math.abs(diff))}tr` : 'Khớp dự toán'}
                           </div>
                         )}
                       </div>
@@ -495,7 +495,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
               {(() => {
                 const r = Math.round(allocated * 10) / 10;
                 const name = cat.name.toLowerCase();
-                return r > 0 ? `Tìm ${name} trong khoảng ${String(r).replace('.', ',')}tr` : `Tìm ${name}`;
+                return r > 0 ? `Tìm ${name} trong khoảng ${fmtTr(r)}tr` : `Tìm ${name}`;
               })()}
             </span>
           </button>
@@ -628,7 +628,7 @@ export function ScreenBudget({
   const over = total - target;
   const allocPct = target > 0 ? Math.min(100, Math.round((total / target) * 100)) : 0;
   const confirmPct = target > 0 ? Math.min(100, Math.round((confirmedTotal / target) * 100)) : 0;
-  const statusText = target <= 0 ? 'Chưa đặt mục tiêu' : over === 0 ? 'Cân đối' : over > 0 ? `Vượt ${over}tr` : `Còn ${-over}tr`;
+  const statusText = target <= 0 ? 'Chưa đặt mục tiêu' : over === 0 ? 'Cân đối' : over > 0 ? `Vượt ${fmtTr(over)}tr` : `Còn ${fmtTr(Math.abs(over))}tr`;
 
   const openCat = openCatId ? bud.cats.find(c => c.id === openCatId) : null;
 
@@ -691,9 +691,9 @@ export function ScreenBudget({
         {compact && (
           <div style={{ padding: '0 16px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{total}/{target}<span style={{ fontSize: 12, fontWeight: 500 }}>tr</span></span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{fmtTr(total)}/{fmtTr(target)}<span style={{ fontSize: 12, fontWeight: 500 }}>tr</span></span>
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: over > 0 ? 'var(--danger-500)' : 'var(--sage-600)' }}>{statusText}</span>
-              {confirmedTotal > 0 && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--ink-400)', fontVariantNumeric: 'lining-nums tabular-nums' }}>Đã chốt {confirmedTotal}tr</span>}
+              {confirmedTotal > 0 && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--ink-400)', fontVariantNumeric: 'lining-nums tabular-nums' }}>Đã chốt {fmtTr(confirmedTotal)}tr</span>}
             </div>
             <div style={{ position: 'relative', height: 4, borderRadius: 999, background: 'var(--line-100)', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: allocPct + '%', background: 'var(--ink-200)', borderRadius: 999 }} />
@@ -721,8 +721,8 @@ export function ScreenBudget({
             <div>
               <div className="ds-label">Đã phân bổ</div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, color: 'var(--ink-900)', lineHeight: 1.05, marginTop: 3, fontVariantNumeric: 'lining-nums tabular-nums' }}>
-                {total}<span style={{ fontSize: 16, fontWeight: 500 }}>tr</span>
-                <span style={{ fontSize: 16, color: 'var(--ink-400)', fontWeight: 500 }}> / {target}<span style={{ fontSize: 12 }}>tr</span></span>
+                {fmtTr(total)}<span style={{ fontSize: 16, fontWeight: 500 }}>tr</span>
+                <span style={{ fontSize: 16, color: 'var(--ink-400)', fontWeight: 500 }}> / {fmtTr(target)}<span style={{ fontSize: 12 }}>tr</span></span>
               </div>
               <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, marginTop: 4,
                 color: over > 0 ? 'var(--danger-500)' : over < 0 ? 'var(--info-500)' : 'var(--sage-500)' }}>
@@ -732,7 +732,7 @@ export function ScreenBudget({
             {confirmedTotal > 0 && (
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--ink-400)' }}>Đã chốt vendor</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{confirmedTotal}<span style={{ fontSize: 12, fontWeight: 500 }}>tr</span></div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{fmtTr(confirmedTotal)}<span style={{ fontSize: 12, fontWeight: 500 }}>tr</span></div>
               </div>
             )}
           </div>
@@ -744,7 +744,7 @@ export function ScreenBudget({
           {bud.mung > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line-100)' }}>
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-500)' }}>Tiền mừng dự kiến</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--sage-500)', fontVariantNumeric: 'lining-nums tabular-nums' }}>+{bud.mung}tr → thực ~{Math.max(0, total - bud.mung)}tr</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--sage-500)', fontVariantNumeric: 'lining-nums tabular-nums' }}>+{fmtTr(bud.mung)}tr → thực ~{fmtTr(Math.max(0, total - bud.mung))}tr</span>
             </div>
           )}
         </div>
@@ -802,7 +802,7 @@ export function ScreenBudget({
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.4, fontWeight: 400, color: 'var(--ink-900)', minWidth: 0, textWrap: 'pretty' }}>{cat.name}</span>
                       <span style={{ fontFamily: 'var(--font-display)', fontSize: 21, fontWeight: 600, color: 'var(--ink-900)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                        {allocated}<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-500)' }}>tr</span>
+                        {fmtTr(allocated)}<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-500)' }}>tr</span>
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginTop: 2 }}>
@@ -814,7 +814,7 @@ export function ScreenBudget({
                       )}
                       {vendorConfirmed && vendorPrice > 0 && (
                         <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 500, color: over ? 'var(--danger-500)' : 'var(--sage-600)', fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                          {vendorPrice}<span style={{ fontSize: 12 }}>tr</span>
+                          {fmtTr(vendorPrice)}<span style={{ fontSize: 12 }}>tr</span>
                         </span>
                       )}
                     </div>

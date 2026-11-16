@@ -40,9 +40,6 @@ function withMeta(cat) {
   return { ...m, ...cat, ...(rename ? { name: rename.to } : {}) };
 }
 
-export function fmtTr(n) { return n + 'tr'; }
-export function fmtFull(n) { return (n * 1_000_000).toLocaleString('vi-VN') + ' ₫'; }
-
 export function useBudget(coupleId = null, initial = [], refreshKey = 0) {
   const [cats, setCats] = useState(initial.map((c) => ({ ...c })));
   const [meta, setMeta] = useState({

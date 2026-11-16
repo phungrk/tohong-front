@@ -6,7 +6,7 @@ import { ListRow, SectionHeader, Amount } from '../ui/ListRow.jsx';
 import { fallbackGradFor, useSavedVendorPhoto } from '../vendorImages.js';
 import { VendorIllustration } from '../vendorIllustrations.jsx';
 import { PhotoCredit } from '../ui/PhotoCredit.jsx';
-import { priceText } from '../ui/priceText.js';
+import { priceText, fmtTr } from '../ui/priceText.js';
 import { useConnect } from './connectContext.js';
 
 /* ── VVendorRow ─────────────────────────────────────────────── */
@@ -80,7 +80,7 @@ function CatCard({ cat, onOpenChat }) {
       <ListRow
         icon={cat.icon} done={status === 'confirmed'}
         title={cat.name}
-        value={<Amount value={getCatBudget(cat.id)} unit="tr" />}
+        value={<Amount value={fmtTr(getCatBudget(cat.id))} unit="tr" />}
         sub={sub} subColor={subColor}
         right={
           <button type="button" aria-label={`Hỏi Tơ Hồng về ${cat.name}`} onClick={() => onOpenChat(cat.id)}
@@ -140,10 +140,10 @@ export function ScreenVendorShortlist({ onMenuOpen, onOpenVendorChat }) {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 3 }}>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
                 color: confirmed > 0 ? 'var(--sage-600)' : 'var(--ink-900)', fontVariantNumeric: 'tabular-nums' }}>
-                {confirmed}tr
+                {fmtTr(confirmed)}tr
               </span>
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>
-                / {totalBudget}tr đã chốt
+                / {fmtTr(totalBudget)}tr đã chốt
               </span>
             </div>
           </div>

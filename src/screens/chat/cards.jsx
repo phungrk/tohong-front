@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../../ui/Icon.jsx';
 import { EditAmount } from '../../ui/atoms.jsx';
+import { fmtTr } from '../../ui/priceText.js';
 import { api } from '../../api.js';
 
 export function CardShell({ children, gold = false }) {
@@ -328,10 +329,10 @@ export function ChatBudgetMini({ budgetHook }) {
   const bud = budgetHook;
   return (
     <CardShell>
-      <CardHead icon="wallet" kicker="Ngân sách" title={bud.totalTarget > 0 ? `Phân bổ ${bud.totalTarget}tr` : 'Phân bổ ngân sách'}
+      <CardHead icon="wallet" kicker="Ngân sách" title={bud.totalTarget > 0 ? `Phân bổ ${fmtTr(bud.totalTarget)}tr` : 'Phân bổ ngân sách'}
         right={bud.mung > 0 ? <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)' }}>tiền mừng</div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--sage-500)' }}>+{bud.mung}tr</div>
+          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--sage-500)' }}>+{fmtTr(bud.mung)}tr</div>
         </div> : null} />
       <div style={{ padding: '12px 15px' }}>
         {bud.cats.length === 0 && (

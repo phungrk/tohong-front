@@ -8,7 +8,7 @@ import { track } from '../../analytics.js';
 import { priceBand } from '../../journey.js';
 import { CardShell, CardHead, CardAction, GhostBtn } from './cards.jsx';
 import { ConnectAction } from './ConnectAction.jsx';
-import { priceText } from '../../ui/priceText.js';
+import { priceText, fmtTr } from '../../ui/priceText.js';
 import { CAT_FALLBACK_GRAD, GENERIC_FALLBACK_GRAD, cssBg, usablePhotos } from '../../vendorImageUrls.js';
 import { PhotoCredit } from '../../ui/PhotoCredit.jsx';
 import { readSavedSig, sameSig, sigLabel } from '../../budget/savedBudgetSig.js';
@@ -165,7 +165,7 @@ export function VPickerChatCard() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>{cat.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{getCatBudget(cat.id)}tr</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>Budget ~{fmtTr(getCatBudget(cat.id))}tr</div>
               </span>
               {status === 'confirmed' && (
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sage-500)', flexShrink: 0 }} />
@@ -1126,7 +1126,7 @@ export function VCompareTableChatCard({ catId, vendors: vendors0 = [] }) {
                 <span key={v.id}>{i > 0 && ' › '}<b>{v.name.split(' ')[0]} {v.match}%</b></span>
               ))}.{' '}
               <b>{ranked[0].name}</b> dẫn đầu — {(ranked[0].reasons?.[0] || ranked[0].why || 'điểm phù hợp cao nhất').toLowerCase()}.
-              {cheapest.id !== ranked[0].id && <> Nếu ưu tiên tiết kiệm, <b>{cheapest.name}</b> ({cheapest.priceTotal}tr) đáng cân nhắc nhất.</>}
+              {cheapest.id !== ranked[0].id && <> Nếu ưu tiên tiết kiệm, <b>{cheapest.name}</b> ({fmtTr(cheapest.priceTotal)}tr) đáng cân nhắc nhất.</>}
             </div>
           </div>
         </div>}

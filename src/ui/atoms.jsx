@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Icon } from './Icon.jsx';
+import { fmtTr } from './priceText.js';
 
 export function ThreadMark({ size = 24, color = 'var(--son-500)', dot = 'var(--kim-400)' }) {
   return (
@@ -106,7 +107,7 @@ export function EditAmount({ value, onChange, autoFocus = false, size = 16, colo
       onMouseEnter={(e) => (e.currentTarget.style.borderBottomColor = 'var(--line-300)')}
       onMouseLeave={(e) => (e.currentTarget.style.borderBottomColor = 'transparent')}
     >
-      {value}tr
+      {fmtTr(value)}tr
     </button>
   );
 }

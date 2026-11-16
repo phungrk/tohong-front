@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../ui/Icon.jsx';
+import { fmtTr } from '../ui/priceText.js';
 import { useHistoryLayer } from '../nav.js';
 import { AIButton } from '../ui/AIButton.jsx';
 import { ThreadMark, Thread } from '../ui/atoms.jsx';
@@ -292,8 +293,8 @@ export function ScreenDashboard({ me = { status: 'ok' }, coupleId = null, role =
           <div className="ds-label" style={{ marginBottom: 10 }}>Tổng quan</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <DBTile icon="wallet" color="var(--son-500)" label="Ngân sách"
-              main={`${data.budget.total_tr}tr`}
-              sub={data.budget.over ? `Vượt ${data.budget.spent_tr - data.budget.total_tr}tr` : 'Cân đối 👌'}
+              main={`${fmtTr(data.budget.total_tr)}tr`}
+              sub={data.budget.over ? `Vượt ${fmtTr(data.budget.spent_tr - data.budget.total_tr)}tr` : 'Cân đối 👌'}
               onClick={() => navigate(3)}>
               <DBMiniBar pct={bPct} color={data.budget.over ? 'var(--danger-500)' : 'var(--sage-500)'} />
             </DBTile>
