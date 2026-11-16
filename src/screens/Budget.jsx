@@ -4,7 +4,7 @@ import { useShowAfter, SkelRegion, SkelHold, Bar, LoadError } from '../ui/Skel.j
 import { AIButton } from '../ui/AIButton.jsx';
 import { EditName, AllocSlider } from '../ui/atoms.jsx';
 import { BaselineSlider } from '../components/BaselineSlider.jsx';
-import { useBudget, getCategoryBaseline } from '../budget/useBudget.js';
+import { useBudget, getCategoryBaseline, amtOf } from '../budget/useBudget.js';
 import { useVendorCtx, VENDOR_CATEGORIES } from './VendorCtx.jsx';
 import { track } from '../analytics.js';
 import { priceBand, venueCost } from '../journey.js';
@@ -323,7 +323,7 @@ function BudgetCatDetail({ cat, bud, vendorCtx, onBack, onOpenVendorChat, onOpen
   const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
   const catVendors = vendorCtx?.saved?.[cat.id] || { shortlisted: [], confirmed: null };
   const confirmedVendorId = catVendors.confirmed?.id;
-  const allocated = cat.allocated_tr || 0;
+  const allocated = amtOf(cat);
   const { basePct, base } = getCategoryBaseline(cat.id, bud.totalTarget || 0);
   const pct = bud.totalTarget > 0 ? Math.round(allocated / bud.totalTarget * 100) : 0;
   const diff = allocated - base;
@@ -760,7 +760,7 @@ export function ScreenBudget({
           <div>
             {bud.cats.map((cat, i) => {
               const isLast = i === bud.cats.length - 1;
-              const allocated = cat.allocated_tr || 0;
+              const allocated = amtOf(cat);
               const isVendorCat = VENDOR_CATEGORIES.some(vc => vc.id === cat.id);
               const catSaved = isVendorCat ? vendorCtx?.getSaved?.(cat.id) : null;
               const confirmedVendor = catSaved?.confirmed || null;
