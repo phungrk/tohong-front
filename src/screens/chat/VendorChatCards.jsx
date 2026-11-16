@@ -723,7 +723,7 @@ export function VDetailChatCard({ catId, vendor: vendor0 }) {
           {/* câu AI: chờ điểm -> hai dòng skeleton (không câu mẫu mờ, không caret); điểm về mà không có câu AI -> câu mẫu của hàng (nếu có); câu AI về -> Typewriter như cũ */}
           {skelWait ? (
             <div style={{ display: 'flex', gap: 8, marginTop: 9, padding: '8px 10px', background: 'var(--card)',
-              border: '1px solid var(--kim-100)', borderRadius: 'var(--r-md)' }}>
+              border: '1px solid var(--kim-100)', borderRadius: 'var(--r-md)', ...hid }}>
               <Avatar size={20} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Bar h={13} w="100%" style={hid} />
