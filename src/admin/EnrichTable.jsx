@@ -80,6 +80,9 @@ export function EnrichTable() {
     if (data && data.rows.length === 0 && data.total > 0 && offset > 0) setOffset(Math.floor((data.total - 1) / PAGE) * PAGE);
   }, [data, offset]);
 
+  // Dữ liệu mới từ server là sự thật: bỏ bản ghi tạm (chỉ giữ phản hồi tức thì tới lần tải kế).
+  useEffect(() => { setLocal({}); }, [data]);
+
   const reviewOf = (r) => (r.override ? null : r.id in local ? local[r.id] : r.review);
 
   const approve = async (r) => {
