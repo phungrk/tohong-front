@@ -80,7 +80,7 @@ export function EnrichTable() {
     if (data && data.rows.length === 0 && data.total > 0 && offset > 0) setOffset(Math.floor((data.total - 1) / PAGE) * PAGE);
   }, [data, offset]);
 
-  // Dữ liệu mới từ server là sự thật: bỏ bản ghi tạm (chỉ giữ phản hồi tức thì tới lần tải kế).
+  // Sau mỗi lần ghi, reload() huỷ yêu cầu đang bay và tải lại theo bộ lọc hiện tại; mọi phản hồi tới sau đó đều được yêu cầu sau lần ghi, nên là sự thật và thay bản ghi tạm.
   useEffect(() => { setLocal({}); }, [data]);
 
   const reviewOf = (r) => (r.override ? null : r.id in local ? local[r.id] : r.review);
@@ -91,7 +91,7 @@ export function EnrichTable() {
     try {
       const res = await api.adminEnrichReview(r.id, { decision: 'approve' });
       setLocal((l) => ({ ...l, [r.id]: res.review }));
-      if (status !== 'all') reload();
+      reload();
     } catch (err) {
       setRowError(adminErrMsg(err));
     } finally {
@@ -104,7 +104,7 @@ export function EnrichTable() {
     try {
       await api.adminEnrichWithdraw(r.id);
       setLocal((l) => ({ ...l, [r.id]: null }));
-      if (status !== 'all') reload();
+      reload();
     } catch (err) {
       setRowError(adminErrMsg(err));
     } finally {
@@ -171,7 +171,7 @@ export function EnrichTable() {
         </>
       )}
       {open && <EnrichDrawer id={open.id} name={open.name} trigger={open.trigger} onClose={() => setOpen(null)} />}
-      {edit && <ManualDialog r={edit} onClose={() => setEdit(null)} onSaved={(review) => { setLocal((l) => ({ ...l, [edit.id]: review })); setEdit(null); if (status !== 'all') reload(); }} />}
+      {edit && <ManualDialog r={edit} onClose={() => setEdit(null)} onSaved={(review) => { setLocal((l) => ({ ...l, [edit.id]: review })); setEdit(null); reload(); }} />}
     </section>
   );
 }
