@@ -230,9 +230,10 @@ export const api = {
     return req('GET', `/api/admin/vendors?${p}`);
   },
   // Bảng enrich vendor (T-124): Approve / Sửa thủ công chỉ ghi review chờ áp dụng.
-  adminEnrichList: ({ filter, category, q, offset, limit } = {}) => {
+  adminEnrichList: ({ filter, status, category, q, offset, limit } = {}) => {
     const p = new URLSearchParams();
     if (filter && filter !== 'all') p.set('filter', filter);
+    if (status && status !== 'all') p.set('status', status);
     if (category) p.set('category', category);
     if (q) p.set('q', q);
     if (offset) p.set('offset', offset);
