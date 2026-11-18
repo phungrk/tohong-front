@@ -90,6 +90,7 @@ export function ConnectInbox({ onChanged, onEditVendor }) {
                         <div className="adm-muted" style={{ fontSize: 12 }}>
                           {r.vendor?.catLabel || r.vendor?.category || ''}
                           {r.vendor_hidden && ' · đang ẩn'}
+                          {r.vendor_deleted && ' · đã xoá'}
                         </div>
                       </td>
                       <td><Badge tone={STATUS[r.status]?.tone}>{STATUS[r.status]?.label || r.status}</Badge></td>
@@ -162,6 +163,7 @@ function ConnectDetail({ id, onChanged, onEditVendor }) {
         <Badge tone={STATUS[req.status]?.tone}>{STATUS[req.status]?.label}</Badge>
       </div>
       {req.vendor_hidden && <div className="adm-error" style={{ marginTop: 8 }}>Vendor này đang bị ẩn khỏi cặp đôi.</div>}
+      {req.vendor_deleted && <div className="adm-error" style={{ marginTop: 8 }}>Vendor này đã bị xoá (gỡ khỏi cặp đôi), đừng liên hệ vendor trước khi khôi phục.</div>}
       <dl className="adm-dl" style={{ marginTop: 12 }}>
         <dt>Cặp đôi</dt><dd>{req.couple?.name || req.couple?.id}</dd>
         <dt>Email</dt><dd>{req.couple?.email || '—'}</dd>
