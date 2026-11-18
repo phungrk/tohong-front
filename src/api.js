@@ -248,6 +248,10 @@ export const api = {
   adminVendorGet: (id) => req('GET', `/api/admin/vendors/${encodeURIComponent(id)}`),
   adminVendorPut: (id, body) =>
     req('PUT', `/api/admin/vendors/${encodeURIComponent(id)}/override`, body),
+  adminVendorDelete: (id, expectedVersion, reason) =>
+    req('POST', `/api/admin/vendors/${encodeURIComponent(id)}/delete`, { expected_version: expectedVersion, reason }),
+  adminVendorRestore: (id, expectedVersion) =>
+    req('POST', `/api/admin/vendors/${encodeURIComponent(id)}/restore`, { expected_version: expectedVersion }),
   adminVendorClear: (id, expectedVersion) =>
     req('DELETE', `/api/admin/vendors/${encodeURIComponent(id)}/override`, { expected_version: expectedVersion }),
 

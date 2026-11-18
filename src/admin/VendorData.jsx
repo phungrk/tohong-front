@@ -17,6 +17,7 @@ const LABELS = [
   ['hidden', 'Đang ẩn'],
   ['overridden', 'Đã ghi đè'],
   ['orphan', 'Mồ côi (không còn trong pool)'],
+  ['deleted', 'Đã xoá'],
 ];
 const PAGE = 50;
 
@@ -95,9 +96,15 @@ function VendorList({ focusId }) {
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                             <Badge tone={v.price_source === 'verified' ? 'ok' : 'neutral'}>{v.price_label || (v.price_source === 'verified' ? 'Giá đã xác minh' : 'Giá ước tính')}</Badge>
                             {v.has_contact ? <Badge tone="info">Có liên hệ</Badge> : <Badge tone="neutral">Thiếu liên hệ</Badge>}
-                            {v.hidden && <Badge tone="bad">Đang ẩn</Badge>}
+                            {v.deleted && <Badge tone="bad">Đã xoá</Badge>}
+                            {v.hidden && !v.deleted && <Badge tone="bad">Đang ẩn</Badge>}
                             {v.orphan && <Badge tone="progress">Mồ côi</Badge>}
                           </div>
+                          {v.deleted && (
+                            <div className="adm-muted" style={{ fontSize: 12, marginTop: 4 }}>
+                              Lý do: {v.deleted_reason}{v.in_pool === false && ' · không còn trong pool'}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -113,7 +120,7 @@ function VendorList({ focusId }) {
           )}
         </div>
         <div>
-          {selId ? <VendorEditor key={selId} id={selId} onSaved={load} /> : <div className="adm-note">Chọn một vendor để sửa.</div>}
+          {selId ? <VendorEditor key={selId} id={selId} onSaved={load} onClose={() => setSelId(null)} /> : <div className="adm-note">Chọn một vendor để sửa.</div>}
         </div>
       </div>
     </section>
@@ -123,16 +130,16 @@ function VendorList({ focusId }) {
 const numStr = (n) => (n == null ? '' : String(n));
 const toNum = (s) => (s.trim() === '' ? null : Number(s));
 
-function VendorEditor({ id, onSaved }) {
+function VendorEditor({ id, onSaved, onClose }) {
   const fetchOne = useCallback(() => api.adminVendorGet(id), [id]);
   const { data: detail, error, reload, loadedAt } = useLoad(fetchOne);
   const [saved, setSaved] = useState(''); // ở đây để còn sau khi form khởi tạo lại
   if (!detail) return error ? <ErrorNote error={error} onRetry={reload} /> : <Loading />;
   // key = loadedAt: tải lại (sau lưu hoặc khi xung đột phiên bản) khởi tạo lại form từ dữ liệu mới.
-  return <VendorForm key={loadedAt} id={id} detail={detail} reload={reload} onSaved={onSaved} saved={saved} setSaved={setSaved} />;
+  return <VendorForm key={loadedAt} id={id} detail={detail} reload={reload} onSaved={onSaved} onClose={onClose} saved={saved} setSaved={setSaved} />;
 }
 
-function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
+function VendorForm({ id, detail, reload, onSaved, onClose, saved, setSaved }) {
   const o = detail.override || {};
   const [form, setForm] = useState({
     priceMin: numStr(o.priceMin),
@@ -149,6 +156,8 @@ function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
   const [fieldErr, setFieldErr] = useState({});
   const [busy, setBusy] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [delReason, setDelReason] = useState('');
 
   const set = (k) => (e) => {
     setSaved('');
@@ -219,8 +228,75 @@ function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
     }
   };
 
+  const remove = async () => {
+    const reason = delReason.trim();
+    if (!reason) return;
+    setBusy(true);
+    setError('');
+    try {
+      await api.adminVendorDelete(id, detail.version || 0, reason);
+      setSaved('Đã xoá vendor. Khôi phục được ở nhãn "Đã xoá".');
+      setConfirmDel(false);
+      setDelReason('');
+      onSaved();
+      reload();
+    } catch (err) {
+      if (err.code === 'version_conflict') setConflict(true);
+      else setError(adminErrMsg(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const restore = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await api.adminVendorRestore(id, detail.version || 0);
+      setSaved('Đã khôi phục vendor.');
+      onSaved();
+      // Không còn bản sửa nào thì vendor biến khỏi mọi nhãn (chi tiết 404): đóng khung, không báo lỗi.
+      api.adminVendorGet(id).then(reload, (e) => (e?.status === 404 ? onClose() : reload()));
+    } catch (err) {
+      if (err.code === 'version_conflict') setConflict(true);
+      else setError(adminErrMsg(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const base = detail.vendor;
   const hasOverride = !!detail.override;
+
+  if (detail.deleted) {
+    const info = detail.deleted_info || {};
+    return (
+      <div className="adm-card">
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600 }}>{base?.name || '(không còn trong pool)'}</div>
+        <div className="adm-muted" style={{ fontSize: 12, marginBottom: 10 }}>{base?.catLabel || base?.category || ''} · {id}</div>
+        <div className="adm-error">
+          Vendor này đã bị xoá: cặp đôi không còn thấy và không có trong danh sách thường. Khôi phục được.
+        </div>
+        {detail.in_pool === false && <div className="adm-note">Vendor không còn trong pool (pipeline đã gỡ); khôi phục xong sẽ về đúng nơi nó sẽ ở.</div>}
+        <dl className="adm-dl" style={{ marginTop: 12 }}>
+          <dt>Lý do xoá</dt><dd>{info.reason}</dd>
+          <dt>Thời điểm</dt><dd>{info.at}</dd>
+          <dt>Người xoá</dt><dd>{info.by}</dd>
+        </dl>
+        {conflict && (
+          <div className="adm-error" role="alert">
+            {adminErrMsg({ code: 'version_conflict' })}
+            <button type="button" className="adm-btn adm-btn-sm" style={{ marginLeft: 10 }} onClick={reload}>Tải lại</button>
+          </div>
+        )}
+        <div className="adm-actions">
+          <button type="button" className="adm-btn adm-btn-primary" disabled={busy} onClick={restore}>Khôi phục vendor</button>
+        </div>
+        {saved && <div className="adm-ok" role="status">{saved}</div>}
+        <ErrorNote error={error} />
+      </div>
+    );
+  }
 
   return (
     <div className="adm-card">
@@ -277,7 +353,24 @@ function VendorForm({ id, detail, reload, onSaved, saved, setSaved }) {
         ) : (
           <button type="button" className="adm-btn adm-btn-danger" disabled={busy} onClick={() => setConfirmClear(true)}>Bỏ ghi đè</button>
         ))}
+        {!detail.orphan && !confirmDel && (
+          <button type="button" className="adm-btn adm-btn-danger" disabled={busy} onClick={() => { setConfirmDel(true); setDelReason(''); }}>Xoá vendor</button>
+        )}
       </div>
+      {confirmDel && (
+        <div className="adm-error" style={{ marginTop: 10 }}>
+          <div style={{ marginBottom: 8 }}>
+            Vendor sẽ bị gỡ khỏi cặp đôi và khỏi danh sách này, nhưng khôi phục được ở nhãn "Đã xoá".
+          </div>
+          <Field label="Lý do xoá">
+            <input className="adm-input" value={delReason} onChange={(e) => setDelReason(e.target.value)} maxLength={300} />
+          </Field>
+          <div className="adm-actions">
+            <button type="button" className="adm-btn adm-btn-danger" disabled={busy || !delReason.trim()} onClick={remove}>Xác nhận xoá</button>
+            <button type="button" className="adm-btn" onClick={() => { setConfirmDel(false); setDelReason(''); }}>Thôi</button>
+          </div>
+        </div>
+      )}
       {saved && <div className="adm-ok" role="status">{saved}</div>}
       <ErrorNote error={error} />
     </div>

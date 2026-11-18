@@ -13,6 +13,8 @@ const ACTIONS = [
   ['subscription.keep_legacy', 'Giữ gói tự kích hoạt'],
   ['vendor.override', 'Ghi đè vendor'],
   ['vendor.override_clear', 'Bỏ ghi đè vendor'],
+  ['vendor.delete', 'Xoá vendor'],
+  ['vendor.restore', 'Khôi phục vendor'],
 ];
 const ACTION_LABEL = Object.fromEntries(ACTIONS.filter(([k]) => k));
 
