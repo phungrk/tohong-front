@@ -172,6 +172,7 @@ function ConnectDetail({ id, onChanged, onEditVendor }) {
         <dt>Ghi chú của họ</dt><dd>{req.note || '—'}</dd>
         <dt>Nguồn</dt><dd>{req.source === 'chat' ? 'Thẻ trong chat' : 'Vendor đã lưu'}</dd>
         <dt>Hạng mục</dt><dd>{req.vendor?.catLabel || req.vendor?.category || '—'}</dd>
+        <dt>Địa chỉ vendor</dt><dd>{req.vendor?.address || '—'}</dd>
         <dt>Liên hệ vendor</dt><dd>{fmtContact(req.vendor?.contact)}</dd>
         <dt>Nguồn vendor</dt><dd>{req.vendor?.source_link ? <a href={req.vendor.source_link} target="_blank" rel="noreferrer">Mở link</a> : '—'}</dd>
         <dt>Gửi lúc</dt><dd>{fmtTime(req.created_at)} · chờ {fmtWait(req.waiting_hours)}</dd>
