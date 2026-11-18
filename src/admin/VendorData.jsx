@@ -145,6 +145,7 @@ function VendorForm({ id, detail, reload, onSaved, onClose, saved, setSaved }) {
     priceMin: numStr(o.priceMin),
     priceMax: numStr(o.priceMax),
     price_verified: o.price_verified === true,
+    address: o.address || '',
     phone: o.contact?.phone || '',
     zalo: o.contact?.zalo || '',
     website: o.contact?.website || '',
@@ -194,6 +195,7 @@ function VendorForm({ id, detail, reload, onSaved, onClose, saved, setSaved }) {
         priceMin: toNum(form.priceMin),
         priceMax: toNum(form.priceMax),
         price_verified: form.price_verified,
+        address: form.address.trim() || null,
         contact: Object.keys(contact).length ? contact : null,
         hidden: form.hidden,
         hidden_reason: form.hidden ? form.hidden_reason.trim() : '',
@@ -204,6 +206,8 @@ function VendorForm({ id, detail, reload, onSaved, onClose, saved, setSaved }) {
     } catch (err) {
       if (err.code === 'version_conflict') setConflict(true);
       else if (err.code === 'invalid_price') setFieldErr({ priceMin: adminErrMsg(err) });
+      else if (err.code === 'invalid_phone') setFieldErr({ phone: 'Số điện thoại không hợp lệ. Nhập một số, ví dụ 0912 345 678 hoặc +84 912 345 678.' });
+      else if (err.code === 'invalid_address') setFieldErr({ address: 'Địa chỉ không hợp lệ. Cần 5 đến 250 ký tự, có chữ hoặc số.' });
       else if (err.code === 'hidden_reason_required') setFieldErr({ hidden_reason: adminErrMsg(err) });
       else setError(adminErrMsg(err));
     } finally {
@@ -326,9 +330,12 @@ function VendorForm({ id, detail, reload, onSaved, onClose, saved, setSaved }) {
         Giá đã xác minh với vendor
       </label>
 
-      <div className="adm-field-label" style={{ marginBottom: 6 }}>Liên hệ vendor (chỉ admin thấy)</div>
+      <div className="adm-field-label" style={{ marginBottom: 6 }}>Địa chỉ và liên hệ vendor (chỉ admin thấy, không hiện cho cặp đôi)</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <input className="adm-input" placeholder="Số điện thoại" aria-label="Số điện thoại" value={form.phone} onChange={set('phone')} />
+        <input className={`adm-input ${fieldErr.address ? 'is-invalid' : ''}`} placeholder="Địa chỉ" aria-label="Địa chỉ" aria-invalid={!!fieldErr.address} value={form.address} onChange={set('address')} />
+        {fieldErr.address && <span className="adm-hint is-error" role="alert">{fieldErr.address}</span>}
+        <input className={`adm-input ${fieldErr.phone ? 'is-invalid' : ''}`} placeholder="Số điện thoại" aria-label="Số điện thoại" aria-invalid={!!fieldErr.phone} value={form.phone} onChange={set('phone')} />
+        {fieldErr.phone && <span className="adm-hint is-error" role="alert">{fieldErr.phone}</span>}
         <input className="adm-input" placeholder="Zalo" aria-label="Zalo" value={form.zalo} onChange={set('zalo')} />
         <input className="adm-input" placeholder="Fanpage / website" aria-label="Fanpage hoặc website" value={form.website} onChange={set('website')} />
       </div>
